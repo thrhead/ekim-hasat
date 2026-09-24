@@ -366,47 +366,26 @@ Graft is development tooling for repository structure/context discovery.
 
 It must never become an Ekim Hasat runtime dependency.
 
-Repository integration is expected to use:
-- `.claude/skills/graft/SKILL.md`
-- `.claude/helpers/graft-hooks.cjs`
-- `.claude/helpers/graft-statusline.cjs`
-- `.claude/settings.json`
-- `.mcp.json`
-- `AGENTS.md`
+The repository is initialized for Codex with:
 
-Where required by the installed spec-kit integration:
-- `.specify/integrations/codex.manifest.json`
-- `.specify/integration.json`
+`graft init --agents agents`
 
-Generated integration contents must come from the installed tooling. Do not fabricate generated configuration.
+Codex-specific MCP and hook integration may be installed by Graft at user level
+under `~/.codex/`.
 
-### Graft bootstrap
-
-Before feature development:
-
-1. Run `graft init --dry-run`.
-2. Review the proposed changes.
-3. Complete required Codex/Graft repository wiring.
-4. Run `graft build`.
-5. Run `graft check`.
-6. Confirm `graft/` is Git-ignored.
+These machine-level files are not repository artifacts and must not be committed.
 
 ### Graft rules
 
-- `graft/` is local generated cache/context and must not be committed.
+- `graft/` is a local generated context graph and must not be committed.
+- `graft/` must remain Git-ignored.
 - Do not run `graft build --deep` unless explicitly approved.
 - Graft may manage only its marker-fenced block inside `AGENTS.md`.
-- Never allow Graft to overwrite hand-maintained instructions outside that block.
-- Run `graft check` after material repository-structure changes.
-- Prefer Graft context/structure discovery before broad manual repository exploration.
-
-Before the first product feature, report:
-- initialization status;
-- wiring status;
-- `graft build` result;
-- `graft check` result;
-- Git-ignore status for `graft/`;
-- confirmation of marker-fenced `AGENTS.md` ownership.
+- Do not manually edit the Graft-managed fenced block.
+- Run `graft build` after material code or repository-structure changes.
+- Run `graft check` to verify that the graph matches the repository.
+- Prefer Graft context/structure discovery before broad manual source exploration.
+- Graft must never become an application runtime dependency.
 
 ## 24. spec-kit Workflow
 
