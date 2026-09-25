@@ -1,0 +1,294 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Self-Service Onboarding Contract (Design)
+  version: 1.0.0
+  description: >-
+    Approved contract for SPEC-001. It provides minimal onboarding status and
+    first-field completion, not general field listing.
+servers:
+  - url: /v1
+security:
+  - bearerAuth: []
+paths:
+  /onboarding/status:
+    get:
+      operationId: getFarmerOnboardingStatus
+      summary: Read whether first-field onboarding is needed
+      security:
+        - bearerAuth: []
+      description: >-
+        Returns only the minimum state needed to decide whether first-field
+        onboarding is needed. This is not a general field-list endpoint.
+        Application tenant enforcement is mandatory; PostgreSQL RLS is optional
+        defense-in-depth and is not required for MVP. If the server-owned
+        default business context is unusable or lacks an active Membership for
+        the authenticated user, the operation returns a privacy-safe 403. It
+        does not reveal whether another business exists and does not fall back
+        to another Membership or select another business.
+      responses:
+        '200':
+          description: Minimal onboarding status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /onboarding/complete:
+    post:
+      operationId: completeFarmerOnboarding
+      summary: Atomically complete first-field onboarding for the authenticated farmer
+      description: >-
+        Resolves or creates the application User, default Business, OWNER
+        Membership, first Field, default-business context pointer, durable
+        completion record, and retained idempotency result in one PostgreSQL transaction. The client
+        accepts no client-selected business or membership. The operation is online-only.
+        Membership is the sole authorization authority and the default business
+        pointer selects context only. An unusable default-business context fails
+        with HTTP 400 using the normal privacy-safe Error schema; this command
+        does not return 403 and does not reveal whether another business exists.
+        No success response is returned until the transaction commits. A
+        Repeated requests with the same idempotency key and payload return the
+        original logical result. A durable completed-onboarding domain check
+        returns the current first-field summary without creating another first
+        field, even after idempotency cache retention expires. Tenant scope is
+        enforced server-side. A submitted polygon is unverified unless a real
+        verification process has occurred. The returned FirstFieldSummary is
+        used for post-save confirmation/current first-field state; general
+        field listing remains SPEC-002. Location input supports Point and
+        Polygon only; MultiPolygon is outside SPEC-001.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteOnboardingRequest'
+      responses:
+        '200':
+          description: An idempotent retry or already-completed onboarding returned the current first-field summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingResult'
+        '201':
+          description: The command committed the first onboarding result and returned its summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingResult'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/InvalidLocation'
+        '5XX':
+          $ref: '#/components/responses/ServerFailure'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token validation is delegated through the configured auth adapter.
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Stable identity for retries of one logical onboarding command. It is
+        scoped to the authenticated user. Reusing a retained key with a
+        different payload returns 409. After the key record expires, durable
+        completion takes precedence: return the existing first-field summary
+        with 200 and perform no mutation. Retention duration is operational
+        configuration.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+  schemas:
+    CompleteOnboardingRequest:
+      type: object
+      required: [location]
+      properties:
+        name:
+          type: string
+          description: >-
+            Optional first-field name. The server trims leading and trailing
+            whitespace. If the value is omitted or empty after trimming, the
+            server assigns exactly "Tarla 1"; otherwise it stores the trimmed
+            value. General subsequent-field numbering is outside SPEC-001.
+        location:
+          oneOf:
+            - $ref: '#/components/schemas/PointGeometry'
+            - $ref: '#/components/schemas/PolygonGeometry'
+          description: >-
+            A Point representative location or a drawn Polygon. MultiPolygon
+            is not supported by SPEC-001. When Polygon-only input is supplied,
+            the server derives a representative point on the polygon and
+            stores the polygon as an unverified boundary version.
+      additionalProperties: false
+    OnboardingResult:
+      type: object
+      required: [field]
+      properties:
+        field:
+          $ref: '#/components/schemas/FirstFieldSummary'
+      additionalProperties: false
+    FirstFieldSummary:
+      type: object
+      required: [id, name, representativePoint, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/PointGeometry'
+        createdAt:
+          type: string
+          format: date-time
+        boundary:
+          $ref: '#/components/schemas/BoundaryVersion'
+      additionalProperties: false
+    OnboardingStatus:
+      type: object
+      required: [firstFieldOnboardingNeeded]
+      properties:
+        firstFieldOnboardingNeeded:
+          type: boolean
+          description: Whether the authenticated farmer needs first-field onboarding.
+      additionalProperties: false
+    Field:
+      type: object
+      required: [id, name, representativePoint, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/PointGeometry'
+        boundary:
+          $ref: '#/components/schemas/BoundaryVersion'
+        createdAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    BoundaryVersion:
+      type: object
+      required: [id, version, geometry, verificationStatus]
+      properties:
+        id:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        geometry:
+          $ref: '#/components/schemas/PolygonGeometry'
+        verificationStatus:
+          type: string
+          enum: [unverified, verified]
+          description: SPEC-001 stores submitted boundaries as unverified.
+      additionalProperties: false
+    PointGeometry:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type:
+          const: Point
+        coordinates:
+          type: array
+          prefixItems:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: number
+              minimum: -90
+              maximum: 90
+          minItems: 2
+          maxItems: 2
+          description: GeoJSON longitude, latitude in WGS 84 / SRID 4326.
+      additionalProperties: false
+    PolygonGeometry:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type:
+          const: Polygon
+        coordinates:
+          type: array
+          description: GeoJSON polygon rings; server validates closure and geometry validity.
+          items:
+            type: array
+            items:
+              type: array
+              prefixItems:
+                - type: number
+                  minimum: -180
+                  maximum: 180
+                - type: number
+                  minimum: -90
+                  maximum: 90
+              minItems: 2
+              maxItems: 2
+      additionalProperties: false
+    Error:
+      type: object
+      required: [code, message, correlationId]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        correlationId:
+          type: string
+        retryable:
+          type: boolean
+      additionalProperties: false
+  responses:
+    Unauthorized:
+      description: Authentication is missing, invalid, or expired.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: >-
+        The authenticated user's default context is unusable or lacks an active
+        Membership. This response does not reveal whether another business
+        exists and uses the normal privacy-safe error schema.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidInput:
+      description: Request fields are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidLocation:
+      description: Point or polygon geometry is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    IdempotencyConflict:
+      description: The key was reused with a different onboarding command payload.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerFailure:
+      description: Connectivity or server failure; client must not infer commit success.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

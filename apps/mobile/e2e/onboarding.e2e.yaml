@@ -1,0 +1,81 @@
+appId: ${MAESTRO_APP_ID}
+---
+# Environment preconditions:
+# - Install the production Expo app and persist a valid authenticated session
+#   for a test account whose onboarding status is incomplete.
+# - Run on Android with the system UI language set to English (for the OS
+#   permission-denial action); reset this app's foreground location permission.
+# - Route the app API through a test proxy. It must be able to (a) pass status
+#   and validation responses, (b) delay valid completion requests enough to
+#   show the saving state, commit them but discard their first responses, and
+#   (c) for the concurrency run, hold requests until both device requests have
+#   reached the server, then release them and discard both first responses.
+#   Retries pass through normally. This proxy is network control only; the app
+#   remains the only completion client.
+# - To exercise concurrent convergence, start this same flow at the same time
+#   on two Android devices logged into the same incomplete test account. The UI
+#   prevents a second tap while a request is in flight, so the two devices and
+#   proxy barrier are required to create concurrent server requests via UI.
+#
+# The flow itself uses only production-visible text/accessibility selectors.
+- setAirplaneMode: enabled
+- launchApp
+- assertVisible: "Giriş yapılamadı. Yeniden deneyin."
+- assertVisible: "Yeniden dene"
+- setAirplaneMode: disabled
+- tapOn: "Yeniden dene"
+- assertVisible: "İlk tarlanızı ekleyin"
+- assertVisible: "Tarla adı (isteğe bağlı)"
+- assertVisible: "Konumumu kullan"
+- assertVisible: "Tarlayı kaydet"
+
+# Location permission denial must leave the visible map entry path usable.
+- tapOn: "Konumumu kullan"
+- tapOn:
+    text: "Don't allow"
+    optional: true
+- assertVisible: "Konum izni verilmedi. Haritaya dokunarak konum seçebilirsiniz."
+
+# Submit a geometrically invalid polygon using three repeated map taps. The
+# production form accepts the candidate and the API's geometry validation
+# rejects it. This verifies the visible recoverable validation failure.
+- tapOn: "Tarla sınırı çiz"
+- tapOn:
+    text: "Tarla sınırını çizmek için harita"
+    point: "50%,50%"
+- tapOn:
+    text: "Tarla sınırını çizmek için harita"
+    point: "50%,50%"
+- tapOn:
+    text: "Tarla sınırını çizmek için harita"
+    point: "50%,50%"
+- tapOn: "Sınırı tamamla"
+- assertVisible: "Konum seçildi"
+- tapOn: "Tarlayı kaydet"
+- assertVisible: "Tarla kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin."
+- assertNotVisible: "Tarla kaydedildi"
+
+# Switch to a valid point. The proxy commits the request but discards its first
+# response, so the production UI must keep the farmer in the retry state rather
+# than showing a false saved state. The retry reuses the same visible attempt
+# and must resolve to the committed field.
+- tapOn: "Haritadan nokta seç"
+- tapOn:
+    text: "Nokta seçmek için harita"
+    point: "50%,50%"
+- assertVisible: "Konum seçildi"
+- tapOn: "Tarlayı kaydet"
+- assertVisible: "Tarla kaydediliyor…"
+- assertVisible: "Tarla kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin."
+- assertVisible: "Tekrar dene"
+- assertNotVisible: "Tarla kaydedildi"
+- tapOn: "Tekrar dene"
+- assertVisible: "Tarla kaydedildi"
+
+# The proxy drops both first responses during the two-device concurrency run.
+# Both retries should resolve to the one committed summary. Verify returning-
+# farmer routing after completion.
+- stopApp
+- launchApp
+- assertVisible: "Ekim Hasat"
+- assertNotVisible: "İlk tarlanızı ekleyin"

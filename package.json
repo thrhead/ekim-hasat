@@ -1,0 +1,25 @@
+{
+  "name": "ekim-hasat",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test --filter=@ekim-hasat/api --filter=@ekim-hasat/domain",
+    "test:integration": "pnpm --filter @ekim-hasat/api test:integration",
+    "test:contract": "pnpm --filter @ekim-hasat/api-client test:contract && pnpm --filter @ekim-hasat/api test:contract",
+    "test:mobile": "pnpm --filter @ekim-hasat/mobile test",
+    "test:smoke:mobile": "pnpm --filter @ekim-hasat/mobile test:smoke",
+    "check:diff": "git diff --check"
+  },
+  "devDependencies": {
+    "eslint": "^10.11.0",
+    "turbo": "^2.5.6",
+    "typescript-eslint": "^8.70.1"
+  }
+}
