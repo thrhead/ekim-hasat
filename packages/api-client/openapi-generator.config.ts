@@ -11,6 +11,7 @@ const generated = astToString(await openapiTS(schema, {
   alphabetize: true,
   exportType: true,
 }));
+const normalizeLineEndings = (text: string) => text.replace(/\r\n/g, "\n");
 
 if (process.argv.includes("--check")) {
   let current = "";
@@ -19,7 +20,7 @@ if (process.argv.includes("--check")) {
   } catch {
     throw new Error("Generated API client is missing; run the generate script");
   }
-  if (current !== generated) {
+  if (normalizeLineEndings(current) !== normalizeLineEndings(generated)) {
     throw new Error("Generated API client is stale; run the generate script");
   }
 } else {

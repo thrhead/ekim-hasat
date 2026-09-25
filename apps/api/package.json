@@ -11,7 +11,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run test:unit",
     "test:unit": "node ../../scripts/run-node-tests.mjs api-unit",
-    "test:integration": "test -n \"${DATABASE_URL:-}\" || { echo 'DATABASE_URL must point to a migrated PostgreSQL/PostGIS database' >&2; exit 1; }; node ../../scripts/run-node-tests.mjs api-integration && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f test/persistence/t008-schema-invariants.sql",
+    "test:integration": "node scripts/run-integration.mjs",
     "test:contract": "node ../../scripts/run-node-tests.mjs api-contract"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "@nestjs/platform-fastify": "^11.1.6",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.0.0",
+    "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },

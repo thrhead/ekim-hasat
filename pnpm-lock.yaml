@@ -41,6 +41,9 @@ importers:
       '@prisma/client':
         specifier: ^7.0.0
         version: 7.10.0(prisma@7.10.0(@types/react@19.1.17)(react-dom@19.3.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(typescript@5.9.3)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
       '@supabase/supabase-js':
         specifier: ^2.57.4
         version: 2.117.1

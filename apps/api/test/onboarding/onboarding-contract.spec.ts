@@ -18,7 +18,7 @@ const requiredResponses = (path: string, method: string, expected: string[]) => 
 
 let contractText: string;
 test("SPEC-001 onboarding OpenAPI contract", async (t) => {
-  contractText = await readFile(contractPath, "utf8");
+  contractText = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
   assert.match(contractText, /^openapi: 3\.1\.0/m);
   const paths = [...contractText.matchAll(/^  (\/[^:]+):$/gm)].map((match) => match[1]);
   assert.deepEqual(paths, ["/onboarding/status", "/onboarding/complete"]);

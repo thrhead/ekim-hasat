@@ -13,25 +13,26 @@ function walk(directory) {
 }
 
 function matches(mode, path) {
-  const name = path.split(/[\\/]/).at(-1);
+  const normalizedPath = path.replaceAll("\\", "/");
+  const name = normalizedPath.split("/").at(-1);
   if (mode === "domain") {
     return (
-      (path.startsWith("src/") && name.endsWith(".test.ts")) ||
-      (path.startsWith("test/onboarding/") && name.endsWith(".spec.ts"))
+      (normalizedPath.startsWith("src/") && name.endsWith(".test.ts")) ||
+      (normalizedPath.startsWith("test/onboarding/") && name.endsWith(".spec.ts"))
     );
   }
   if (mode === "api-unit") {
-    return path.startsWith("test/") && name.endsWith(".spec.ts") && !name.endsWith(".integration.spec.ts");
+    return normalizedPath.startsWith("test/") && name.endsWith(".spec.ts") && !name.endsWith(".integration.spec.ts");
   }
   if (mode === "api-integration") {
-    return path.startsWith("test/") && name.endsWith(".integration.spec.ts");
+    return normalizedPath.startsWith("test/") && name.endsWith(".integration.spec.ts");
   }
   if (mode === "api-contract") {
     return (
-      path.startsWith("test/") &&
+      normalizedPath.startsWith("test/") &&
       name.endsWith(".spec.ts") &&
       !name.endsWith(".integration.spec.ts") &&
-      (/(^|[\\/])contracts?([\\/]|$)/.test(path) || /contract/i.test(name))
+      (/(^|\/)contracts?(\/|$)/.test(normalizedPath) || /contract/i.test(name))
     );
   }
   throw new Error(`Unknown test discovery mode: ${mode}`);
