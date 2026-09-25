@@ -12,6 +12,14 @@ This guide defines implementation-time validation scenarios for SPEC-001. No app
 - Network controls or a test proxy for dropping requests/responses.
 - Generated API client from `contracts/onboarding.openapi.yaml`.
 
+## Mobile E2E convention
+
+- Use Maestro as the black-box mobile E2E runner. Store YAML flows in `apps/mobile/e2e/`, including the task-owned T038–T040 flow files.
+- Flows interact through visible text and accessibility-visible UI identifiers. Do not add E2E-only behavior to production code. Prepare backend state through supported interfaces or explicit test fixtures; flows must not bypass application behavior.
+- Authoring a valid flow does not require an available Android device. Runtime verification requires installing/running the Android app on a device or emulator and executing the flow with `maestro test apps/mobile/e2e/<flow>.yaml`.
+- Record a task as runtime-verified only after that device/emulator execution succeeds. YAML validation and `pnpm test:smoke:mobile` do not count as E2E execution; the latter remains an Expo build/export smoke check.
+- Install the Maestro CLI as developer tooling outside the repository. Maestro supports React Native/Expo at the rendered accessibility layer and does not require an application npm dependency. The CLI requires Java 17 or newer.
+
 ## Scenarios
 
 ### 1. New farmer completes onboarding
@@ -80,3 +88,24 @@ This guide defines implementation-time validation scenarios for SPEC-001. No app
 - Tenant-isolation and authorization tests for all business-owned reads and writes in scope; RLS is not required for MVP.
 - Mobile E2E and accessibility evaluation for first-field onboarding, alternate location entry, weak connectivity, no false success, draft lifecycle, and accessibility requirements.
 - Structured diagnostic-event checks for correlation IDs and exclusion of credentials, tokens, and unnecessary personal/location data.
+
+## Earlier convergence run status (2026-09-25)
+
+T047 remains open. This pass ran repository checks, but did not execute the end-to-end quickstart against a running API/mobile flow. The following evidence still requires unavailable runtime or database infrastructure:
+
+- Scenarios 1–3 and 5 require live API/PostgreSQL/PostGIS state for atomic persistence, rollback, concurrent/idempotent requests, and tenant-boundary behavior.
+- Scenarios 4 and 6 require mobile interaction under connectivity interruption, restart/process termination, draft expiry, and geometry correction; those mobile runtime cases are covered by the still-open T038–T040 evidence where applicable.
+- Scenario 7 requires manual VoiceOver and TalkBack checks from the still-open T036 task. Pilot evaluation is also not performed here.
+- Maestro/device flows have not been run. Unit/contract coverage and an Expo export do not substitute for those executions.
+
+Checks completed in this pass include OpenAPI client regeneration/reproducibility, API/client contract tests, workspace typecheck, and mobile tests. `pnpm test:contract`, `pnpm typecheck`, and `pnpm test:mobile` passed. `pnpm test:integration` stopped before execution because `DATABASE_URL` is unset. `pnpm lint` failed on existing unused-symbol and test-lint violations in API/mobile files. `pnpm test` failed in the domain runner: Node's strip-types mode could not resolve the `.js` import for `field-location.ts` while loading `complete-onboarding.spec.ts` (9 subtests passed, 1 failed). These repository issues and missing runtime/database evidence do not count as quickstart scenario passes.
+
+### Convergence run update (2026-09-25)
+
+The existing repository Compose `postgres` service was healthy with PostgreSQL/PostGIS available on the configured local port. `pnpm test:integration` was run with a shell-only `DATABASE_URL` derived from the active Compose configuration; no credentials were written to this file. All 21 API integration tests passed, followed by the `t008-schema-invariants.sql` checks and rollback. This provides database-level evidence relevant to scenarios 1–3 and 5:
+
+- The integration suite verified atomic first-field persistence, transaction rollback after injected database failure, concurrent completion/bootstrap convergence, lost-response replay, retained-key conflict, post-expiry existing-completion behavior, and active-membership enforcement without fallback to unrelated memberships.
+- These tests call the repository and authorization components against real PostgreSQL/PostGIS. They did not run the live authenticated HTTP flow in quickstart scenarios 1–3, exercise the status endpoint in scenario 5 against a live authenticated service, or validate farmer-visible UI state. Those scenarios remain unverified end-to-end.
+- The local Compose service does not provide a configured/authenticated API session for manual quickstart execution. VoiceOver/TalkBack and pilot evaluation in scenario 7 still require manual evidence. Device recovery and geometry interaction remain runtime work; no device or Maestro infrastructure was provisioned.
+
+The repository verification defects were also corrected: the domain runner now uses the TypeScript-aware `tsx` loader consistent with the source imports, and API/mobile lint findings were fixed without changing lint rules. The final non-runtime repository checks all passed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:contract`, `pnpm test:mobile` (12 suites / 65 tests), and `pnpm check:diff`. `pnpm test:integration` also passed all 21 PostgreSQL/PostGIS tests and the schema invariant SQL. T047 remains open because the authenticated HTTP/mobile quickstart and manual/device evidence were not obtained.

@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ApplicationUser {
+  id                String   @id @default(uuid()) @db.Uuid
+  authProvider      String   @map("auth_provider")
+  authSubject       String   @map("auth_subject")
+  defaultBusinessId String?  @map("default_business_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  defaultBusiness    Business?              @relation("DefaultBusiness", fields: [defaultBusinessId], references: [id], onDelete: Restrict)
+  memberships        Membership[]
+  completions        OnboardingCompletion[]
+  idempotencyRecords IdempotencyRecord[]
+
+  @@unique([authProvider, authSubject])
+  @@index([defaultBusinessId])
+  @@map("application_users")
+}
+
+model Business {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  defaultUsers ApplicationUser[]      @relation("DefaultBusiness")
+  memberships  Membership[]
+  fields       Field[]
+  completions  OnboardingCompletion[]
+
+  @@map("businesses")
+}
+
+model Membership {
+  id         String @id @default(uuid()) @db.Uuid
+  businessId String @map("business_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+  role       String
+  status     String
+
+  business Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, userId])
+  @@index([userId, businessId, status])
+  @@map("memberships")
+}
+
+model Field {
+  id                  String                              @id @default(uuid()) @db.Uuid
+  businessId          String                              @map("business_id") @db.Uuid
+  name                String
+  representativePoint Unsupported("geometry(Point,4326)") @map("representative_point")
+  createdAt           DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  version             Int                                 @default(1)
+
+  business           Business               @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  boundaryVersions   FieldBoundaryVersion[]
+  completions        OnboardingCompletion[]
+  idempotencyRecords IdempotencyRecord[]
+
+  @@index([businessId])
+  @@map("fields")
+}
+
+model FieldBoundaryVersion {
+  id                 String                                @id @default(uuid()) @db.Uuid
+  fieldId            String                                @map("field_id") @db.Uuid
+  version            Int
+  geometry           Unsupported("geometry(Polygon,4326)")
+  verificationStatus String                                @default("UNVERIFIED") @map("verification_status")
+  createdAt          DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+
+  @@index([fieldId])
+  @@map("field_boundary_versions")
+}
+
+model OnboardingCompletion {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  defaultBusinessId String   @map("default_business_id") @db.Uuid
+  fieldId           String   @map("field_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user            ApplicationUser @relation(fields: [userId], references: [id], onDelete: Restrict)
+  defaultBusiness Business        @relation(fields: [defaultBusinessId], references: [id], onDelete: Restrict)
+  field           Field           @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, defaultBusinessId])
+  @@index([fieldId])
+  @@map("onboarding_completions")
+}
+
+model IdempotencyRecord {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  key                String
+  payloadFingerprint String   @map("payload_fingerprint")
+  fieldId            String   @map("field_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt          DateTime @map("expires_at") @db.Timestamptz(6)
+
+  user  ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  field Field           @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, key])
+  @@index([expiresAt])
+  @@index([fieldId])
+  @@map("idempotency_records")
+}

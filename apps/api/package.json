@@ -1,0 +1,35 @@
+{
+  "name": "@ekim-hasat/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "lint": "eslint src test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "node ../../scripts/run-node-tests.mjs api-unit",
+    "test:integration": "test -n \"${DATABASE_URL:-}\" || { echo 'DATABASE_URL must point to a migrated PostgreSQL/PostGIS database' >&2; exit 1; }; node ../../scripts/run-node-tests.mjs api-integration && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f test/persistence/t008-schema-invariants.sql",
+    "test:contract": "node ../../scripts/run-node-tests.mjs api-contract"
+  },
+  "dependencies": {
+    "@ekim-hasat/api-client": "workspace:*",
+    "@ekim-hasat/domain": "workspace:*",
+    "@supabase/supabase-js": "^2.57.4",
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-fastify": "^11.1.6",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.6",
+    "prisma": "^7.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

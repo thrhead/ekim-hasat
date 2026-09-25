@@ -1,6 +1,14 @@
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
 
+# JavaScript workspace dependencies and generated output
+node_modules/
+dist/
+.turbo/
+
+# Local environment files
+.env
+
 # Python cache
 __pycache__/
 *.py[cod]

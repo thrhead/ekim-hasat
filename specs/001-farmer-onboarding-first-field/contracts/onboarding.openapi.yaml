@@ -44,7 +44,11 @@ paths:
         Resolves or creates the application User, default Business, OWNER
         Membership, first Field, default-business context pointer, durable
         completion record, and retained idempotency result in one PostgreSQL transaction. The client
-        cannot select a business or membership. The operation is online-only.
+        accepts no client-selected business or membership. The operation is online-only.
+        Membership is the sole authorization authority and the default business
+        pointer selects context only. An unusable default-business context fails
+        with HTTP 400 using the normal privacy-safe Error schema; this command
+        does not return 403 and does not reveal whether another business exists.
         No success response is returned until the transaction commits. A
         Repeated requests with the same idempotency key and payload return the
         original logical result. A durable completed-onboarding domain check

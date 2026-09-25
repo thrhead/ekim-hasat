@@ -1,0 +1,32 @@
+{
+  "name": "@ekim-hasat/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./generated": {
+      "types": "./dist/generated/onboarding-api.d.ts",
+      "import": "./dist/generated/onboarding-api.js"
+    }
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types ./openapi-generator.config.ts",
+    "check:generated": "node --experimental-strip-types ./openapi-generator.config.ts --check",
+    "lint": "eslint .",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:contract": "pnpm run build && tsc -p tsconfig.test.json --noEmit",
+    "test:contract": "pnpm run check:generated && pnpm run typecheck:contract"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  }
+}
