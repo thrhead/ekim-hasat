@@ -220,6 +220,7 @@ export type FieldWhereInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionListRelationFilter
   completions?: Prisma.OnboardingCompletionListRelationFilter
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
+  seasons?: Prisma.SeasonListRelationFilter
 }
 
 export type FieldOrderByWithRelationInput = {
@@ -232,10 +233,12 @@ export type FieldOrderByWithRelationInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionOrderByRelationAggregateInput
   completions?: Prisma.OnboardingCompletionOrderByRelationAggregateInput
   idempotencyRecords?: Prisma.IdempotencyRecordOrderByRelationAggregateInput
+  seasons?: Prisma.SeasonOrderByRelationAggregateInput
 }
 
 export type FieldWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  id_businessId?: Prisma.FieldIdBusinessIdCompoundUniqueInput
   AND?: Prisma.FieldWhereInput | Prisma.FieldWhereInput[]
   OR?: Prisma.FieldWhereInput[]
   NOT?: Prisma.FieldWhereInput | Prisma.FieldWhereInput[]
@@ -247,7 +250,8 @@ export type FieldWhereUniqueInput = Prisma.AtLeast<{
   boundaryVersions?: Prisma.FieldBoundaryVersionListRelationFilter
   completions?: Prisma.OnboardingCompletionListRelationFilter
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
-}, "id">
+  seasons?: Prisma.SeasonListRelationFilter
+}, "id" | "id_businessId">
 
 export type FieldOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -282,6 +286,7 @@ export type FieldUpdateInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateInput = {
@@ -293,6 +298,7 @@ export type FieldUncheckedUpdateInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUpdateManyMutationInput = {
@@ -318,6 +324,11 @@ export type FieldListRelationFilter = {
 
 export type FieldOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type FieldIdBusinessIdCompoundUniqueInput = {
+  id: string
+  businessId: string
 }
 
 export type FieldCountOrderByAggregateInput = {
@@ -416,6 +427,15 @@ export type FieldUpdateOneRequiredWithoutIdempotencyRecordsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutIdempotencyRecordsInput, Prisma.FieldUpdateWithoutIdempotencyRecordsInput>, Prisma.FieldUncheckedUpdateWithoutIdempotencyRecordsInput>
 }
 
+export type FieldCreateNestedOneWithoutSeasonsInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUpdateOneRequiredWithoutSeasonsNestedInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutSeasonsInput, Prisma.FieldUpdateWithoutSeasonsInput>, Prisma.FieldUncheckedUpdateWithoutSeasonsInput>
+}
+
 export type FieldUpdateWithWhereUniqueWithoutBusinessInput = {
   where: Prisma.FieldWhereUniqueInput
   data: Prisma.XOR<Prisma.FieldUpdateWithoutBusinessInput, Prisma.FieldUncheckedUpdateWithoutBusinessInput>
@@ -450,6 +470,7 @@ export type FieldUpdateWithoutBoundaryVersionsInput = {
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
@@ -460,6 +481,7 @@ export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutCompletionsInput = {
@@ -475,6 +497,7 @@ export type FieldUpdateWithoutCompletionsInput = {
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutCompletionsInput = {
@@ -485,6 +508,7 @@ export type FieldUncheckedUpdateWithoutCompletionsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutIdempotencyRecordsInput = {
@@ -500,6 +524,7 @@ export type FieldUpdateWithoutIdempotencyRecordsInput = {
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
@@ -510,6 +535,34 @@ export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutSeasonsInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutSeasonsInput, Prisma.FieldUncheckedUpdateWithoutSeasonsInput>
+}
+
+export type FieldUpdateWithoutSeasonsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutSeasonsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUpdateWithoutBusinessInput = {
@@ -520,6 +573,7 @@ export type FieldUpdateWithoutBusinessInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutBusinessInput = {
@@ -530,6 +584,7 @@ export type FieldUncheckedUpdateWithoutBusinessInput = {
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateManyWithoutBusinessInput = {
@@ -548,12 +603,14 @@ export type FieldCountOutputType = {
   boundaryVersions: number
   completions: number
   idempotencyRecords: number
+  seasons: number
 }
 
 export type FieldCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   boundaryVersions?: boolean | FieldCountOutputTypeCountBoundaryVersionsArgs
   completions?: boolean | FieldCountOutputTypeCountCompletionsArgs
   idempotencyRecords?: boolean | FieldCountOutputTypeCountIdempotencyRecordsArgs
+  seasons?: boolean | FieldCountOutputTypeCountSeasonsArgs
 }
 
 /**
@@ -587,6 +644,13 @@ export type FieldCountOutputTypeCountIdempotencyRecordsArgs<ExtArgs extends runt
   where?: Prisma.IdempotencyRecordWhereInput
 }
 
+/**
+ * FieldCountOutputType without action
+ */
+export type FieldCountOutputTypeCountSeasonsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SeasonWhereInput
+}
+
 
 export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -598,6 +662,7 @@ export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   boundaryVersions?: boolean | Prisma.Field$boundaryVersionsArgs<ExtArgs>
   completions?: boolean | Prisma.Field$completionsArgs<ExtArgs>
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
+  seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["field"]>
 
@@ -625,6 +690,7 @@ export type FieldInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   boundaryVersions?: boolean | Prisma.Field$boundaryVersionsArgs<ExtArgs>
   completions?: boolean | Prisma.Field$completionsArgs<ExtArgs>
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
+  seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FieldIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -638,6 +704,7 @@ export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     boundaryVersions: Prisma.$FieldBoundaryVersionPayload<ExtArgs>[]
     completions: Prisma.$OnboardingCompletionPayload<ExtArgs>[]
     idempotencyRecords: Prisma.$IdempotencyRecordPayload<ExtArgs>[]
+    seasons: Prisma.$SeasonPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -972,6 +1039,7 @@ export interface Prisma__FieldClient<T, Null = never, ExtArgs extends runtime.Ty
   boundaryVersions<T extends Prisma.Field$boundaryVersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$boundaryVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldBoundaryVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   completions<T extends Prisma.Field$completionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$completionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   idempotencyRecords<T extends Prisma.Field$idempotencyRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$idempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  seasons<T extends Prisma.Field$seasonsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$seasonsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1390,6 +1458,30 @@ export type Field$idempotencyRecordsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.IdempotencyRecordScalarFieldEnum | Prisma.IdempotencyRecordScalarFieldEnum[]
+}
+
+/**
+ * Field.seasons
+ */
+export type Field$seasonsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Season
+   */
+  select?: Prisma.SeasonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Season
+   */
+  omit?: Prisma.SeasonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SeasonInclude<ExtArgs> | null
+  where?: Prisma.SeasonWhereInput
+  orderBy?: Prisma.SeasonOrderByWithRelationInput | Prisma.SeasonOrderByWithRelationInput[]
+  cursor?: Prisma.SeasonWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SeasonScalarFieldEnum | Prisma.SeasonScalarFieldEnum[]
 }
 
 /**

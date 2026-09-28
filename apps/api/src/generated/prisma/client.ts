@@ -76,3 +76,43 @@ export type OnboardingCompletion = Prisma.OnboardingCompletionModel
  *
  */
 export type IdempotencyRecord = Prisma.IdempotencyRecordModel
+/**
+ * Model CropDefinitionVersion
+ *
+ */
+export type CropDefinitionVersion = Prisma.CropDefinitionVersionModel
+/**
+ * Model CustomCrop
+ *
+ */
+export type CustomCrop = Prisma.CustomCropModel
+/**
+ * Model ValidatedTemplateVersion
+ *
+ */
+export type ValidatedTemplateVersion = Prisma.ValidatedTemplateVersionModel
+/**
+ * Model Season
+ *
+ */
+export type Season = Prisma.SeasonModel
+/**
+ * Model SeasonPlan
+ *
+ */
+export type SeasonPlan = Prisma.SeasonPlanModel
+/**
+ * Model PlannedTask
+ *
+ */
+export type PlannedTask = Prisma.PlannedTaskModel
+/**
+ * Model SeasonContextSnapshot
+ *
+ */
+export type SeasonContextSnapshot = Prisma.SeasonContextSnapshotModel
+/**
+ * Model SeasonCommandIdempotencyRecord
+ *
+ */
+export type SeasonCommandIdempotencyRecord = Prisma.SeasonCommandIdempotencyRecordModel

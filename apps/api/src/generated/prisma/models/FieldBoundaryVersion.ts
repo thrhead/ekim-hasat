@@ -217,6 +217,7 @@ export type FieldBoundaryVersionWhereInput = {
   verificationStatus?: Prisma.StringFilter<"FieldBoundaryVersion"> | string
   createdAt?: Prisma.DateTimeFilter<"FieldBoundaryVersion"> | Date | string
   field?: Prisma.XOR<Prisma.FieldScalarRelationFilter, Prisma.FieldWhereInput>
+  seasonSnapshots?: Prisma.SeasonContextSnapshotListRelationFilter
 }
 
 export type FieldBoundaryVersionOrderByWithRelationInput = {
@@ -226,6 +227,7 @@ export type FieldBoundaryVersionOrderByWithRelationInput = {
   verificationStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   field?: Prisma.FieldOrderByWithRelationInput
+  seasonSnapshots?: Prisma.SeasonContextSnapshotOrderByRelationAggregateInput
 }
 
 export type FieldBoundaryVersionWhereUniqueInput = Prisma.AtLeast<{
@@ -238,6 +240,7 @@ export type FieldBoundaryVersionWhereUniqueInput = Prisma.AtLeast<{
   verificationStatus?: Prisma.StringFilter<"FieldBoundaryVersion"> | string
   createdAt?: Prisma.DateTimeFilter<"FieldBoundaryVersion"> | Date | string
   field?: Prisma.XOR<Prisma.FieldScalarRelationFilter, Prisma.FieldWhereInput>
+  seasonSnapshots?: Prisma.SeasonContextSnapshotListRelationFilter
 }, "id">
 
 export type FieldBoundaryVersionOrderByWithAggregationInput = {
@@ -270,6 +273,7 @@ export type FieldBoundaryVersionUpdateInput = {
   verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   field?: Prisma.FieldUpdateOneRequiredWithoutBoundaryVersionsNestedInput
+  seasonSnapshots?: Prisma.SeasonContextSnapshotUpdateManyWithoutFieldBoundaryVersionNestedInput
 }
 
 export type FieldBoundaryVersionUncheckedUpdateInput = {
@@ -278,6 +282,7 @@ export type FieldBoundaryVersionUncheckedUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  seasonSnapshots?: Prisma.SeasonContextSnapshotUncheckedUpdateManyWithoutFieldBoundaryVersionNestedInput
 }
 
 export type FieldBoundaryVersionUpdateManyMutationInput = {
@@ -337,6 +342,11 @@ export type FieldBoundaryVersionSumOrderByAggregateInput = {
   version?: Prisma.SortOrder
 }
 
+export type FieldBoundaryVersionNullableScalarRelationFilter = {
+  is?: Prisma.FieldBoundaryVersionWhereInput | null
+  isNot?: Prisma.FieldBoundaryVersionWhereInput | null
+}
+
 export type FieldBoundaryVersionUpdateManyWithoutFieldNestedInput = {
   set?: Prisma.FieldBoundaryVersionWhereUniqueInput | Prisma.FieldBoundaryVersionWhereUniqueInput[]
   disconnect?: Prisma.FieldBoundaryVersionWhereUniqueInput | Prisma.FieldBoundaryVersionWhereUniqueInput[]
@@ -355,6 +365,17 @@ export type FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput = {
   update?: Prisma.FieldBoundaryVersionUpdateWithWhereUniqueWithoutFieldInput | Prisma.FieldBoundaryVersionUpdateWithWhereUniqueWithoutFieldInput[]
   updateMany?: Prisma.FieldBoundaryVersionUpdateManyWithWhereWithoutFieldInput | Prisma.FieldBoundaryVersionUpdateManyWithWhereWithoutFieldInput[]
   deleteMany?: Prisma.FieldBoundaryVersionScalarWhereInput | Prisma.FieldBoundaryVersionScalarWhereInput[]
+}
+
+export type FieldBoundaryVersionCreateNestedOneWithoutSeasonSnapshotsInput = {
+  connect?: Prisma.FieldBoundaryVersionWhereUniqueInput
+}
+
+export type FieldBoundaryVersionUpdateOneWithoutSeasonSnapshotsNestedInput = {
+  disconnect?: Prisma.FieldBoundaryVersionWhereInput | boolean
+  delete?: Prisma.FieldBoundaryVersionWhereInput | boolean
+  connect?: Prisma.FieldBoundaryVersionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldBoundaryVersionUpdateToOneWithWhereWithoutSeasonSnapshotsInput, Prisma.FieldBoundaryVersionUpdateWithoutSeasonSnapshotsInput>, Prisma.FieldBoundaryVersionUncheckedUpdateWithoutSeasonSnapshotsInput>
 }
 
 export type FieldBoundaryVersionUpdateWithWhereUniqueWithoutFieldInput = {
@@ -378,11 +399,33 @@ export type FieldBoundaryVersionScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"FieldBoundaryVersion"> | Date | string
 }
 
+export type FieldBoundaryVersionUpdateToOneWithWhereWithoutSeasonSnapshotsInput = {
+  where?: Prisma.FieldBoundaryVersionWhereInput
+  data: Prisma.XOR<Prisma.FieldBoundaryVersionUpdateWithoutSeasonSnapshotsInput, Prisma.FieldBoundaryVersionUncheckedUpdateWithoutSeasonSnapshotsInput>
+}
+
+export type FieldBoundaryVersionUpdateWithoutSeasonSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  field?: Prisma.FieldUpdateOneRequiredWithoutBoundaryVersionsNestedInput
+}
+
+export type FieldBoundaryVersionUncheckedUpdateWithoutSeasonSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fieldId?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type FieldBoundaryVersionUpdateWithoutFieldInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  seasonSnapshots?: Prisma.SeasonContextSnapshotUpdateManyWithoutFieldBoundaryVersionNestedInput
 }
 
 export type FieldBoundaryVersionUncheckedUpdateWithoutFieldInput = {
@@ -390,6 +433,7 @@ export type FieldBoundaryVersionUncheckedUpdateWithoutFieldInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   verificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  seasonSnapshots?: Prisma.SeasonContextSnapshotUncheckedUpdateManyWithoutFieldBoundaryVersionNestedInput
 }
 
 export type FieldBoundaryVersionUncheckedUpdateManyWithoutFieldInput = {
@@ -400,6 +444,35 @@ export type FieldBoundaryVersionUncheckedUpdateManyWithoutFieldInput = {
 }
 
 
+/**
+ * Count Type FieldBoundaryVersionCountOutputType
+ */
+
+export type FieldBoundaryVersionCountOutputType = {
+  seasonSnapshots: number
+}
+
+export type FieldBoundaryVersionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  seasonSnapshots?: boolean | FieldBoundaryVersionCountOutputTypeCountSeasonSnapshotsArgs
+}
+
+/**
+ * FieldBoundaryVersionCountOutputType without action
+ */
+export type FieldBoundaryVersionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldBoundaryVersionCountOutputType
+   */
+  select?: Prisma.FieldBoundaryVersionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * FieldBoundaryVersionCountOutputType without action
+ */
+export type FieldBoundaryVersionCountOutputTypeCountSeasonSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SeasonContextSnapshotWhereInput
+}
+
 
 export type FieldBoundaryVersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -408,6 +481,8 @@ export type FieldBoundaryVersionSelect<ExtArgs extends runtime.Types.Extensions.
   verificationStatus?: boolean
   createdAt?: boolean
   field?: boolean | Prisma.FieldDefaultArgs<ExtArgs>
+  seasonSnapshots?: boolean | Prisma.FieldBoundaryVersion$seasonSnapshotsArgs<ExtArgs>
+  _count?: boolean | Prisma.FieldBoundaryVersionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["fieldBoundaryVersion"]>
 
 
@@ -431,6 +506,8 @@ export type FieldBoundaryVersionSelectScalar = {
 export type FieldBoundaryVersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fieldId" | "version" | "verificationStatus" | "createdAt", ExtArgs["result"]["fieldBoundaryVersion"]>
 export type FieldBoundaryVersionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   field?: boolean | Prisma.FieldDefaultArgs<ExtArgs>
+  seasonSnapshots?: boolean | Prisma.FieldBoundaryVersion$seasonSnapshotsArgs<ExtArgs>
+  _count?: boolean | Prisma.FieldBoundaryVersionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FieldBoundaryVersionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   field?: boolean | Prisma.FieldDefaultArgs<ExtArgs>
@@ -440,6 +517,7 @@ export type $FieldBoundaryVersionPayload<ExtArgs extends runtime.Types.Extension
   name: "FieldBoundaryVersion"
   objects: {
     field: Prisma.$FieldPayload<ExtArgs>
+    seasonSnapshots: Prisma.$SeasonContextSnapshotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -771,6 +849,7 @@ readonly fields: FieldBoundaryVersionFieldRefs;
 export interface Prisma__FieldBoundaryVersionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   field<T extends Prisma.FieldDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FieldDefaultArgs<ExtArgs>>): Prisma.Prisma__FieldClient<runtime.Types.Result.GetResult<Prisma.$FieldPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  seasonSnapshots<T extends Prisma.FieldBoundaryVersion$seasonSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FieldBoundaryVersion$seasonSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonContextSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1117,6 +1196,30 @@ export type FieldBoundaryVersionDeleteManyArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many FieldBoundaryVersions to delete.
    */
   limit?: number
+}
+
+/**
+ * FieldBoundaryVersion.seasonSnapshots
+ */
+export type FieldBoundaryVersion$seasonSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SeasonContextSnapshot
+   */
+  select?: Prisma.SeasonContextSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SeasonContextSnapshot
+   */
+  omit?: Prisma.SeasonContextSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SeasonContextSnapshotInclude<ExtArgs> | null
+  where?: Prisma.SeasonContextSnapshotWhereInput
+  orderBy?: Prisma.SeasonContextSnapshotOrderByWithRelationInput | Prisma.SeasonContextSnapshotOrderByWithRelationInput[]
+  cursor?: Prisma.SeasonContextSnapshotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SeasonContextSnapshotScalarFieldEnum | Prisma.SeasonContextSnapshotScalarFieldEnum[]
 }
 
 /**

@@ -26,16 +26,19 @@ export type AggregateBusiness = {
 
 export type BusinessMinAggregateOutputType = {
   id: string | null
+  timezone: string | null
   createdAt: Date | null
 }
 
 export type BusinessMaxAggregateOutputType = {
   id: string | null
+  timezone: string | null
   createdAt: Date | null
 }
 
 export type BusinessCountAggregateOutputType = {
   id: number
+  timezone: number
   createdAt: number
   _all: number
 }
@@ -43,16 +46,19 @@ export type BusinessCountAggregateOutputType = {
 
 export type BusinessMinAggregateInputType = {
   id?: true
+  timezone?: true
   createdAt?: true
 }
 
 export type BusinessMaxAggregateInputType = {
   id?: true
+  timezone?: true
   createdAt?: true
 }
 
 export type BusinessCountAggregateInputType = {
   id?: true
+  timezone?: true
   createdAt?: true
   _all?: true
 }
@@ -131,6 +137,7 @@ export type BusinessGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type BusinessGroupByOutputType = {
   id: string
+  timezone: string | null
   createdAt: Date
   _count: BusinessCountAggregateOutputType | null
   _min: BusinessMinAggregateOutputType | null
@@ -157,20 +164,26 @@ export type BusinessWhereInput = {
   OR?: Prisma.BusinessWhereInput[]
   NOT?: Prisma.BusinessWhereInput | Prisma.BusinessWhereInput[]
   id?: Prisma.UuidFilter<"Business"> | string
+  timezone?: Prisma.StringNullableFilter<"Business"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Business"> | Date | string
   defaultUsers?: Prisma.ApplicationUserListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   fields?: Prisma.FieldListRelationFilter
   completions?: Prisma.OnboardingCompletionListRelationFilter
+  customCrops?: Prisma.CustomCropListRelationFilter
+  seasons?: Prisma.SeasonListRelationFilter
 }
 
 export type BusinessOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   defaultUsers?: Prisma.ApplicationUserOrderByRelationAggregateInput
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   fields?: Prisma.FieldOrderByRelationAggregateInput
   completions?: Prisma.OnboardingCompletionOrderByRelationAggregateInput
+  customCrops?: Prisma.CustomCropOrderByRelationAggregateInput
+  seasons?: Prisma.SeasonOrderByRelationAggregateInput
 }
 
 export type BusinessWhereUniqueInput = Prisma.AtLeast<{
@@ -178,15 +191,19 @@ export type BusinessWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.BusinessWhereInput | Prisma.BusinessWhereInput[]
   OR?: Prisma.BusinessWhereInput[]
   NOT?: Prisma.BusinessWhereInput | Prisma.BusinessWhereInput[]
+  timezone?: Prisma.StringNullableFilter<"Business"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Business"> | Date | string
   defaultUsers?: Prisma.ApplicationUserListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   fields?: Prisma.FieldListRelationFilter
   completions?: Prisma.OnboardingCompletionListRelationFilter
+  customCrops?: Prisma.CustomCropListRelationFilter
+  seasons?: Prisma.SeasonListRelationFilter
 }, "id">
 
 export type BusinessOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.BusinessCountOrderByAggregateInput
   _max?: Prisma.BusinessMaxOrderByAggregateInput
@@ -198,57 +215,73 @@ export type BusinessScalarWhereWithAggregatesInput = {
   OR?: Prisma.BusinessScalarWhereWithAggregatesInput[]
   NOT?: Prisma.BusinessScalarWhereWithAggregatesInput | Prisma.BusinessScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Business"> | string
+  timezone?: Prisma.StringNullableWithAggregatesFilter<"Business"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Business"> | Date | string
 }
 
 export type BusinessCreateInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateManyInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
 }
 
 export type BusinessUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BusinessUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -259,16 +292,19 @@ export type BusinessNullableScalarRelationFilter = {
 
 export type BusinessCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BusinessMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BusinessMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -329,20 +365,54 @@ export type BusinessUpdateOneRequiredWithoutCompletionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutCompletionsInput, Prisma.BusinessUpdateWithoutCompletionsInput>, Prisma.BusinessUncheckedUpdateWithoutCompletionsInput>
 }
 
+export type BusinessCreateNestedOneWithoutCustomCropsInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutCustomCropsInput, Prisma.BusinessUncheckedCreateWithoutCustomCropsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutCustomCropsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+}
+
+export type BusinessUpdateOneRequiredWithoutCustomCropsNestedInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutCustomCropsInput, Prisma.BusinessUncheckedCreateWithoutCustomCropsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutCustomCropsInput
+  upsert?: Prisma.BusinessUpsertWithoutCustomCropsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutCustomCropsInput, Prisma.BusinessUpdateWithoutCustomCropsInput>, Prisma.BusinessUncheckedUpdateWithoutCustomCropsInput>
+}
+
+export type BusinessCreateNestedOneWithoutSeasonsInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutSeasonsInput, Prisma.BusinessUncheckedCreateWithoutSeasonsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutSeasonsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+}
+
+export type BusinessUpdateOneRequiredWithoutSeasonsNestedInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutSeasonsInput, Prisma.BusinessUncheckedCreateWithoutSeasonsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutSeasonsInput
+  upsert?: Prisma.BusinessUpsertWithoutSeasonsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutSeasonsInput, Prisma.BusinessUpdateWithoutSeasonsInput>, Prisma.BusinessUncheckedUpdateWithoutSeasonsInput>
+}
+
 export type BusinessCreateWithoutDefaultUsersInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutDefaultUsersInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutDefaultUsersInput = {
@@ -363,34 +433,46 @@ export type BusinessUpdateToOneWithWhereWithoutDefaultUsersInput = {
 
 export type BusinessUpdateWithoutDefaultUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutDefaultUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutMembershipsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutMembershipsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutMembershipsInput = {
@@ -411,34 +493,46 @@ export type BusinessUpdateToOneWithWhereWithoutMembershipsInput = {
 
 export type BusinessUpdateWithoutMembershipsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutMembershipsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutFieldsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutFieldsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutFieldsInput = {
@@ -459,34 +553,46 @@ export type BusinessUpdateToOneWithWhereWithoutFieldsInput = {
 
 export type BusinessUpdateWithoutFieldsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutFieldsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutCompletionsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutCompletionsInput = {
   id?: string
+  timezone?: string | null
   createdAt?: Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutCompletionsInput = {
@@ -507,18 +613,144 @@ export type BusinessUpdateToOneWithWhereWithoutCompletionsInput = {
 
 export type BusinessUpdateWithoutCompletionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutCompletionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessCreateWithoutCustomCropsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessUncheckedCreateWithoutCustomCropsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessCreateOrConnectWithoutCustomCropsInput = {
+  where: Prisma.BusinessWhereUniqueInput
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutCustomCropsInput, Prisma.BusinessUncheckedCreateWithoutCustomCropsInput>
+}
+
+export type BusinessUpsertWithoutCustomCropsInput = {
+  update: Prisma.XOR<Prisma.BusinessUpdateWithoutCustomCropsInput, Prisma.BusinessUncheckedUpdateWithoutCustomCropsInput>
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutCustomCropsInput, Prisma.BusinessUncheckedCreateWithoutCustomCropsInput>
+  where?: Prisma.BusinessWhereInput
+}
+
+export type BusinessUpdateToOneWithWhereWithoutCustomCropsInput = {
+  where?: Prisma.BusinessWhereInput
+  data: Prisma.XOR<Prisma.BusinessUpdateWithoutCustomCropsInput, Prisma.BusinessUncheckedUpdateWithoutCustomCropsInput>
+}
+
+export type BusinessUpdateWithoutCustomCropsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessUncheckedUpdateWithoutCustomCropsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessCreateWithoutSeasonsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessUncheckedCreateWithoutSeasonsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessCreateOrConnectWithoutSeasonsInput = {
+  where: Prisma.BusinessWhereUniqueInput
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutSeasonsInput, Prisma.BusinessUncheckedCreateWithoutSeasonsInput>
+}
+
+export type BusinessUpsertWithoutSeasonsInput = {
+  update: Prisma.XOR<Prisma.BusinessUpdateWithoutSeasonsInput, Prisma.BusinessUncheckedUpdateWithoutSeasonsInput>
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutSeasonsInput, Prisma.BusinessUncheckedCreateWithoutSeasonsInput>
+  where?: Prisma.BusinessWhereInput
+}
+
+export type BusinessUpdateToOneWithWhereWithoutSeasonsInput = {
+  where?: Prisma.BusinessWhereInput
+  data: Prisma.XOR<Prisma.BusinessUpdateWithoutSeasonsInput, Prisma.BusinessUncheckedUpdateWithoutSeasonsInput>
+}
+
+export type BusinessUpdateWithoutSeasonsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessUncheckedUpdateWithoutSeasonsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 
@@ -531,6 +763,8 @@ export type BusinessCountOutputType = {
   memberships: number
   fields: number
   completions: number
+  customCrops: number
+  seasons: number
 }
 
 export type BusinessCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -538,6 +772,8 @@ export type BusinessCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   memberships?: boolean | BusinessCountOutputTypeCountMembershipsArgs
   fields?: boolean | BusinessCountOutputTypeCountFieldsArgs
   completions?: boolean | BusinessCountOutputTypeCountCompletionsArgs
+  customCrops?: boolean | BusinessCountOutputTypeCountCustomCropsArgs
+  seasons?: boolean | BusinessCountOutputTypeCountSeasonsArgs
 }
 
 /**
@@ -578,38 +814,60 @@ export type BusinessCountOutputTypeCountCompletionsArgs<ExtArgs extends runtime.
   where?: Prisma.OnboardingCompletionWhereInput
 }
 
+/**
+ * BusinessCountOutputType without action
+ */
+export type BusinessCountOutputTypeCountCustomCropsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CustomCropWhereInput
+}
+
+/**
+ * BusinessCountOutputType without action
+ */
+export type BusinessCountOutputTypeCountSeasonsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SeasonWhereInput
+}
+
 
 export type BusinessSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  timezone?: boolean
   createdAt?: boolean
   defaultUsers?: boolean | Prisma.Business$defaultUsersArgs<ExtArgs>
   memberships?: boolean | Prisma.Business$membershipsArgs<ExtArgs>
   fields?: boolean | Prisma.Business$fieldsArgs<ExtArgs>
   completions?: boolean | Prisma.Business$completionsArgs<ExtArgs>
+  customCrops?: boolean | Prisma.Business$customCropsArgs<ExtArgs>
+  seasons?: boolean | Prisma.Business$seasonsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["business"]>
 
 export type BusinessSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  timezone?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["business"]>
 
 export type BusinessSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  timezone?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["business"]>
 
 export type BusinessSelectScalar = {
   id?: boolean
+  timezone?: boolean
   createdAt?: boolean
 }
 
-export type BusinessOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt", ExtArgs["result"]["business"]>
+export type BusinessOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "timezone" | "createdAt", ExtArgs["result"]["business"]>
 export type BusinessInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   defaultUsers?: boolean | Prisma.Business$defaultUsersArgs<ExtArgs>
   memberships?: boolean | Prisma.Business$membershipsArgs<ExtArgs>
   fields?: boolean | Prisma.Business$fieldsArgs<ExtArgs>
   completions?: boolean | Prisma.Business$completionsArgs<ExtArgs>
+  customCrops?: boolean | Prisma.Business$customCropsArgs<ExtArgs>
+  seasons?: boolean | Prisma.Business$seasonsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BusinessIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -622,9 +880,12 @@ export type $BusinessPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
     fields: Prisma.$FieldPayload<ExtArgs>[]
     completions: Prisma.$OnboardingCompletionPayload<ExtArgs>[]
+    customCrops: Prisma.$CustomCropPayload<ExtArgs>[]
+    seasons: Prisma.$SeasonPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    timezone: string | null
     createdAt: Date
   }, ExtArgs["result"]["business"]>
   composites: {}
@@ -1024,6 +1285,8 @@ export interface Prisma__BusinessClient<T, Null = never, ExtArgs extends runtime
   memberships<T extends Prisma.Business$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fields<T extends Prisma.Business$fieldsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$fieldsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   completions<T extends Prisma.Business$completionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$completionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  customCrops<T extends Prisma.Business$customCropsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$customCropsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomCropPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  seasons<T extends Prisma.Business$seasonsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$seasonsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1054,6 +1317,7 @@ export interface Prisma__BusinessClient<T, Null = never, ExtArgs extends runtime
  */
 export interface BusinessFieldRefs {
   readonly id: Prisma.FieldRef<"Business", 'String'>
+  readonly timezone: Prisma.FieldRef<"Business", 'String'>
   readonly createdAt: Prisma.FieldRef<"Business", 'DateTime'>
 }
 
@@ -1541,6 +1805,54 @@ export type Business$completionsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.OnboardingCompletionScalarFieldEnum | Prisma.OnboardingCompletionScalarFieldEnum[]
+}
+
+/**
+ * Business.customCrops
+ */
+export type Business$customCropsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CustomCrop
+   */
+  select?: Prisma.CustomCropSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CustomCrop
+   */
+  omit?: Prisma.CustomCropOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CustomCropInclude<ExtArgs> | null
+  where?: Prisma.CustomCropWhereInput
+  orderBy?: Prisma.CustomCropOrderByWithRelationInput | Prisma.CustomCropOrderByWithRelationInput[]
+  cursor?: Prisma.CustomCropWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CustomCropScalarFieldEnum | Prisma.CustomCropScalarFieldEnum[]
+}
+
+/**
+ * Business.seasons
+ */
+export type Business$seasonsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Season
+   */
+  select?: Prisma.SeasonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Season
+   */
+  omit?: Prisma.SeasonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SeasonInclude<ExtArgs> | null
+  where?: Prisma.SeasonWhereInput
+  orderBy?: Prisma.SeasonOrderByWithRelationInput | Prisma.SeasonOrderByWithRelationInput[]
+  cursor?: Prisma.SeasonWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SeasonScalarFieldEnum | Prisma.SeasonScalarFieldEnum[]
 }
 
 /**
