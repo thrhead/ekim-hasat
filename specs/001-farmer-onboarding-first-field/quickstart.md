@@ -1,10 +1,10 @@
 # Quickstart Validation: Self-Service Farmer Onboarding + First Field
 
-This guide defines implementation-time validation scenarios for SPEC-001. No application source tree, package manifest, or runnable test commands exist yet. These scenarios are validation requirements, not evidence that the feature is implemented.
+This guide defines validation scenarios for SPEC-001. The application, repository tests, and Maestro flow files now exist. The scenarios remain validation requirements: passing a unit, contract, or integration test verifies only the behavior that test exercises, and authoring a Maestro flow is not evidence that it ran on a device. Current evidence and remaining gaps are recorded at the end of this guide.
 
 ## Prerequisites
 
-- Minimal SPEC-001 API and mobile scaffolding.
+- A running development/test API and production Expo app for the scenarios being exercised.
 - Development/test PostgreSQL with PostGIS.
 - Configured Supabase Auth integration behind the auth adapter per [ADR-006](../../docs/ADR/ADR-006-authentication-provider.md).
 - Configured `react-native-maps` behind the map adapter per [ADR-014](../../docs/ADR/ADR-014-mobile-map-sdk.md).
@@ -89,12 +89,12 @@ This guide defines implementation-time validation scenarios for SPEC-001. No app
 - Mobile E2E and accessibility evaluation for first-field onboarding, alternate location entry, weak connectivity, no false success, draft lifecycle, and accessibility requirements.
 - Structured diagnostic-event checks for correlation IDs and exclusion of credentials, tokens, and unnecessary personal/location data.
 
-## Earlier convergence run status (2026-09-25)
+## Superseded initial convergence attempt (2026-09-25)
 
-T047 remains open. This pass ran repository checks, but did not execute the end-to-end quickstart against a running API/mobile flow. The following evidence still requires unavailable runtime or database infrastructure:
+This initial attempt ran repository checks but did not execute the end-to-end quickstart against a running API/mobile flow. Its failures and missing-database result below describe that attempt only; they were corrected by the later convergence update on the same date and are not the current repository check status.
 
 - Scenarios 1–3 and 5 require live API/PostgreSQL/PostGIS state for atomic persistence, rollback, concurrent/idempotent requests, and tenant-boundary behavior.
-- Scenarios 4 and 6 require mobile interaction under connectivity interruption, restart/process termination, draft expiry, and geometry correction; those mobile runtime cases are covered by the still-open T038–T040 evidence where applicable.
+- In the scenario list used for this initial attempt, draft recovery/expiry and geometry correction required mobile interaction. The current scenario 4 covers draft lifecycle; current scenario 6 covers geometry/default labeling. Their device interactions remain unverified as described in the current evidence matrix below.
 - Scenario 7 requires manual VoiceOver and TalkBack checks from the still-open T036 task. Pilot evaluation is also not performed here.
 - Maestro/device flows have not been run. Unit/contract coverage and an Expo export do not substitute for those executions.
 
@@ -108,4 +108,28 @@ The existing repository Compose `postgres` service was healthy with PostgreSQL/P
 - These tests call the repository and authorization components against real PostgreSQL/PostGIS. They did not run the live authenticated HTTP flow in quickstart scenarios 1–3, exercise the status endpoint in scenario 5 against a live authenticated service, or validate farmer-visible UI state. Those scenarios remain unverified end-to-end.
 - The local Compose service does not provide a configured/authenticated API session for manual quickstart execution. VoiceOver/TalkBack and pilot evaluation in scenario 7 still require manual evidence. Device recovery and geometry interaction remain runtime work; no device or Maestro infrastructure was provisioned.
 
-The repository verification defects were also corrected: the domain runner now uses the TypeScript-aware `tsx` loader consistent with the source imports, and API/mobile lint findings were fixed without changing lint rules. The final non-runtime repository checks all passed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:contract`, `pnpm test:mobile` (12 suites / 65 tests), and `pnpm check:diff`. `pnpm test:integration` also passed all 21 PostgreSQL/PostGIS tests and the schema invariant SQL. T047 remains open because the authenticated HTTP/mobile quickstart and manual/device evidence were not obtained.
+The repository verification defects were also corrected: the domain runner now uses the TypeScript-aware `tsx` loader consistent with the source imports, and API/mobile lint findings were fixed without changing lint rules. The final non-runtime repository checks all passed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:contract`, `pnpm test:mobile` (12 suites / 65 tests), and `pnpm check:diff`. `pnpm test:integration` also passed all 21 PostgreSQL/PostGIS tests and the schema invariant SQL. At that point T047 remained open because the authenticated HTTP/mobile quickstart and manual/device evidence were not obtained; the later checkpoint below adds partial Windows runtime evidence without closing T047.
+
+## Current convergence evidence (2026-09-28)
+
+The current Linux/Google Cloud Shell environment uses Node 22.23.3, pnpm 10.17.1, and Graft 0.20.0. PostgreSQL/PostGIS was started from the repository `compose.yaml`, Prisma migrations deployed successfully, and `pnpm test:integration` passed all 21 integration tests against that local database. This is Linux execution evidence for the API repository, authorization, transaction, geometry, rollback, tenant-isolation, concurrency, and idempotency cases covered by those tests. It does not establish a live authenticated HTTP/mobile quickstart or farmer-visible behavior.
+
+The current repository checks are green: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:contract`, `pnpm test:mobile` (12 suites / 65 tests), `pnpm check:diff`, `graft build`, and `graft check`. No `graft build --deep` was run.
+
+The following matrix distinguishes automated component evidence from authored device flows and complete scenario execution:
+
+| Quickstart scenario | Automated repository evidence | PostgreSQL/PostGIS evidence | Maestro or device evidence | Still open |
+|---|---|---|---|---|
+| 1. New farmer completes onboarding | Domain, API contract, and mobile tests cover command/status contracts, default name, and UI behavior in isolation. | Atomic creation and persistence of the application user, default Business, OWNER Membership, Field, completion, and idempotency result are covered. | T038 is authored, not run. On Windows, Supabase session restoration, status HTTP 200, and first-field routing were observed. | Full authenticated sign-in/status/save/routing journey and committed-field UI confirmation. |
+| 2. Atomic rollback on failure | Domain/mobile tests cover command and retry behavior. | Injected persistence failure rolls back all completion writes. | T038 is authored, not run. | Farmer-visible recovery and no-false-save behavior against the authenticated API. |
+| 3. Idempotent retry and concurrency | Domain tests cover replay and conflict outcomes. | Concurrent convergence, lost-response replay, retained-key conflict, and post-retention existing-result behavior are covered. | T038 is authored, not run; its dropped-response and two-device scenarios have not been executed. | Authenticated HTTP/UI retry and concurrent-device evidence. |
+| 4. Connectivity and temporary draft | T037/mobile tests cover persistence, account scope, recovery, seven-day expiry/activity reset, lifecycle purges, and secret exclusion. | Not applicable. | T039 is authored, not run; it covers offline failure, same-device/account relaunch restore of name and visible selected geometry, and discard. | Device execution; successful-save purge, sign-out/account-switch purge, seven-day UI expiry, and force-termination/crash behavior are not proven by Maestro. |
+| 5. Business isolation and membership authority | API/domain contracts cover auth/error semantics, privacy-safe denial, and request shape. | Membership enforcement, inactive/missing membership denial, no fallback/adoption of unrelated Membership, and no unauthorized mutation are covered. | T040 is authored, not run; it exercises the generic status-denial UI with an operator-prepared isolated fixture. | Device execution; live HTTP response privacy and server-side non-fallback remain API evidence, not Maestro proof. |
+| 6. Geometry and default label | Domain tests cover Point/Polygon validation, point-only behavior, unverified boundary, and name normalization. | Geometry persistence and transaction behavior are covered against PostgreSQL/PostGIS. | T038 is authored, not run. | On-device map interaction and geometry correction; Android Maps key/native rebuild remain pending. |
+| 7. Accessibility and pilot evaluation | T035 automated accessibility assertions are included in the passing mobile tests. | Not applicable. | No manual accessibility or pilot evaluation has been reported. | VoiceOver/TalkBack checks and SC-001/SC-002 pilot evaluation; T036 remains open. |
+
+### Partial Windows runtime checkpoint
+
+An earlier Windows session confirmed Supabase session restoration, `GET /v1/onboarding/status` returning HTTP 200, and routing to first-field onboarding. The next blocker was a missing Google Maps Android API key; native configuration/rebuild and map interaction remain pending on the user's Windows machine. This is partial runtime evidence only: it does not mean Android was built or that any T038–T040 Maestro flow ran.
+
+T038, T039, T040, and T036 remain open. T039/T040 flow files are authored but have not been executed. T047 remains open because Linux tests and the partial Windows status/routing checkpoint do not cover the complete authenticated HTTP/mobile quickstart, all device scenarios, manual accessibility checks, or pilot evaluation.
