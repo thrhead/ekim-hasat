@@ -1,0 +1,71 @@
+appId: ${MAESTRO_APP_ID}
+---
+# Environment preconditions:
+# - Install the production Expo app with a valid authenticated session for an
+#   incomplete test account; keep the same installation, device, and account
+#   throughout this flow.
+# - Configure the test backend and map provider as for onboarding.e2e.yaml.
+#   This flow interacts only with production-visible controls and does not seed
+#   or inspect app-private storage.
+#
+# Covered here: durable draft retention after an offline save attempt, same
+# account/device recovery after stopApp + launchApp, restoring the entered name
+# and selected geometry, and explicit discard. The map's visible selected state
+# confirms that geometry was restored; the UI does not expose coordinates for
+# a black-box equality assertion.
+#
+# Not honestly exercisable by this Maestro flow with current production UI:
+# - Success purge is obscured by routing to the completed-farmer experience;
+#   this flow does not claim the local key was independently inspected.
+# - Sign-out/account switch has no supported onboarding UI path to trigger the
+#   auth identity transition. Do not inject or override auth sessions here.
+# - Seven-day expiry cannot be advanced deterministically through production
+#   UI. The store's injected clock remains a unit-test seam; no clock hook is
+#   added to the app for E2E.
+# These lifecycle cases remain covered by T037 unit tests and require a safe,
+# first-class UI/testability seam plus device evidence before claiming Maestro
+# coverage. Do not treat authoring this flow as runtime verification.
+- launchApp
+- assertVisible: "İlk tarlanızı ekleyin"
+- tapOn: "Tarla adı (isteğe bağlı)"
+- inputText: "Maestro draft recovery"
+- tapOn: "Haritadan nokta seç"
+- tapOn:
+    text: "Nokta seçmek için harita"
+    point: "50%,50%"
+- assertVisible: "Konum seçildi"
+
+# The field name and geometry have already been persisted before connectivity
+# is removed. The rejected command must remain a retryable, unsaved draft.
+- setAirplaneMode: enabled
+- tapOn: "Tarlayı kaydet"
+- assertVisible: "Bağlantı kurulamadı. Bağlantınızı kontrol edip yeniden deneyin."
+- assertNotVisible: "Tarla kaydedildi"
+
+# Restore connectivity before relaunch so authenticated onboarding status can
+# load. stopApp terminates the app process while preserving app data/session.
+- setAirplaneMode: disabled
+- stopApp
+- launchApp
+- assertVisible: "Bilgileriniz hazır"
+- tapOn: "Devam et"
+- assertVisible: "Maestro draft recovery"
+- assertVisible: "Tarla adı (isteğe bağlı)"
+- assertVisible: "Konum seçildi"
+
+# The supported explicit cancellation action clears the restored form and
+# purges its account-scoped local draft.
+- stopApp
+- launchApp
+- assertVisible: "Bilgileriniz hazır"
+- tapOn: "Taslağı sil"
+- assertVisible: "İlk tarlanızı ekleyin"
+- assertNotVisible: "Maestro draft recovery"
+- assertNotVisible: "Konum seçildi"
+- stopApp
+- launchApp
+- assertVisible: "İlk tarlanızı ekleyin"
+- assertVisible: "Tarla adı (isteğe bağlı)"
+- assertNotVisible: "Bilgileriniz hazır"
+- assertNotVisible: "Maestro draft recovery"
+- assertNotVisible: "Konum seçildi"
