@@ -1,0 +1,459 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat First Season Setup API
+  version: 1.0.0
+  description: Planning contract for crop selection, a first season draft, plan review, activation, and read-only Bugün tasks.
+servers:
+  - url: /v1
+security:
+  - BearerAuth: []
+tags:
+  - name: seasons
+  - name: today
+paths:
+  /fields/{fieldId}/season-setup-options:
+    get:
+      tags: [seasons]
+      operationId: getSeasonSetupOptions
+      summary: List crop choices and template availability for an authorized field
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+      responses:
+        '200':
+          description: Available central crops and validated-template availability for this field. An applicable published template with zero definitions is reported as empty/unavailable and diagnosed as a content-quality issue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [fieldId, crops, customCropAllowed]
+                properties:
+                  fieldId: { type: string, format: uuid }
+                  customCropAllowed: { type: boolean, const: true }
+                  crops:
+                    type: array
+                    items: { $ref: '#/components/schemas/CropChoice' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /fields/{fieldId}/seasons:
+    post:
+      tags: [seasons]
+      operationId: createSeasonDraft
+      summary: Create or recover the logical season draft and its template-backed or manual plan
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSeasonDraftRequest' }
+      responses:
+        '201':
+          description: Draft season and initial plan created atomically
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeasonDraft' }
+        '200':
+          description: Existing result replayed for the same idempotency key and request, or unchanged existing season returned for a matching authorized business/field/crop/actual-date logical identity, including concurrent different-key requests
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SeasonDraft'
+                  - $ref: '#/components/schemas/ActiveSeason'
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Idempotency key reused with a different request, or explicit manual-plan choice required because no usable applicable validated template exists
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /seasons/{seasonId}/plan-tasks:
+    post:
+      tags: [seasons]
+      operationId: addSeasonPlanTask
+      summary: Add a task to a draft season plan
+      parameters:
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/ExpectedVersion'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlanTaskInput' }
+      responses:
+        '201':
+          description: Task added; returns the updated plan and version
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeasonDraft' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Stale draft version or season is ACTIVE; plan-task mutation is permitted only while DRAFT
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /seasons/{seasonId}:
+    get:
+      tags: [seasons]
+      operationId: getSeasonSetup
+      summary: Read a draft or active season in the authorized business scope
+      parameters:
+        - $ref: '#/components/parameters/SeasonId'
+      responses:
+        '200':
+          description: Current season, plan source, tasks, and version for recovery/review
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SeasonDraft'
+                  - $ref: '#/components/schemas/ActiveSeason'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /seasons/{seasonId}/plan-tasks/{taskId}:
+    patch:
+      tags: [seasons]
+      operationId: editSeasonPlanTask
+      summary: Edit a task's title or planned date in a draft plan
+      parameters:
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/ExpectedVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditPlanTaskRequest' }
+      responses:
+        '200':
+          description: Task edited; returns the updated plan and version
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeasonDraft' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Stale draft version or season is ACTIVE; plan-task mutation is permitted only while DRAFT
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+    delete:
+      tags: [seasons]
+      operationId: removeSeasonPlanTask
+      summary: Remove a task from a draft plan
+      parameters:
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/ExpectedVersion'
+      responses:
+        '200':
+          description: Task removed; returns the updated plan and version
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeasonDraft' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Stale draft version or season is ACTIVE; plan-task mutation is permitted only while DRAFT
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /seasons/{seasonId}/activate:
+    post:
+      tags: [seasons]
+      operationId: activateSeason
+      summary: Approve the current draft plan and activate the season
+      parameters:
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ExpectedVersion'
+      responses:
+        '200':
+          description: Season activated, or the original result replayed for the exact same idempotency key and activation command
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActiveSeason' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Same key with changed payload/version, stale DRAFT version, different-key concurrent activation loser, or different-key activation against ACTIVE; client must re-read the season
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '422':
+          description: MANUAL or VALIDATED_TEMPLATE draft has no valid planned tasks; draft remains editable and no placeholder task is added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /today:
+    get:
+      tags: [today]
+      operationId: getTodayPlannedTasks
+      summary: Read the authorized business's planned work for its current local day across its fields
+      responses:
+        '200':
+          description: Planned tasks whose local date equals the authorized business-local date, including an empty list when none are due. Use the configured business timezone, or configured Europe/Istanbul fallback when absent; device timezone and server UTC do not define today's boundary.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [localDate, tasks]
+                properties:
+                  localDate:
+                    type: string
+                    format: date
+                    description: Current date in the authorized business timezone across all fields/seasons in that business.
+                  tasks:
+                    type: array
+                    items: { $ref: '#/components/schemas/TodayPlannedTask' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SeasonId:
+      name: seasonId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Identifies an idempotent command execution. After a lost response or app restart, the client retries the exact same command with the same key; reusing a key with a different payload or version conflicts. For season creation and activation, the client durably retains the unresolved command until it records the successful result.
+      schema: { type: string, minLength: 1, maxLength: 200 }
+    ExpectedVersion:
+      name: If-Match
+      in: header
+      required: true
+      description: ETag/version returned with the draft; stale writes return 409.
+      schema: { type: string, minLength: 1 }
+  schemas:
+    CropChoice:
+      type: object
+      required: [id, displayName, source, templateAvailability, manualPlanAllowed]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string, minLength: 1 }
+        source: { type: string, enum: [CENTRAL] }
+        templateAvailability:
+          type: string
+          enum: [AVAILABLE, NOT_APPLICABLE, EMPTY_TASK_DEFINITIONS]
+          description: EMPTY_TASK_DEFINITIONS means the applicable published version contains no tasks; it is unavailable for generation and requires an explicit manual-plan choice.
+        manualPlanAllowed:
+          type: boolean
+          description: True only when no usable applicable validated template exists (NOT_APPLICABLE or EMPTY_TASK_DEFINITIONS); false when a nonempty applicable validated template must be used.
+    CropSelection:
+      oneOf:
+        - type: object
+          required: [centralCropId]
+          additionalProperties: false
+          properties:
+            centralCropId: { type: string, format: uuid }
+        - type: object
+          required: [customCropName]
+          additionalProperties: false
+          properties:
+            customCropName: { type: string, minLength: 1, maxLength: 120 }
+    CreateSeasonDraftRequest:
+      type: object
+      required: [crop, sowingPlantingDate]
+      additionalProperties: false
+      properties:
+        crop: { $ref: '#/components/schemas/CropSelection' }
+        sowingPlantingDate:
+          type: string
+          format: date
+          description: Actual planting local date; today or any past date is valid without a lookback limit. Future dates are rejected.
+        planSource:
+          type: string
+          enum: [MANUAL]
+          description: Explicit farmer choice to continue manually when no usable applicable validated template exists, including NOT_APPLICABLE and EMPTY_TASK_DEFINITIONS. This choice is required before manual draft creation in those cases. If an applicable nonempty template exists, omit this field and the server selects it; the client cannot select a template version.
+    PlanTaskInput:
+      type: object
+      required: [title, plannedLocalDate]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        plannedLocalDate:
+          type: string
+          format: date
+          description: Local calendar date on or after the season's actual sowing/planting date; equality is allowed.
+    EditPlanTaskRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        plannedLocalDate:
+          type: string
+          format: date
+          description: Local calendar date on or after the season's actual sowing/planting date; equality is allowed.
+    PlanSource:
+      type: object
+      required: [kind, validationLabel]
+      properties:
+        kind: { type: string, enum: [VALIDATED_TEMPLATE, MANUAL] }
+        validationLabel: { type: string, enum: [CENTRALLY_VALIDATED, NOT_CENTRALLY_VALIDATED] }
+        templateVersionId: { type: [string, 'null'], format: uuid }
+    PlanTask:
+      allOf:
+        - $ref: '#/components/schemas/PlanTaskInput'
+        - type: object
+          required: [id, version]
+          properties:
+            id: { type: string, format: uuid }
+            version: { type: integer, minimum: 1 }
+    SeasonRecord:
+      type: object
+      required: [id, fieldId, cropDisplayName, sowingPlantingDate, status, version, plan]
+      properties:
+        id: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        cropDisplayName: { type: string }
+        sowingPlantingDate: { type: string, format: date }
+        status: { type: string, enum: [DRAFT, ACTIVE] }
+        version: { type: integer, minimum: 1 }
+        plan:
+          type: object
+          required: [source, tasks]
+          properties:
+            source: { $ref: '#/components/schemas/PlanSource' }
+            tasks:
+              type: array
+              items: { $ref: '#/components/schemas/PlanTask' }
+    SeasonDraft:
+      allOf:
+        - $ref: '#/components/schemas/SeasonRecord'
+        - type: object
+          required: [status]
+          properties:
+            status: { type: string, const: DRAFT }
+    ActiveSeason:
+      allOf:
+        - $ref: '#/components/schemas/SeasonRecord'
+        - type: object
+          required: [status, activatedAt]
+          properties:
+            status: { type: string, const: ACTIVE }
+            activatedAt: { type: string, format: date-time }
+    TodayPlannedTask:
+      type: object
+      required: [id, seasonId, fieldId, cropDisplayName, title, plannedLocalDate]
+      properties:
+        id: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        cropDisplayName: { type: string }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        sourceKind: { type: string, enum: [VALIDATED_TEMPLATE, MANUAL] }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, SEASON_DATE_IN_FUTURE, TASK_BEFORE_SEASON_DATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, SEASON_STATE_CONFLICT, PLAN_HAS_NO_VALID_TASKS, MANUAL_PLAN_CHOICE_REQUIRED, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
+  responses:
+    InvalidRequest:
+      description: Invalid input, future actual sowing/planting date, planned task before the season date, or invalid title
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Authentication is missing or invalid
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: Scope is not authorized; response does not disclose record existence
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Resource is unavailable or not visible in the authorized scope
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: Idempotency payload/version mismatch, stale version, DRAFT-only mutation against ACTIVE, activation state conflict, or explicit manual-plan choice required for an empty published template
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unexpected:
+      description: Unexpected server failure with a stable privacy-safe error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
