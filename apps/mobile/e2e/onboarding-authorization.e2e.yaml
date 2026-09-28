@@ -1,0 +1,42 @@
+appId: ${MAESTRO_APP_ID}
+---
+# Environment preconditions:
+# - Install the production Expo app with a valid, already-authenticated Supabase
+#   session for a dedicated test user. Do not put credentials or tokens here.
+# - Use an isolated non-production API/database. Before the run, prepare this
+#   user's server-owned defaultBusinessId to point at a business for which the
+#   user has no active Membership. If possible, also give the user an active
+#   Membership in a different business to detect any fallback. Prepare state
+#   through operator-managed setup for that isolated test environment. This
+#   repository currently provides no runtime seed/fixture command for Maestro;
+#   do not prepare this state through the app or a production test hook.
+# - The real API must receive the request and return the documented privacy-safe
+#   GET /v1/onboarding/status 403 response. Do not synthesize the authorization
+#   result with a proxy; that would only test generic client error handling.
+#
+# This flow verifies the supported mobile denial state and that onboarding is
+# not shown after the denied status read. Maestro cannot inspect the API body or
+# prove the database scope; API contract/integration tests remain the evidence
+# for exact 403 semantics, privacy-safe response content, and no fallback to
+# another Membership/business.
+#
+# Not represented by this UI flow:
+# - Missing, malformed, or rejected bearer credentials: the signed-out app does
+#   not call onboarding status, and the UI cannot edit its Supabase session.
+# - POST /v1/onboarding/complete context denial (400), extra/forged business or
+#   membership selectors, or invalid body shape: the screen exposes no such
+#   inputs. These remain API contract/integration cases; do not add direct API
+#   calls, token overrides, or test-only controls to this Maestro flow.
+- launchApp
+- assertVisible: "Giriş yapılamadı. Yeniden deneyin."
+- assertVisible: "Yeniden dene"
+- assertNotVisible: "İlk tarlanızı ekleyin"
+- assertNotVisible: "Tarlayı kaydet"
+
+# Retry against the same denied fixture; the app should remain in the same
+# generic state and must not expose business or Membership details.
+- tapOn: "Yeniden dene"
+- assertVisible: "Giriş yapılamadı. Yeniden deneyin."
+- assertVisible: "Yeniden dene"
+- assertNotVisible: "İlk tarlanızı ekleyin"
+- assertNotVisible: "Tarlayı kaydet"
