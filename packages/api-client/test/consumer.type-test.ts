@@ -1,5 +1,6 @@
 import { createApiClient } from "@ekim-hasat/api-client";
 import type { components, operations, paths } from "@ekim-hasat/api-client";
+import type { paths as OnboardingPaths } from "../src/generated/onboarding-api.js";
 
 const client = createApiClient();
 
@@ -24,8 +25,8 @@ type Assert<T extends true> = T;
 type HasStatusOperation = Assert<"/onboarding/status" extends keyof paths ? true : false>;
 type HasCompletionOperation = Assert<"/onboarding/complete" extends keyof paths ? true : false>;
 type OnlyCurrentOperations = Assert<
-  [keyof paths] extends ["/onboarding/status" | "/onboarding/complete"]
-    ? ["/onboarding/status" | "/onboarding/complete"] extends [keyof paths]
+  [keyof OnboardingPaths] extends ["/onboarding/status" | "/onboarding/complete"]
+    ? ["/onboarding/status" | "/onboarding/complete"] extends [keyof OnboardingPaths]
       ? true
       : false
     : false
