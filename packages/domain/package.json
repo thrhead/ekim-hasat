@@ -12,6 +12,14 @@
       "types": "./dist/seasons/local-date.d.ts",
       "import": "./dist/seasons/local-date.js"
     },
+    "./seasons/crop-selection": {
+      "types": "./dist/seasons/crop-selection.d.ts",
+      "import": "./dist/seasons/crop-selection.js"
+    },
+    "./seasons/template-selection": {
+      "types": "./dist/seasons/template-selection.d.ts",
+      "import": "./dist/seasons/template-selection.js"
+    },
     "./identity/auth-provider": {
       "types": "./dist/identity/auth-provider.d.ts",
       "import": "./dist/identity/auth-provider.js"
