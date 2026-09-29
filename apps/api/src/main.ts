@@ -18,6 +18,10 @@ import { SeasonReadRepository } from "./seasons/seasons-read.repository.js";
 import { createSeasonReadModule } from "./seasons/seasons-read.controller.js";
 import { SeasonPlanTaskRepository } from "./seasons/seasons-plan-task.repository.js";
 import { createSeasonPlanTaskModule } from "./seasons/seasons-plan-task.controller.js";
+import { SeasonActivationRepository } from "./seasons/seasons-activation.repository.js";
+import { createSeasonActivationModule } from "./seasons/seasons-activation.controller.js";
+import { TodayRepository } from "./seasons/today.repository.js";
+import { createTodayModule } from "./seasons/today.controller.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -51,6 +55,8 @@ async function bootstrap(): Promise<void> {
   const seasonReadRepository = new SeasonReadRepository(prisma);
   const seasonCreateRepository = new SeasonCreateRepository(prisma);
   const seasonPlanTaskRepository = new SeasonPlanTaskRepository(prisma);
+  const seasonActivationRepository = new SeasonActivationRepository(prisma);
+  const todayRepository = new TodayRepository(prisma);
   const verify = (token: string) => authenticator.verify(token);
   const onboardingStatusModule = createOnboardingStatusModule({
     verify,
@@ -75,8 +81,16 @@ async function bootstrap(): Promise<void> {
     editTask: (identity, seasonId, taskId, expectedVersion, body) => seasonPlanTaskRepository.editTask(identity, seasonId, taskId, expectedVersion, body),
     removeTask: (identity, seasonId, taskId, expectedVersion) => seasonPlanTaskRepository.removeTask(identity, seasonId, taskId, expectedVersion),
   });
+  const seasonActivationModule = createSeasonActivationModule({
+    verify,
+    activate: (identity, seasonId, expectedVersion, key) => seasonActivationRepository.activate(identity, seasonId, expectedVersion, key),
+  });
+  const todayModule = createTodayModule({
+    verify,
+    readToday: (identity) => todayRepository.readToday(identity),
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

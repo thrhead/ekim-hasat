@@ -65,6 +65,12 @@ async function settle() {
 }
 
 describe("production app composition", () => {
+  it("routes an activated season into the read-only Today surface", () => {
+    const { app } = setup();
+    app.showToday();
+    expect(app.getState().entry).toBe("today");
+  });
+
   it("shows loading while the persisted auth session is resolving", () => {
     const { app } = setup();
     expect(app.getState().auth.status).toBe("loading");

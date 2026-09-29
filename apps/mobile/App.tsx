@@ -5,6 +5,7 @@ import { createAppComposition, type ProductionAppState } from "./src/app-composi
 import { FirstFieldScreen } from "./src/features/onboarding/first-field-screen";
 import { OnboardingEntryView } from "./src/features/onboarding/onboarding-entry-view";
 import { SeasonSetupScreen } from "./src/features/seasons/season-setup-screen";
+import { TodayScreen } from "./src/features/seasons/today-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -74,9 +75,12 @@ export default function App() {
         onReview={(draft) => compositionRef.current?.reviewSeason(draft)}
         onExitReview={() => compositionRef.current?.exitSeasonReview()}
         onBack={state.entry === "season-created" ? () => compositionRef.current?.continueAfterSeason() : undefined}
+        onActivated={() => compositionRef.current?.showToday()}
       />
     );
   }
+
+  if (state.entry === "today" && state.client) return <TodayScreen client={state.client} />;
 
   return <AppShell />;
 }

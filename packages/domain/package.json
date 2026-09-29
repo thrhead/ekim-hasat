@@ -24,6 +24,10 @@
       "types": "./dist/seasons/plan-task-mutations.d.ts",
       "import": "./dist/seasons/plan-task-mutations.js"
     },
+    "./seasons/activation": {
+      "types": "./dist/seasons/activation.d.ts",
+      "import": "./dist/seasons/activation.js"
+    },
     "./identity/auth-provider": {
       "types": "./dist/identity/auth-provider.d.ts",
       "import": "./dist/identity/auth-provider.js"

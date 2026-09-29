@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import type { ApiClient, SeasonComponents } from "../../api/onboarding-client";
 import { createSeasonCreateCommandCoordinator, createSeasonCreateCommandStore } from "./season-create-command-store";
 import type { SeasonCreateCommand } from "./season-create-command-store";
+import { activateSeason, readTodayPlannedWork, refreshSeasonAfterConflict } from "./season-activation";
 
 type CropChoice = SeasonComponents["schemas"]["CropChoice"];
 type Options = Readonly<{ crops: CropChoice[]; customCropAllowed: true; fieldId: string }>;
@@ -167,6 +168,7 @@ export function SeasonSetupScreen({
   onReview,
   onExitReview,
   onBack,
+  onActivated,
 }: {
   client: ApiClient;
   fieldId: string;
@@ -177,6 +179,7 @@ export function SeasonSetupScreen({
   onReview?: (draft: Draft) => void;
   onExitReview?: () => void;
   onBack?: () => void;
+  onActivated?: () => void;
 }) {
   const reviewMode = initialDraft !== undefined;
   const [options, setOptions] = useState<Options | null>(null);
@@ -197,6 +200,8 @@ export function SeasonSetupScreen({
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
   const replayingSavedCommand = initialRequest !== undefined;
   const review = reviewMode && Boolean(draft);
   const refreshDraft = useCallback(async () => {
@@ -239,6 +244,35 @@ export function SeasonSetupScreen({
     } finally { setWorking(false); }
   }
 
+  async function activateDraft() {
+    if (!draft || draft.plan.tasks.length === 0) return;
+    setActivating(true); setActivationError(null);
+    try {
+      const key = activationKey(draft);
+      const outcome = await activateSeason(client, draft, key);
+      activationKeys.delete(`${draft.id}:${draft.version}`);
+      setDraft(null); setResult({ season: outcome.season, planSource: outcome.season.plan.source.kind });
+      onActivated?.();
+    } catch (error) {
+      const status = error && typeof error === "object" && "status" in error ? Number((error as { status: unknown }).status) : 0;
+      setActivationError(error instanceof Error ? error.message : "Sezon etkinleştirilemedi.");
+      if (status === 409) {
+        try {
+          const latest = await refreshSeasonAfterConflict(client, draft.id);
+          activationKeys.delete(`${draft.id}:${draft.version}`);
+          setDraft(latest.status === "DRAFT" ? latest : null);
+          setResult({ season: latest, planSource: latest.plan.source.kind });
+          if (latest.status === "ACTIVE") {
+            const today = await readTodayPlannedWork(client);
+            if (today.localDate) onActivated?.();
+          }
+        } catch (refreshError) {
+          setActivationError(refreshError instanceof Error ? refreshError.message : "Güncel sezon yüklenemedi. Yeniden deneyin.");
+        }
+      }
+    } finally { setActivating(false); }
+  }
+
   const reviewView = review ? <ScrollView contentContainerStyle={styles.content}>
     <Text accessibilityRole="header" style={styles.title}>Sezon planını gözden geçir</Text>
     <Text style={styles.body}>Plan kaynağı: {planSourceLabel(draft!.plan.source.kind)}</Text>
@@ -246,7 +280,7 @@ export function SeasonSetupScreen({
     {reviewLoading ? <Text accessibilityRole="progressbar" style={styles.body}>Taslak yükleniyor…</Text> : null}
     {reviewError ? <Text accessibilityRole="alert" style={styles.error}>{reviewError}</Text> : null}
     <SeasonSetupActionButton label="Güncel taslağı yeniden yükle" onPress={() => void refreshDraft()} disabled={reviewLoading || working} />
-    {draft!.plan.tasks.length === 0 ? <Text style={styles.body}>Henüz görev yok. Aşağıdan ilk görevi ekleyebilirsiniz.</Text> : draft!.plan.tasks.map((task) => <View key={task.id} style={styles.task}>
+    {draft!.plan.tasks.length === 0 ? <Text accessibilityLiveRegion="polite" style={styles.body}>Sezonu etkinleştirmek için en az bir planlı görev ekleyin. Henüz görev yok; burada sizin yerinize görev oluşturulmaz.</Text> : draft!.plan.tasks.map((task) => <View key={task.id} style={styles.task}>
       <Text style={styles.body}>{task.title} · {task.plannedLocalDate}</Text>
       <SeasonSetupActionButton label={`${task.title} görevini düzenle`} disabled={working || reviewLoading} onPress={() => { setEditingTaskId(task.id); setTaskTitle(task.title); setTaskDate(task.plannedLocalDate); setReviewError(null); }} />
       <SeasonSetupActionButton label={`${task.title} görevini kaldır`} disabled={working || reviewLoading} onPress={() => void removeTask(task.id)} />
@@ -254,6 +288,8 @@ export function SeasonSetupScreen({
     <TextInput accessibilityLabel="Görev adı" value={taskTitle} onChangeText={setTaskTitle} placeholder="Görev adı" style={styles.input} editable={!working} />
     <TextInput accessibilityLabel="Görev tarihi" value={taskDate} onChangeText={setTaskDate} placeholder="YYYY-AA-GG" style={styles.input} editable={!working} />
     <SeasonSetupActionButton label={working ? "Kaydediliyor…" : editingTaskId ? "Görevi kaydet" : "Görev ekle"} onPress={() => void saveTask()} disabled={working || reviewLoading} />
+    {activationError ? <Text accessibilityRole="alert" style={styles.error}>{activationError}</Text> : null}
+    <SeasonSetupActionButton label={activating ? "Sezon etkinleştiriliyor…" : "Planı onayla ve sezonu başlat"} onPress={() => void activateDraft()} disabled={activating || working || reviewLoading || draft!.plan.tasks.length === 0} />
     {onExitReview ? <SeasonSetupActionButton label="Geri dön" onPress={onExitReview} disabled={working} /> : null}
   </ScrollView> : null;
 
@@ -307,6 +343,7 @@ export function SeasonSetupScreen({
         <Text style={styles.body}>{result.planSource === "VALIDATED_TEMPLATE" ? "Plan kaynağı: VALIDATED_TEMPLATE — merkezi olarak doğrulanmış." : "Plan kaynağı: MANUAL — elle hazırlanacak."}</Text>
         <Text style={styles.body}>{result.season.cropDisplayName} · Ekim tarihi: {result.season.sowingPlantingDate}</Text>
         {canEditPlan(result.season) ? <SeasonSetupActionButton label="Planı gözden geçir" onPress={() => { setDraft(result.season as Draft); onReview?.(result.season as Draft); }} /> : null}
+        {result.season.status === "ACTIVE" ? <SeasonSetupActionButton label="Bugün" onPress={() => { void readTodayPlannedWork(client).then(() => onActivated?.()).catch(() => onActivated?.()); }} /> : null}
         {onBack ? <SeasonSetupActionButton label="Devam et" onPress={onBack} /> : null}
       </ScrollView>
     );
@@ -394,6 +431,14 @@ export function SeasonSetupScreen({
       ) : null}
     </ScrollView>
   );
+}
+
+const activationKeys = new Map<string, string>();
+export function activationKey(draft: Pick<Draft, "id" | "version">): string {
+  const command = `${draft.id}:${draft.version}`;
+  let key = activationKeys.get(command);
+  if (!key) { key = `activate-${draft.id}-${draft.version}-${Math.random().toString(36).slice(2)}`; activationKeys.set(command, key); }
+  return key;
 }
 
 export function SeasonSetupStatus({

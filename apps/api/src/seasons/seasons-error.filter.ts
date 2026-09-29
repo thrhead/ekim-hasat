@@ -23,7 +23,7 @@ export class SeasonsErrorFilter implements ExceptionFilter {
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const presentation = exception instanceof SeasonCommandError ? exception.presentation : safeErrors[status] ?? { code: "UNEXPECTED", message: "Something went wrong" };
     this.logger.requestFailed({ correlationId: requestId, method: request.method, statusCode: status,
-      errorCategory: status === 401 ? "AUTHENTICATION_REQUIRED" : status === 403 ? "FORBIDDEN" : status === 404 ? "NOT_FOUND" : status === 400 ? "INVALID_REQUEST" : status === 409 ? "CONFLICT" : "INTERNAL_ERROR" });
+      errorCategory: status === 401 ? "AUTHENTICATION_REQUIRED" : status === 403 ? "FORBIDDEN" : status === 404 ? "NOT_FOUND" : status === 400 || status === 422 ? "INVALID_REQUEST" : status === 409 ? "CONFLICT" : "INTERNAL_ERROR" });
     reply.status(status).send({ error: { ...presentation, requestId } });
   }
 }

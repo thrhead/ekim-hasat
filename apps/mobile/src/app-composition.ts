@@ -14,7 +14,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -143,6 +143,7 @@ export function createAppComposition(
     reviewSeason(draft: SeasonComponents["schemas"]["SeasonDraft"]) {
       publish({ ...state, entry: "season-review", seasonDraft: draft });
     },
+    showToday() { publish({ ...state, entry: "today", seasonDraft: null }); },
     async restoreSeasonReview() {
       if (!state.client || !state.seasonDraft) return;
       try {
