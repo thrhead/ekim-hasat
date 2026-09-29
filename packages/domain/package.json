@@ -20,6 +20,10 @@
       "types": "./dist/seasons/template-selection.d.ts",
       "import": "./dist/seasons/template-selection.js"
     },
+    "./seasons/plan-task-mutations": {
+      "types": "./dist/seasons/plan-task-mutations.d.ts",
+      "import": "./dist/seasons/plan-task-mutations.js"
+    },
     "./identity/auth-provider": {
       "types": "./dist/identity/auth-provider.d.ts",
       "import": "./dist/identity/auth-provider.js"

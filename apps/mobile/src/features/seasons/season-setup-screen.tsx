@@ -8,6 +8,7 @@ type CropChoice = SeasonComponents["schemas"]["CropChoice"];
 type Options = Readonly<{ crops: CropChoice[]; customCropAllowed: true; fieldId: string }>;
 type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 type Season = SeasonComponents["schemas"]["SeasonDraft"] | SeasonComponents["schemas"]["ActiveSeason"];
+type Draft = SeasonComponents["schemas"]["SeasonDraft"];
 
 export type SeasonSetupResult = Readonly<{ season: Season; planSource: "VALIDATED_TEMPLATE" | "MANUAL" }>;
 
@@ -64,6 +65,55 @@ export async function loadSeasonSetupOptions(client: ApiClient, fieldId: string)
   return data;
 }
 
+export async function readSeason(client: ApiClient, seasonId: string): Promise<Season> {
+  const { data, error, response } = await client.GET("/seasons/{seasonId}", { params: { path: { seasonId } } });
+  if (!response.ok || error !== undefined || data === undefined) throw new Error("Sezon taslağı yüklenemedi. Yeniden deneyin.");
+  return data;
+}
+
+export function validatePlanTaskDate(value: string, plantingDate: string): string | null {
+  const dateError = validateCalendarDate(value);
+  if (dateError) return dateError;
+  if (value < plantingDate) return "Görev tarihi ekim tarihinden önce olamaz.";
+  return null;
+}
+
+function validateCalendarDate(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Tarihi YYYY-AA-GG biçiminde girin.";
+  const year = Number(value.slice(0, 4)); const month = Number(value.slice(5, 7)); const day = Number(value.slice(8, 10));
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1] ? "Bu takvim tarihi geçerli değil." : null;
+}
+
+function requestError(error: unknown, status: number): string {
+  const code = error && typeof error === "object" && "error" in error ? (error as { error?: { code?: string } }).error?.code : null;
+  if (status === 409 || code === "STALE_VERSION" || code === "SEASON_STATE_CONFLICT") return "Taslak başka bir yerde değişti. Güncel taslak yeniden yüklendi.";
+  if (status === 401 || status === 403) return "Bu taslağı düzenlemek için yetkiniz yok. Erişiminizi kontrol edin.";
+  if (status === 400 || status === 422) return "Görev bilgilerini kontrol edin ve yeniden deneyin.";
+  return "İşlem tamamlanamadı. Yeniden deneyin.";
+}
+
+export function planSourceLabel(source: Draft["plan"]["source"]["kind"]): string {
+  return source === "MANUAL"
+    ? "MANUAL — merkezi olarak doğrulanmadı"
+    : "VALIDATED_TEMPLATE — merkezi olarak doğrulandı";
+}
+
+export function canEditPlan(season: Pick<Season, "status">): boolean {
+  return season.status === "DRAFT";
+}
+
+export async function mutatePlan(client: ApiClient, draft: Draft, mutation: "add" | "edit" | "remove", taskId: string | null, body?: SeasonComponents["schemas"]["PlanTaskInput"] | SeasonComponents["schemas"]["EditPlanTaskRequest"]): Promise<Draft> {
+  const headers = { "If-Match": String(draft.version) };
+  let result;
+  if (mutation === "add") result = await client.POST("/seasons/{seasonId}/plan-tasks", { params: { path: { seasonId: draft.id }, header: { ...headers, "Idempotency-Key": `task-${Date.now()}-${Math.random().toString(36).slice(2)}` } }, body: body as SeasonComponents["schemas"]["PlanTaskInput"] });
+  else if (mutation === "edit") result = await client.PATCH("/seasons/{seasonId}/plan-tasks/{taskId}", { params: { path: { seasonId: draft.id, taskId: taskId! }, header: headers }, body: body as SeasonComponents["schemas"]["EditPlanTaskRequest"] });
+  else result = await client.DELETE("/seasons/{seasonId}/plan-tasks/{taskId}", { params: { path: { seasonId: draft.id, taskId: taskId! }, header: headers } });
+  if (!result.response.ok || result.error !== undefined || result.data === undefined) throw Object.assign(new Error(requestError(result.error, result.response.status)), { status: result.response.status });
+  return result.data as Draft;
+}
+
 export function validatePlantingDate(value: string, today = localCalendarDate()): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Tarihi YYYY-AA-GG biçiminde girin.";
   const year = Number(value.slice(0, 4));
@@ -113,6 +163,9 @@ export function SeasonSetupScreen({
   initialRequest,
   initialResult,
   onCreated,
+  initialDraft,
+  onReview,
+  onExitReview,
   onBack,
 }: {
   client: ApiClient;
@@ -120,8 +173,12 @@ export function SeasonSetupScreen({
   initialRequest?: CreateRequest;
   initialResult?: SeasonSetupResult;
   onCreated: (request: CreateRequest) => Promise<SeasonSetupResult>;
+  initialDraft?: Draft;
+  onReview?: (draft: Draft) => void;
+  onExitReview?: () => void;
   onBack?: () => void;
 }) {
+  const reviewMode = initialDraft !== undefined;
   const [options, setOptions] = useState<Options | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -133,7 +190,72 @@ export function SeasonSetupScreen({
   const [actionError, setActionError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SeasonSetupResult | null>(initialResult ?? null);
+  const [draft, setDraft] = useState<Draft | null>(initialDraft ?? null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [working, setWorking] = useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDate, setTaskDate] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const replayingSavedCommand = initialRequest !== undefined;
+  const review = reviewMode && Boolean(draft);
+  const refreshDraft = useCallback(async () => {
+    const seasonId = draft?.id ?? result?.season.id;
+    if (!seasonId) return;
+    setReviewLoading(true); setReviewError(null);
+    try {
+      const latest = await readSeason(client, seasonId);
+      setDraft(latest.status === "DRAFT" ? latest : null);
+      setResult({ season: latest, planSource: latest.plan.source.kind });
+      if (latest.status === "DRAFT") onReview?.(latest);
+      else setReviewError("Bu sezon artık etkin ve görevleri salt okunur.");
+    } catch (error) { setReviewError(error instanceof Error ? error.message : "Taslak yüklenemedi. Yeniden deneyin."); }
+    finally { setReviewLoading(false); }
+  }, [client, draft?.id, result?.season.id, onReview]);
+
+  async function saveTask() {
+    if (!draft) return;
+    const error = validatePlanTaskDate(taskDate.trim(), draft.sowingPlantingDate);
+    if (!taskTitle.trim()) { setReviewError("Görev adını girin."); return; }
+    if (error) { setReviewError(error); return; }
+    setWorking(true); setReviewError(null);
+    try {
+      const updated = await mutatePlan(client, draft, editingTaskId ? "edit" : "add", editingTaskId,
+        { title: taskTitle.trim(), plannedLocalDate: taskDate.trim() });
+      setDraft(updated); onReview?.(updated); setEditingTaskId(null); setTaskTitle(""); setTaskDate("");
+    } catch (error) {
+      const status = error && typeof error === "object" && "status" in error ? Number((error as { status: unknown }).status) : 0;
+      setReviewError(error instanceof Error ? error.message : "İşlem tamamlanamadı.");
+      if (status === 409) await refreshDraft();
+    } finally { setWorking(false); }
+  }
+  async function removeTask(taskId: string) {
+    if (!draft) return;
+    setWorking(true); setReviewError(null);
+    try { const updated = await mutatePlan(client, draft, "remove", taskId); setDraft(updated); onReview?.(updated); }
+    catch (error) {
+      const status = error && typeof error === "object" && "status" in error ? Number((error as { status: unknown }).status) : 0;
+      setReviewError(error instanceof Error ? error.message : "Görev kaldırılamadı."); if (status === 409) await refreshDraft();
+    } finally { setWorking(false); }
+  }
+
+  const reviewView = review ? <ScrollView contentContainerStyle={styles.content}>
+    <Text accessibilityRole="header" style={styles.title}>Sezon planını gözden geçir</Text>
+    <Text style={styles.body}>Plan kaynağı: {planSourceLabel(draft!.plan.source.kind)}</Text>
+    <Text style={styles.body}>Ekim tarihi: {draft!.sowingPlantingDate} · Taslak sürümü {draft!.version}</Text>
+    {reviewLoading ? <Text accessibilityRole="progressbar" style={styles.body}>Taslak yükleniyor…</Text> : null}
+    {reviewError ? <Text accessibilityRole="alert" style={styles.error}>{reviewError}</Text> : null}
+    <SeasonSetupActionButton label="Güncel taslağı yeniden yükle" onPress={() => void refreshDraft()} disabled={reviewLoading || working} />
+    {draft!.plan.tasks.length === 0 ? <Text style={styles.body}>Henüz görev yok. Aşağıdan ilk görevi ekleyebilirsiniz.</Text> : draft!.plan.tasks.map((task) => <View key={task.id} style={styles.task}>
+      <Text style={styles.body}>{task.title} · {task.plannedLocalDate}</Text>
+      <SeasonSetupActionButton label={`${task.title} görevini düzenle`} disabled={working || reviewLoading} onPress={() => { setEditingTaskId(task.id); setTaskTitle(task.title); setTaskDate(task.plannedLocalDate); setReviewError(null); }} />
+      <SeasonSetupActionButton label={`${task.title} görevini kaldır`} disabled={working || reviewLoading} onPress={() => void removeTask(task.id)} />
+    </View>)}
+    <TextInput accessibilityLabel="Görev adı" value={taskTitle} onChangeText={setTaskTitle} placeholder="Görev adı" style={styles.input} editable={!working} />
+    <TextInput accessibilityLabel="Görev tarihi" value={taskDate} onChangeText={setTaskDate} placeholder="YYYY-AA-GG" style={styles.input} editable={!working} />
+    <SeasonSetupActionButton label={working ? "Kaydediliyor…" : editingTaskId ? "Görevi kaydet" : "Görev ekle"} onPress={() => void saveTask()} disabled={working || reviewLoading} />
+    {onExitReview ? <SeasonSetupActionButton label="Geri dön" onPress={onExitReview} disabled={working} /> : null}
+  </ScrollView> : null;
 
   const reloadOptions = useCallback(async () => {
     setLoading(true);
@@ -149,6 +271,7 @@ export function SeasonSetupScreen({
   }, [client, fieldId]);
 
   useEffect(() => { void reloadOptions(); }, [client, fieldId]);
+  if (reviewMode) return reviewView ?? <SeasonSetupStatus loading={reviewLoading} error={reviewError} onRetry={() => void refreshDraft()} />;
 
   const selectedCrop = options?.crops.find((crop) => crop.id === selectedCropId) ?? null;
   const hasCustomCrop = customCropName.trim().length > 0;
@@ -183,6 +306,7 @@ export function SeasonSetupScreen({
         <Text accessibilityRole="header" style={styles.title}>{result.season.status === "ACTIVE" ? "Bu sezon zaten etkin" : "Sezon taslağı hazır"}</Text>
         <Text style={styles.body}>{result.planSource === "VALIDATED_TEMPLATE" ? "Plan kaynağı: VALIDATED_TEMPLATE — merkezi olarak doğrulanmış." : "Plan kaynağı: MANUAL — elle hazırlanacak."}</Text>
         <Text style={styles.body}>{result.season.cropDisplayName} · Ekim tarihi: {result.season.sowingPlantingDate}</Text>
+        {canEditPlan(result.season) ? <SeasonSetupActionButton label="Planı gözden geçir" onPress={() => { setDraft(result.season as Draft); onReview?.(result.season as Draft); }} /> : null}
         {onBack ? <SeasonSetupActionButton label="Devam et" onPress={onBack} /> : null}
       </ScrollView>
     );
@@ -321,6 +445,7 @@ export function SeasonSetupActionButton({
 const styles = StyleSheet.create({
   content: { flexGrow: 1, gap: 12, padding: 20, paddingBottom: 32 },
   title: { color: "#142b1f", fontSize: 26, fontWeight: "700", marginBottom: 4 },
+  task: { borderColor: "#b8c5bd", borderRadius: 8, borderWidth: 1, gap: 8, padding: 12 },
   body: { color: "#263a30", fontSize: 17, lineHeight: 26 },
   label: { color: "#142b1f", fontSize: 17, fontWeight: "600", marginTop: 8 },
   input: { backgroundColor: "#ffffff", borderColor: "#52616b", borderRadius: 8, borderWidth: 1, color: "#142b1f", fontSize: 18, minHeight: 52, paddingHorizontal: 12 },

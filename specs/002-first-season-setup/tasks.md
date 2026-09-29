@@ -61,15 +61,15 @@ description: "Implementation tasks for first season setup and plan approval"
 
 ### Domain, persistence, and API
 
-- [ ] T017 [US2] Implement DRAFT-only plan-task add/edit/remove rules in `packages/domain/src/seasons/`; validate required title and local planned date on/after the actual planting date, with equality allowed and no ordering constraint between tasks.
-- [ ] T018 [US2] Add unit tests in `packages/domain/test/seasons/plan-task-mutations.spec.ts` for task add/edit/remove, invalid earlier dates, equality, independent task-date ordering, and rejection of every mutation against ACTIVE seasons.
-- [ ] T019 [US2] Implement version-checked task persistence and DRAFT-only API mutations in `apps/api/src/seasons/` using the T017 domain rules; require expected plan/season version, preserve other plan-owned tasks, and return the contract's stable stale-version or invalid-state conflict without mutating ACTIVE history.
-- [ ] T020 [US2] Add contract and PostgreSQL integration tests in `apps/api/test/seasons/plan-task-mutations.contract.spec.ts` and `apps/api/test/seasons/plan-task-mutations.integration.spec.ts` for add/edit/remove, date validation, stale-version 409, tenant isolation, atomic persistence, and ACTIVE mutation rejection.
+- [x] T017 [US2] Implement DRAFT-only plan-task add/edit/remove rules in `packages/domain/src/seasons/`; validate required title and local planned date on/after the actual planting date, with equality allowed and no ordering constraint between tasks.
+- [x] T018 [US2] Add unit tests in `packages/domain/test/seasons/plan-task-mutations.spec.ts` for task add/edit/remove, invalid earlier dates, equality, independent task-date ordering, and rejection of every mutation against ACTIVE seasons.
+- [x] T019 [US2] Implement version-checked task persistence and DRAFT-only API mutations in `apps/api/src/seasons/` using the T017 domain rules; require expected plan/season version, preserve other plan-owned tasks, and return the contract's stable stale-version or invalid-state conflict without mutating ACTIVE history.
+- [x] T020 [US2] Add contract and PostgreSQL integration tests in `apps/api/test/seasons/plan-task-mutations.contract.spec.ts` and `apps/api/test/seasons/plan-task-mutations.integration.spec.ts` for add/edit/remove, date validation, stale-version 409, tenant isolation, atomic persistence, and ACTIVE mutation rejection.
 
 ### Mobile plan review
 
-- [ ] T021 [US2] Implement source-labelled plan review and task add/edit/remove/date controls in `apps/mobile/src/features/seasons/` using the T005 generated client and T019 API behavior; restore the scoped DRAFT after leaving review, preserve task source, and expose no edit controls for ACTIVE plans.
-- [ ] T022 [US2] Add mobile review tests in `apps/mobile/test/seasons/season-plan-review.test.ts` for MANUAL and VALIDATED_TEMPLATE labels, task review/edit/remove/date, invalid-date feedback, draft restoration, stale-version conflict/re-read, retry states, and ACTIVE read-only presentation.
+- [x] T021 [US2] Implement source-labelled plan review and task add/edit/remove/date controls in `apps/mobile/src/features/seasons/` using the T005 generated client and T019 API behavior; restore the scoped DRAFT after leaving review, preserve task source, and expose no edit controls for ACTIVE plans.
+- [x] T022 [US2] Add mobile review tests in `apps/mobile/test/seasons/season-plan-review.test.ts` for MANUAL and VALIDATED_TEMPLATE labels, task review/edit/remove/date, invalid-date feedback, draft restoration, stale-version conflict/re-read, retry states, and ACTIVE read-only presentation.
 
 **Checkpoint**: The farmer can revise only a DRAFT plan; server version checks and the mobile view agree on the saved proposal and source.
 

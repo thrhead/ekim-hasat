@@ -6,6 +6,7 @@ import { createMobileAuthController, type AuthSession, type MobileAuthPort } fro
 import { createAppComposition } from "../src/app-composition";
 import { createOnboardingDraftLifecycle } from "../src/features/onboarding/onboarding-draft.lifecycle";
 import { createSeasonCreateCommandStore, type SeasonCreateCommand, type SeasonCreateCommandStorage, type SeasonCreateResult } from "../src/features/seasons/season-create-command-store";
+import type { SeasonComponents } from "../src/api/onboarding-client";
 
 const summary = {
   id: "field-1",
@@ -183,6 +184,48 @@ describe("production app composition", () => {
     await app.continueAfterSeason();
     expect(lastSuccess).toBeNull();
     expect(app.getState().entry).toBe("home");
+  });
+
+  it("restores the latest scoped DRAFT when returning to plan review", async () => {
+    const draft: SeasonComponents["schemas"]["SeasonDraft"] = {
+      id: "season-1", fieldId: "field-1", cropDisplayName: "Arpa", sowingPlantingDate: "2026-09-25", status: "DRAFT", version: 2,
+      plan: { source: { kind: "MANUAL", validationLabel: "NOT_CENTRALLY_VALIDATED" }, tasks: [] },
+    };
+    const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
+      .mockResolvedValueOnce(response({ firstFieldOnboardingNeeded: false }))
+      .mockResolvedValueOnce(response(draft));
+    const { app, authenticate } = setup(fetchMock);
+    authenticate();
+    await settle();
+    app.reviewSeason(draft);
+
+    await app.restoreSeasonReview();
+
+    expect(app.getState().entry).toBe("season-review");
+    expect(app.getState().seasonDraft).toEqual(draft);
+    expect(new URL((fetchMock.mock.calls[1]![0] as Request).url).pathname).toBe("/v1/seasons/season-1");
+  });
+
+  it("keeps the review open after a failed restore so the farmer can retry", async () => {
+    const draft: SeasonComponents["schemas"]["SeasonDraft"] = {
+      id: "season-1", fieldId: "field-1", cropDisplayName: "Arpa", sowingPlantingDate: "2026-09-25", status: "DRAFT", version: 2,
+      plan: { source: { kind: "MANUAL", validationLabel: "NOT_CENTRALLY_VALIDATED" }, tasks: [] },
+    };
+    const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
+      .mockResolvedValueOnce(response({ firstFieldOnboardingNeeded: false }))
+      .mockResolvedValueOnce(response({ code: "UNAVAILABLE" }, 503))
+      .mockResolvedValueOnce(response(draft));
+    const { app, authenticate } = setup(fetchMock);
+    authenticate();
+    await settle();
+    app.reviewSeason(draft);
+
+    await app.restoreSeasonReview();
+    expect(app.getState().entry).toBe("season-review");
+    expect(app.getState().seasonDraft).toEqual(draft);
+    await app.restoreSeasonReview();
+    expect(app.getState().entry).toBe("season-review");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("makes no general field-list request", async () => {

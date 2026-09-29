@@ -5,6 +5,8 @@ const commandErrors = {
   SEASON_DATE_IN_FUTURE: "Actual planting cannot be in the future",
   MANUAL_PLAN_CHOICE_REQUIRED: "Choose a manual plan to continue without a validated plan",
   IDEMPOTENCY_KEY_REUSED: "This request key was already used for different information",
+  STALE_SEASON_VERSION: "This plan changed. Reload it before making another change",
+  SEASON_NOT_DRAFT: "Only a draft season's plan can be changed",
 } as const;
 export type SeasonCommandErrorCode = keyof typeof commandErrors;
 

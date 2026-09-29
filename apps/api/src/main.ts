@@ -16,6 +16,8 @@ import { SeasonCreateRepository } from "./seasons/seasons-create.repository.js";
 import { createSeasonCreateModule } from "./seasons/seasons-create.controller.js";
 import { SeasonReadRepository } from "./seasons/seasons-read.repository.js";
 import { createSeasonReadModule } from "./seasons/seasons-read.controller.js";
+import { SeasonPlanTaskRepository } from "./seasons/seasons-plan-task.repository.js";
+import { createSeasonPlanTaskModule } from "./seasons/seasons-plan-task.controller.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -48,6 +50,7 @@ async function bootstrap(): Promise<void> {
   const onboardingRepository = new OnboardingRepository(prisma);
   const seasonReadRepository = new SeasonReadRepository(prisma);
   const seasonCreateRepository = new SeasonCreateRepository(prisma);
+  const seasonPlanTaskRepository = new SeasonPlanTaskRepository(prisma);
   const verify = (token: string) => authenticator.verify(token);
   const onboardingStatusModule = createOnboardingStatusModule({
     verify,
@@ -66,8 +69,14 @@ async function bootstrap(): Promise<void> {
     verify,
     createDraft: (identity, fieldId, body, key) => seasonCreateRepository.createDraft(identity, fieldId, body, key),
   });
+  const seasonPlanTaskModule = createSeasonPlanTaskModule({
+    verify,
+    addTask: (identity, seasonId, expectedVersion, key, body) => seasonPlanTaskRepository.addTask(identity, seasonId, expectedVersion, key, body),
+    editTask: (identity, seasonId, taskId, expectedVersion, body) => seasonPlanTaskRepository.editTask(identity, seasonId, taskId, expectedVersion, body),
+    removeTask: (identity, seasonId, taskId, expectedVersion) => seasonPlanTaskRepository.removeTask(identity, seasonId, taskId, expectedVersion),
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

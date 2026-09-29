@@ -7,18 +7,20 @@ import type { components, SeasonComponents } from "./api/onboarding-client";
 import type { SeasonSetupResult } from "./features/seasons/season-setup-screen";
 import { createSeasonCreateCommandStore } from "./features/seasons/season-create-command-store";
 import { createSeasonSetupFlow } from "./features/seasons/season-setup-screen";
+import { readSeason } from "./features/seasons/season-setup-screen";
 
 type FirstFieldSummary = components["schemas"]["FirstFieldSummary"];
 type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
   seasonRequest: CreateRequest | null;
   seasonResult: SeasonSetupResult | null;
+  seasonDraft: SeasonComponents["schemas"]["SeasonDraft"] | null;
 }>;
 
 /** Owns production auth-to-onboarding routing while leaving credentials in T051. */
@@ -41,6 +43,7 @@ export function createAppComposition(
     fieldId: null,
     seasonRequest: null,
     seasonResult: null,
+    seasonDraft: null,
   };
   let disposed = false;
   let statusRevision = 0;
@@ -68,7 +71,7 @@ export function createAppComposition(
           ]).then(([unresolved, success]) => {
             if (recoveryRevision !== statusRevision) return;
             if (unresolved) {
-              publish({ ...state, entry: "season-setup", fieldId: unresolved.fieldId, seasonRequest: unresolved.request, client });
+              publish({ ...state, entry: "season-setup", fieldId: unresolved.fieldId, seasonRequest: unresolved.request, client, seasonDraft: null });
             } else if (success) {
               const season = success.result as SeasonSetupResult["season"];
               publish({
@@ -76,6 +79,7 @@ export function createAppComposition(
                 entry: "season-created",
                 fieldId: season.fieldId,
                 seasonResult: { season, planSource: season.plan.source.kind },
+                seasonDraft: season.status === "DRAFT" ? season : null,
                 client,
               });
             } else {
@@ -104,10 +108,10 @@ export function createAppComposition(
     }
     statusRevision += 1;
     if (auth.status === "authenticated" && client) {
-      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null });
+      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
       resolveStatus(client);
     } else {
-      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null });
+      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
     }
   }
 
@@ -126,22 +130,39 @@ export function createAppComposition(
     },
     completeFirstField(field: FirstFieldSummary) {
       statusRevision += 1;
-      publish({ ...state, entry: "season-setup", fieldId: field.id, seasonRequest: null, seasonResult: null });
+      publish({ ...state, entry: "season-setup", fieldId: field.id, seasonRequest: null, seasonResult: null, seasonDraft: null });
     },
     async createSeason(fieldId: string, request: CreateRequest) {
       if (state.auth.status !== "authenticated" || !state.accountId || !state.client) {
         throw new Error("Sezon oluşturmak için oturum açın ve yeniden deneyin.");
       }
       const result = await createSeasonSetupFlow(state.client, seasonCreateStore).createOrRetry(state.accountId, fieldId, request);
-      publish({ ...state, entry: "season-created", fieldId, seasonRequest: null, seasonResult: result });
+      publish({ ...state, entry: "season-created", fieldId, seasonRequest: null, seasonResult: result, seasonDraft: result.season.status === "DRAFT" ? result.season : null });
       return result;
+    },
+    reviewSeason(draft: SeasonComponents["schemas"]["SeasonDraft"]) {
+      publish({ ...state, entry: "season-review", seasonDraft: draft });
+    },
+    async restoreSeasonReview() {
+      if (!state.client || !state.seasonDraft) return;
+      try {
+        const latest = await readSeason(state.client, state.seasonDraft.id);
+        if (latest.status === "DRAFT") publish({ ...state, entry: "season-review", seasonDraft: latest });
+        else publish({ ...state, entry: "season-created", seasonDraft: null, seasonResult: { season: latest, planSource: latest.plan.source.kind } });
+      } catch { publish({ ...state, entry: "season-review" }); }
+    },
+    exitSeasonReview() {
+      publish({ ...state, entry: "season-created" });
+    },
+    leaveSeasonReview() {
+      publish({ ...state, entry: "home", seasonDraft: null });
     },
     async continueAfterSeason() {
       if (state.accountId) {
         const success = await seasonCreateStore.readLastSuccess(state.accountId);
         if (success) await seasonCreateStore.clearLastSuccess(state.accountId, success.idempotencyKey);
       }
-      publish({ ...state, entry: "home", fieldId: null, seasonRequest: null, seasonResult: null });
+      publish({ ...state, entry: "home", fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
     },
     dispose() {
       disposed = true;

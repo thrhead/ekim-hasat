@@ -15,6 +15,7 @@ export default function App() {
     fieldId: null,
     seasonRequest: null,
     seasonResult: null,
+    seasonDraft: null,
   });
   const compositionRef = useRef<ReturnType<typeof createAppComposition> | null>(null);
 
@@ -59,16 +60,19 @@ export default function App() {
     );
   }
 
-  if (state.entry === "season-setup" || state.entry === "season-created") {
+  if (state.entry === "season-setup" || state.entry === "season-created" || state.entry === "season-review") {
     if (!state.accountId || !state.client || !state.fieldId) return <OnboardingEntryView state="loading" />;
     return (
       <SeasonSetupScreen
-        key={`${state.accountId}:${state.fieldId}:${state.entry}`}
+        key={`${state.accountId}:${state.fieldId}:${state.entry === "season-review" ? "season-created" : state.entry}`}
         client={state.client}
         fieldId={state.fieldId}
         initialRequest={state.seasonRequest ?? undefined}
         initialResult={state.seasonResult ?? undefined}
+        initialDraft={state.entry === "season-review" ? state.seasonDraft ?? undefined : undefined}
         onCreated={(request) => compositionRef.current!.createSeason(state.fieldId!, request)}
+        onReview={(draft) => compositionRef.current?.reviewSeason(draft)}
+        onExitReview={() => compositionRef.current?.exitSeasonReview()}
         onBack={state.entry === "season-created" ? () => compositionRef.current?.continueAfterSeason() : undefined}
       />
     );
