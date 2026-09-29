@@ -5,6 +5,7 @@ jest.mock("@react-native-async-storage/async-storage", () => (
 import { createMobileAuthController, type AuthSession, type MobileAuthPort } from "../src/auth/auth-port";
 import { createAppComposition } from "../src/app-composition";
 import { createOnboardingDraftLifecycle } from "../src/features/onboarding/onboarding-draft.lifecycle";
+import { createSeasonCreateCommandStore, type SeasonCreateCommand, type SeasonCreateCommandStorage, type SeasonCreateResult } from "../src/features/seasons/season-create-command-store";
 
 const summary = {
   id: "field-1",
@@ -13,7 +14,17 @@ const summary = {
   createdAt: "2026-09-25T12:00:00.000Z",
 };
 
-function setup(fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()) {
+function setup(
+  fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>(),
+  seasonCreateStore = createSeasonCreateCommandStore({
+    storage: {
+      async read() { return null; },
+      async saveCommand() {},
+      async recordSuccess() {},
+      async clearSuccess() {},
+    } satisfies SeasonCreateCommandStorage,
+  }),
+) {
   const purgedAccounts: string[] = [];
   let sessionListener: ((session: AuthSession | null) => void) | undefined;
   let restore: (session: AuthSession | null) => void = () => {};
@@ -32,7 +43,7 @@ function setup(fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL,
   const draftLifecycle = createOnboardingDraftLifecycle({
     store: { purge: async (accountId) => { purgedAccounts.push(accountId); } },
   });
-  const app = createAppComposition(controller, { draftLifecycle });
+  const app = createAppComposition(controller, { draftLifecycle, seasonCreateStore });
   return {
     app,
     controller,
@@ -40,6 +51,7 @@ function setup(fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL,
     authenticate: (accountId = "account-1") => sessionListener?.({ accountId, accessToken: "session-token" }),
     finishRestore: (session: AuthSession | null = null) => restore(session),
     purgedAccounts,
+    seasonCreateStore,
   };
 }
 
@@ -103,13 +115,73 @@ describe("production app composition", () => {
     expect(app.getState().entry).toBe("first-field-onboarding");
   });
 
-  it("leaves onboarding after the committed first-field summary", async () => {
+  it("routes a committed first-field summary directly to season setup", async () => {
     const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
       .mockResolvedValue(response({ firstFieldOnboardingNeeded: true }));
     const { app, authenticate } = setup(fetchMock);
     authenticate();
     await settle();
     app.completeFirstField(summary);
+    expect(app.getState().entry).toBe("season-setup");
+    expect(app.getState().fieldId).toBe("field-1");
+  });
+
+  it("recovers an unresolved season create command for its original field", async () => {
+    const unresolved: SeasonCreateCommand = {
+      idempotencyKey: "stable-key",
+      fieldId: "field-1",
+      request: { crop: { customCropName: "Arpa" }, sowingPlantingDate: "2026-09-25", planSource: "MANUAL" },
+    };
+    const storage: SeasonCreateCommandStorage = {
+      async read(accountId) {
+        return accountId === "account-1" ? { unresolved, lastSuccess: null } : null;
+      },
+      async saveCommand() {},
+      async recordSuccess() {},
+      async clearSuccess() {},
+    };
+    const seasonCreateStore = createSeasonCreateCommandStore({ storage });
+    const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
+      .mockResolvedValue(response({ firstFieldOnboardingNeeded: false }));
+    const { app, authenticate } = setup(fetchMock, seasonCreateStore);
+    authenticate();
+    await settle();
+    await settle();
+
+    expect(app.getState().entry).toBe("season-setup");
+    expect(app.getState().fieldId).toBe("field-1");
+    expect(app.getState().seasonRequest).toEqual(unresolved.request);
+  });
+
+  it("returns from a durable create receipt after acknowledgement", async () => {
+    const result: SeasonCreateResult = {
+      id: "season-1",
+      fieldId: "field-1",
+      cropDisplayName: "Arpa",
+      sowingPlantingDate: "2026-09-25",
+      status: "DRAFT",
+      version: 1,
+      plan: { source: { kind: "MANUAL", validationLabel: "NOT_CENTRALLY_VALIDATED" }, tasks: [] },
+    };
+    let lastSuccess: { idempotencyKey: string; result: SeasonCreateResult } | null = { idempotencyKey: "done-key", result };
+    const storage: SeasonCreateCommandStorage = {
+      async read() { return { unresolved: null, lastSuccess }; },
+      async saveCommand() {},
+      async recordSuccess() {},
+      async clearSuccess(_accountId, idempotencyKey) {
+        if (lastSuccess?.idempotencyKey === idempotencyKey) lastSuccess = null;
+      },
+    };
+    const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
+      .mockResolvedValue(response({ firstFieldOnboardingNeeded: false }));
+    const { app, authenticate } = setup(fetchMock, createSeasonCreateCommandStore({ storage }));
+    authenticate();
+    await settle();
+    await settle();
+    expect(app.getState().entry).toBe("season-created");
+
+    await app.continueAfterSeason();
+    expect(lastSuccess).toBeNull();
     expect(app.getState().entry).toBe("home");
   });
 
