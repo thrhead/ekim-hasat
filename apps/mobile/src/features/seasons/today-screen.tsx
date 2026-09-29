@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import type { ApiClient, SeasonComponents, SeasonOperations } from "../../api/onboarding-client";
+import type { ApiClient, SeasonOperations } from "../../api/onboarding-client";
 import { readTodayPlannedWork } from "./season-activation";
 
 type Today = SeasonOperations["getTodayPlannedTasks"]["responses"][200]["content"]["application/json"];

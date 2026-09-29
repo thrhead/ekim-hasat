@@ -33,4 +33,4 @@
 
 - Clarifications resolved: unsupported crops use clearly identified manual plans with minimal task editing; a manual plan needs at least one valid task before activation and is not auto-filled.
 - Exact pilot crop content remains release configuration because the PRD marks its candidates adjustable. Pre-sowing planning remains deferred because the PRD makes it optional; neither blocks this journey.
-- Requirements are ready for planning. Planning and task generation have not been started.
+- Requirements were ready for planning; planning and task generation have since been completed. Implementation reached T031 before the T032 artifact reconciliation and T033 verification recorded in `tasks.md` and `quickstart.md`.

@@ -98,8 +98,8 @@ description: "Implementation tasks for first season setup and plan approval"
 
 **Purpose**: Verify all SPEC-002 requirements trace to implementation tasks and documented automated evidence, without expanding the approved feature boundary.
 
-- [ ] T032 Reconcile completed implementation and automated evidence against `specs/002-first-season-setup/spec.md`, `plan.md`, `data-model.md`, `contracts/seasons.openapi.yaml`, and `quickstart.md`; update `specs/002-first-season-setup/tasks.md` with any remaining SPEC-002 work without changing SPEC-001 or resolving CHK012 through name-based custom-crop merging.
-- [ ] T033 Run the documented Cloud Shell verification commands from `specs/002-first-season-setup/quickstart.md` (`pnpm test`, `pnpm test:integration`, `pnpm test:contract`, `pnpm test:mobile`, `pnpm typecheck`, `pnpm lint`, `pnpm check:diff`) and record results; do not run Android builds, emulator, or device-runtime work.
+- [x] T032 Reconcile completed implementation and automated evidence against `specs/002-first-season-setup/spec.md`, `plan.md`, `data-model.md`, `contracts/seasons.openapi.yaml`, and `quickstart.md`; update `specs/002-first-season-setup/tasks.md` with any remaining SPEC-002 work without changing SPEC-001 or resolving CHK012 through name-based custom-crop merging.
+- [x] T033 Run the documented Cloud Shell verification commands from `specs/002-first-season-setup/quickstart.md` (`pnpm test`, `pnpm test:integration`, `pnpm test:contract`, `pnpm test:mobile`, `pnpm typecheck`, `pnpm lint`, `pnpm check:diff`) and record results; do not run Android builds, emulator, or device-runtime work.
 
 ## Dependencies & Execution Order
 

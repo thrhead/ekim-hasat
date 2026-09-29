@@ -45,3 +45,17 @@ pnpm check:diff
 - Generated OpenAPI client types match `contracts/seasons.openapi.yaml`; clients do not maintain separate handwritten transport types.
 - Mobile tests prove first-field-to-season and activation-to-Bugün state transitions, durable create retry recovery, explicit manual fallback, retry/error/empty states, business-local date behavior, and active-plan read-only controls.
 - No test path completes a task or introduces recurrence, weather rescheduling, offline sync, or placeholder task generation.
+
+## Validation Evidence
+
+Executed on 2026-09-29 against the SPEC-002 branch. All documented Cloud Shell commands passed. Integration tests used a separate local PostgreSQL/PostGIS verification database with the repository migrations applied; the existing shared development database was left intact.
+
+- `pnpm test` — passed.
+- `pnpm test:integration` — passed; 61 tests, 0 failures.
+- `pnpm test:contract` — passed; generated-client checks and 29 API contract tests passed.
+- `pnpm test:mobile` — passed; 17 suites and 99 tests passed.
+- `pnpm typecheck` — passed across all five workspace packages.
+- `pnpm lint` — passed across all five workspace packages after removing one unused import in `apps/mobile/src/features/seasons/today-screen.tsx`.
+- `pnpm check:diff` — passed.
+
+No Android build, emulator, device-runtime, or other manual runtime evidence was performed; those checks are outside this feature's scheduled verification.

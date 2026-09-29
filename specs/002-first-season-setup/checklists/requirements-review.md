@@ -24,7 +24,7 @@
 - [x] CHK009 Are activation replay and concurrent activation outcomes specified for same-key and different-key requests, including the response to a losing concurrent request? [Clarity, Coverage, contracts/seasons.openapi.yaml §/seasons/{seasonId}/activate]
 - [x] CHK010 Does the requirement state whether task mutation requests against an already active season are rejected and what stable conflict behavior the client receives? [Gap, State Transition, contracts/seasons.openapi.yaml §/seasons/{seasonId}/plan-tasks]
 - [x] CHK011 Are active-versus-draft season multiplicity rules for a field and crop cycle explicit without assuming an unapproved uniqueness constraint? [Ambiguity, Spec §Edge Cases; data-model.md §Season]
-- [ ]] CHK012 Are custom crop identity and lifecycle requirements sufficient to determine whether repeated equivalent names reuse, duplicate, or create distinct business-scoped crop records? [Gap, Assumption, data-model.md §Custom Crop]
+- [ ] CHK012 Are custom crop identity and lifecycle requirements sufficient to determine whether repeated equivalent names reuse, duplicate, or create distinct business-scoped crop records? [Gap, Assumption, data-model.md §Custom Crop]
 
 ## Requirement Consistency
 
@@ -61,11 +61,11 @@
 
 ## Notes
 
-- Independent review outcome: blocking ambiguities were identified in CHK001–CHK007, CHK009–CHK010, CHK013–CHK016, CHK019, and CHK026–CHK027. Resolve or explicitly scope these before generating implementation tasks; do not infer product rules from architecture.
-- Empty `VALIDATED_TEMPLATE` activation and same field/crop/date requests with different idempotency keys require explicit product decisions. No minimum-task or crop-cycle identity rule has been inferred.
+- Independent review outcome before clarification: blocking ambiguities were identified in CHK001–CHK007, CHK009–CHK010, CHK013–CHK016, CHK019, and CHK026–CHK027. These were resolved in the approved specification and design artifacts before implementation.
+- Empty `VALIDATED_TEMPLATE` activation and same field/crop/date requests with different idempotency keys have explicit product decisions in the approved artifacts.
 - Production validated-template publication remains a release/content dependency. The exact pilot crop list and pre-sowing planning remain deferred and are not specification blockers for implementation architecture.
 - Mark items `[x]` only after review confirms the requirement-quality criterion is satisfied.
 - `$speckit-implement` reads checklist checkbox state as a gate and must not modify markers.
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `$speckit-specify` and `$speckit-clarify`.
 
-- Round 3 re-review: 26/27 criteria are satisfied. CHK001–CHK011 and CHK013–CHK027 now pass against the clarified spec, plan, data model, contract, and quickstart. CHK012 remains open: the feature defines custom crops by business-scoped identity but does not decide whether equivalent farmer-entered display names reuse an identity; treat name-based deduplication as outside this feature and do not infer it.
+- Round 3 re-review: 26/27 criteria are satisfied. CHK001–CHK011 and CHK013–CHK027 pass against the clarified spec, plan, data model, contract, and quickstart. CHK012 remains open: custom crops use business-scoped identity, while equivalent farmer-entered display names do not merge identity in this feature. Name-based deduplication remains outside scope.
