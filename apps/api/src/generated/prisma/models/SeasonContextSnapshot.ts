@@ -209,6 +209,7 @@ export type SeasonContextSnapshotWhereInput = {
   season?: Prisma.XOR<Prisma.SeasonScalarRelationFilter, Prisma.SeasonWhereInput>
   fieldBoundaryVersion?: Prisma.XOR<Prisma.FieldBoundaryVersionNullableScalarRelationFilter, Prisma.FieldBoundaryVersionWhereInput> | null
   templateVersion?: Prisma.XOR<Prisma.ValidatedTemplateVersionNullableScalarRelationFilter, Prisma.ValidatedTemplateVersionWhereInput> | null
+  taskCompletions?: Prisma.TaskCompletionListRelationFilter
 }
 
 export type SeasonContextSnapshotOrderByWithRelationInput = {
@@ -224,6 +225,7 @@ export type SeasonContextSnapshotOrderByWithRelationInput = {
   season?: Prisma.SeasonOrderByWithRelationInput
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionOrderByWithRelationInput
   templateVersion?: Prisma.ValidatedTemplateVersionOrderByWithRelationInput
+  taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
 }
 
 export type SeasonContextSnapshotWhereUniqueInput = Prisma.AtLeast<{
@@ -242,6 +244,7 @@ export type SeasonContextSnapshotWhereUniqueInput = Prisma.AtLeast<{
   season?: Prisma.XOR<Prisma.SeasonScalarRelationFilter, Prisma.SeasonWhereInput>
   fieldBoundaryVersion?: Prisma.XOR<Prisma.FieldBoundaryVersionNullableScalarRelationFilter, Prisma.FieldBoundaryVersionWhereInput> | null
   templateVersion?: Prisma.XOR<Prisma.ValidatedTemplateVersionNullableScalarRelationFilter, Prisma.ValidatedTemplateVersionWhereInput> | null
+  taskCompletions?: Prisma.TaskCompletionListRelationFilter
 }, "seasonId">
 
 export type SeasonContextSnapshotOrderByWithAggregationInput = {
@@ -284,6 +287,7 @@ export type SeasonContextSnapshotCreateInput = {
   season: Prisma.SeasonCreateNestedOneWithoutSnapshotInput
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionCreateNestedOneWithoutSeasonSnapshotsInput
   templateVersion?: Prisma.ValidatedTemplateVersionCreateNestedOneWithoutSnapshotsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotUncheckedCreateInput = {
@@ -296,6 +300,7 @@ export type SeasonContextSnapshotUncheckedCreateInput = {
   activatedAt: Date | string
   businessTimezone: string
   activatedLocalDate: Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotUpdateInput = {
@@ -308,6 +313,7 @@ export type SeasonContextSnapshotUpdateInput = {
   season?: Prisma.SeasonUpdateOneRequiredWithoutSnapshotNestedInput
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutSeasonSnapshotsNestedInput
   templateVersion?: Prisma.ValidatedTemplateVersionUpdateOneWithoutSnapshotsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotUncheckedUpdateInput = {
@@ -320,6 +326,7 @@ export type SeasonContextSnapshotUncheckedUpdateInput = {
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessTimezone?: Prisma.StringFieldUpdateOperationsInput | string
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotCreateManyInput = {
@@ -400,6 +407,11 @@ export type SeasonContextSnapshotMinOrderByAggregateInput = {
   activatedAt?: Prisma.SortOrder
   businessTimezone?: Prisma.SortOrder
   activatedLocalDate?: Prisma.SortOrder
+}
+
+export type SeasonContextSnapshotScalarRelationFilter = {
+  is?: Prisma.SeasonContextSnapshotWhereInput
+  isNot?: Prisma.SeasonContextSnapshotWhereInput
 }
 
 export type SeasonContextSnapshotUpdateManyWithoutFieldBoundaryVersionNestedInput = {
@@ -504,6 +516,20 @@ export type SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonContextSnapshotUpdateToOneWithWhereWithoutSeasonInput, Prisma.SeasonContextSnapshotUpdateWithoutSeasonInput>, Prisma.SeasonContextSnapshotUncheckedUpdateWithoutSeasonInput>
 }
 
+export type SeasonContextSnapshotCreateNestedOneWithoutTaskCompletionsInput = {
+  create?: Prisma.XOR<Prisma.SeasonContextSnapshotCreateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedCreateWithoutTaskCompletionsInput>
+  connectOrCreate?: Prisma.SeasonContextSnapshotCreateOrConnectWithoutTaskCompletionsInput
+  connect?: Prisma.SeasonContextSnapshotWhereUniqueInput
+}
+
+export type SeasonContextSnapshotUpdateOneRequiredWithoutTaskCompletionsNestedInput = {
+  create?: Prisma.XOR<Prisma.SeasonContextSnapshotCreateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedCreateWithoutTaskCompletionsInput>
+  connectOrCreate?: Prisma.SeasonContextSnapshotCreateOrConnectWithoutTaskCompletionsInput
+  upsert?: Prisma.SeasonContextSnapshotUpsertWithoutTaskCompletionsInput
+  connect?: Prisma.SeasonContextSnapshotWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonContextSnapshotUpdateToOneWithWhereWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUpdateWithoutTaskCompletionsInput>, Prisma.SeasonContextSnapshotUncheckedUpdateWithoutTaskCompletionsInput>
+}
+
 export type SeasonContextSnapshotCreateWithoutFieldBoundaryVersionInput = {
   regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   cropSnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -513,6 +539,7 @@ export type SeasonContextSnapshotCreateWithoutFieldBoundaryVersionInput = {
   activatedLocalDate: Date | string
   season: Prisma.SeasonCreateNestedOneWithoutSnapshotInput
   templateVersion?: Prisma.ValidatedTemplateVersionCreateNestedOneWithoutSnapshotsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotUncheckedCreateWithoutFieldBoundaryVersionInput = {
@@ -524,6 +551,7 @@ export type SeasonContextSnapshotUncheckedCreateWithoutFieldBoundaryVersionInput
   activatedAt: Date | string
   businessTimezone: string
   activatedLocalDate: Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotCreateOrConnectWithoutFieldBoundaryVersionInput = {
@@ -576,6 +604,7 @@ export type SeasonContextSnapshotCreateWithoutTemplateVersionInput = {
   activatedLocalDate: Date | string
   season: Prisma.SeasonCreateNestedOneWithoutSnapshotInput
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionCreateNestedOneWithoutSeasonSnapshotsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotUncheckedCreateWithoutTemplateVersionInput = {
@@ -587,6 +616,7 @@ export type SeasonContextSnapshotUncheckedCreateWithoutTemplateVersionInput = {
   activatedAt: Date | string
   businessTimezone: string
   activatedLocalDate: Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotCreateOrConnectWithoutTemplateVersionInput = {
@@ -624,6 +654,7 @@ export type SeasonContextSnapshotCreateWithoutSeasonInput = {
   activatedLocalDate: Date | string
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionCreateNestedOneWithoutSeasonSnapshotsInput
   templateVersion?: Prisma.ValidatedTemplateVersionCreateNestedOneWithoutSnapshotsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotUncheckedCreateWithoutSeasonInput = {
@@ -635,6 +666,7 @@ export type SeasonContextSnapshotUncheckedCreateWithoutSeasonInput = {
   activatedAt: Date | string
   businessTimezone: string
   activatedLocalDate: Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActivationSnapshotInput
 }
 
 export type SeasonContextSnapshotCreateOrConnectWithoutSeasonInput = {
@@ -662,9 +694,75 @@ export type SeasonContextSnapshotUpdateWithoutSeasonInput = {
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutSeasonSnapshotsNestedInput
   templateVersion?: Prisma.ValidatedTemplateVersionUpdateOneWithoutSnapshotsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotUncheckedUpdateWithoutSeasonInput = {
+  fieldBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropSnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  templateVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  businessTimezone?: Prisma.StringFieldUpdateOperationsInput | string
+  activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActivationSnapshotNestedInput
+}
+
+export type SeasonContextSnapshotCreateWithoutTaskCompletionsInput = {
+  regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropSnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  source: string
+  activatedAt: Date | string
+  businessTimezone: string
+  activatedLocalDate: Date | string
+  season: Prisma.SeasonCreateNestedOneWithoutSnapshotInput
+  fieldBoundaryVersion?: Prisma.FieldBoundaryVersionCreateNestedOneWithoutSeasonSnapshotsInput
+  templateVersion?: Prisma.ValidatedTemplateVersionCreateNestedOneWithoutSnapshotsInput
+}
+
+export type SeasonContextSnapshotUncheckedCreateWithoutTaskCompletionsInput = {
+  seasonId: string
+  fieldBoundaryVersionId?: string | null
+  regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropSnapshot: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  source: string
+  templateVersionId?: string | null
+  activatedAt: Date | string
+  businessTimezone: string
+  activatedLocalDate: Date | string
+}
+
+export type SeasonContextSnapshotCreateOrConnectWithoutTaskCompletionsInput = {
+  where: Prisma.SeasonContextSnapshotWhereUniqueInput
+  create: Prisma.XOR<Prisma.SeasonContextSnapshotCreateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedCreateWithoutTaskCompletionsInput>
+}
+
+export type SeasonContextSnapshotUpsertWithoutTaskCompletionsInput = {
+  update: Prisma.XOR<Prisma.SeasonContextSnapshotUpdateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedUpdateWithoutTaskCompletionsInput>
+  create: Prisma.XOR<Prisma.SeasonContextSnapshotCreateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedCreateWithoutTaskCompletionsInput>
+  where?: Prisma.SeasonContextSnapshotWhereInput
+}
+
+export type SeasonContextSnapshotUpdateToOneWithWhereWithoutTaskCompletionsInput = {
+  where?: Prisma.SeasonContextSnapshotWhereInput
+  data: Prisma.XOR<Prisma.SeasonContextSnapshotUpdateWithoutTaskCompletionsInput, Prisma.SeasonContextSnapshotUncheckedUpdateWithoutTaskCompletionsInput>
+}
+
+export type SeasonContextSnapshotUpdateWithoutTaskCompletionsInput = {
+  regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropSnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  businessTimezone?: Prisma.StringFieldUpdateOperationsInput | string
+  activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.SeasonUpdateOneRequiredWithoutSnapshotNestedInput
+  fieldBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutSeasonSnapshotsNestedInput
+  templateVersion?: Prisma.ValidatedTemplateVersionUpdateOneWithoutSnapshotsNestedInput
+}
+
+export type SeasonContextSnapshotUncheckedUpdateWithoutTaskCompletionsInput = {
+  seasonId?: Prisma.StringFieldUpdateOperationsInput | string
   fieldBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   regionContext?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   cropSnapshot?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -684,6 +782,7 @@ export type SeasonContextSnapshotUpdateWithoutFieldBoundaryVersionInput = {
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.SeasonUpdateOneRequiredWithoutSnapshotNestedInput
   templateVersion?: Prisma.ValidatedTemplateVersionUpdateOneWithoutSnapshotsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotUncheckedUpdateWithoutFieldBoundaryVersionInput = {
@@ -695,6 +794,7 @@ export type SeasonContextSnapshotUncheckedUpdateWithoutFieldBoundaryVersionInput
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessTimezone?: Prisma.StringFieldUpdateOperationsInput | string
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotCreateManyFieldBoundaryVersionInput = {
@@ -739,6 +839,7 @@ export type SeasonContextSnapshotUpdateWithoutTemplateVersionInput = {
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.SeasonUpdateOneRequiredWithoutSnapshotNestedInput
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutSeasonSnapshotsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotUncheckedUpdateWithoutTemplateVersionInput = {
@@ -750,6 +851,7 @@ export type SeasonContextSnapshotUncheckedUpdateWithoutTemplateVersionInput = {
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessTimezone?: Prisma.StringFieldUpdateOperationsInput | string
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActivationSnapshotNestedInput
 }
 
 export type SeasonContextSnapshotUncheckedUpdateManyWithoutTemplateVersionInput = {
@@ -763,6 +865,35 @@ export type SeasonContextSnapshotUncheckedUpdateManyWithoutTemplateVersionInput 
   activatedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type SeasonContextSnapshotCountOutputType
+ */
+
+export type SeasonContextSnapshotCountOutputType = {
+  taskCompletions: number
+}
+
+export type SeasonContextSnapshotCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  taskCompletions?: boolean | SeasonContextSnapshotCountOutputTypeCountTaskCompletionsArgs
+}
+
+/**
+ * SeasonContextSnapshotCountOutputType without action
+ */
+export type SeasonContextSnapshotCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SeasonContextSnapshotCountOutputType
+   */
+  select?: Prisma.SeasonContextSnapshotCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * SeasonContextSnapshotCountOutputType without action
+ */
+export type SeasonContextSnapshotCountOutputTypeCountTaskCompletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskCompletionWhereInput
+}
 
 
 export type SeasonContextSnapshotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -778,6 +909,8 @@ export type SeasonContextSnapshotSelect<ExtArgs extends runtime.Types.Extensions
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
   fieldBoundaryVersion?: boolean | Prisma.SeasonContextSnapshot$fieldBoundaryVersionArgs<ExtArgs>
   templateVersion?: boolean | Prisma.SeasonContextSnapshot$templateVersionArgs<ExtArgs>
+  taskCompletions?: boolean | Prisma.SeasonContextSnapshot$taskCompletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.SeasonContextSnapshotCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["seasonContextSnapshot"]>
 
 export type SeasonContextSnapshotSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -827,6 +960,8 @@ export type SeasonContextSnapshotInclude<ExtArgs extends runtime.Types.Extension
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
   fieldBoundaryVersion?: boolean | Prisma.SeasonContextSnapshot$fieldBoundaryVersionArgs<ExtArgs>
   templateVersion?: boolean | Prisma.SeasonContextSnapshot$templateVersionArgs<ExtArgs>
+  taskCompletions?: boolean | Prisma.SeasonContextSnapshot$taskCompletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.SeasonContextSnapshotCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SeasonContextSnapshotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
@@ -845,6 +980,7 @@ export type $SeasonContextSnapshotPayload<ExtArgs extends runtime.Types.Extensio
     season: Prisma.$SeasonPayload<ExtArgs>
     fieldBoundaryVersion: Prisma.$FieldBoundaryVersionPayload<ExtArgs> | null
     templateVersion: Prisma.$ValidatedTemplateVersionPayload<ExtArgs> | null
+    taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     seasonId: string
@@ -1253,6 +1389,7 @@ export interface Prisma__SeasonContextSnapshotClient<T, Null = never, ExtArgs ex
   season<T extends Prisma.SeasonDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeasonDefaultArgs<ExtArgs>>): Prisma.Prisma__SeasonClient<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   fieldBoundaryVersion<T extends Prisma.SeasonContextSnapshot$fieldBoundaryVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeasonContextSnapshot$fieldBoundaryVersionArgs<ExtArgs>>): Prisma.Prisma__FieldBoundaryVersionClient<runtime.Types.Result.GetResult<Prisma.$FieldBoundaryVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   templateVersion<T extends Prisma.SeasonContextSnapshot$templateVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeasonContextSnapshot$templateVersionArgs<ExtArgs>>): Prisma.Prisma__ValidatedTemplateVersionClient<runtime.Types.Result.GetResult<Prisma.$ValidatedTemplateVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  taskCompletions<T extends Prisma.SeasonContextSnapshot$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeasonContextSnapshot$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1727,6 +1864,30 @@ export type SeasonContextSnapshot$templateVersionArgs<ExtArgs extends runtime.Ty
    */
   include?: Prisma.ValidatedTemplateVersionInclude<ExtArgs> | null
   where?: Prisma.ValidatedTemplateVersionWhereInput
+}
+
+/**
+ * SeasonContextSnapshot.taskCompletions
+ */
+export type SeasonContextSnapshot$taskCompletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskCompletion
+   */
+  select?: Prisma.TaskCompletionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskCompletion
+   */
+  omit?: Prisma.TaskCompletionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskCompletionInclude<ExtArgs> | null
+  where?: Prisma.TaskCompletionWhereInput
+  orderBy?: Prisma.TaskCompletionOrderByWithRelationInput | Prisma.TaskCompletionOrderByWithRelationInput[]
+  cursor?: Prisma.TaskCompletionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskCompletionScalarFieldEnum | Prisma.TaskCompletionScalarFieldEnum[]
 }
 
 /**

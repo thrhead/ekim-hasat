@@ -9,7 +9,7 @@ export type { SeasonOperations } from "../../../../packages/api-client/src/index
 export async function getOnboardingStatus(client: ApiClient) {
   const { data, error, response } = await client.GET("/onboarding/status");
   if (!response.ok || error !== undefined || data === undefined) {
-    throw new Error("Unable to load onboarding status");
+    throw Object.assign(new Error("Unable to load onboarding status"), { status: response.status });
   }
   return data;
 }

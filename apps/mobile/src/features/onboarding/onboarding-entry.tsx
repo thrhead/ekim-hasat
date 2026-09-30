@@ -9,7 +9,7 @@ export async function getOnboardingEntryRoute(
 ): Promise<OnboardingEntryRoute> {
   const status = await getOnboardingStatus(client);
   if (typeof status.firstFieldOnboardingNeeded !== "boolean") {
-    throw new Error("Onboarding status response is invalid");
+    throw Object.assign(new Error("Onboarding status response is invalid"), { status: 200 });
   }
 
   return status.firstFieldOnboardingNeeded ? "first-field-onboarding" : "home";

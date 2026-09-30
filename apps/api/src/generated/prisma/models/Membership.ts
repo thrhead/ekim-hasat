@@ -184,6 +184,7 @@ export type MembershipWhereInput = {
   status?: Prisma.StringFilter<"Membership"> | string
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   user?: Prisma.XOR<Prisma.ApplicationUserScalarRelationFilter, Prisma.ApplicationUserWhereInput>
+  taskCompletions?: Prisma.TaskCompletionListRelationFilter
 }
 
 export type MembershipOrderByWithRelationInput = {
@@ -194,11 +195,13 @@ export type MembershipOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   business?: Prisma.BusinessOrderByWithRelationInput
   user?: Prisma.ApplicationUserOrderByWithRelationInput
+  taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
 }
 
 export type MembershipWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   businessId_userId?: Prisma.MembershipBusinessIdUserIdCompoundUniqueInput
+  id_businessId_userId?: Prisma.MembershipIdBusinessIdUserIdCompoundUniqueInput
   AND?: Prisma.MembershipWhereInput | Prisma.MembershipWhereInput[]
   OR?: Prisma.MembershipWhereInput[]
   NOT?: Prisma.MembershipWhereInput | Prisma.MembershipWhereInput[]
@@ -208,7 +211,8 @@ export type MembershipWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"Membership"> | string
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   user?: Prisma.XOR<Prisma.ApplicationUserScalarRelationFilter, Prisma.ApplicationUserWhereInput>
-}, "id" | "businessId_userId">
+  taskCompletions?: Prisma.TaskCompletionListRelationFilter
+}, "id" | "businessId_userId" | "id_businessId_userId">
 
 export type MembershipOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -238,6 +242,7 @@ export type MembershipCreateInput = {
   status: string
   business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
   user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateInput = {
@@ -246,6 +251,7 @@ export type MembershipUncheckedCreateInput = {
   userId: string
   role: string
   status: string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUpdateInput = {
@@ -254,6 +260,7 @@ export type MembershipUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
   user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateInput = {
@@ -262,6 +269,7 @@ export type MembershipUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateManyInput = {
@@ -301,6 +309,12 @@ export type MembershipBusinessIdUserIdCompoundUniqueInput = {
   userId: string
 }
 
+export type MembershipIdBusinessIdUserIdCompoundUniqueInput = {
+  id: string
+  businessId: string
+  userId: string
+}
+
 export type MembershipCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   businessId?: Prisma.SortOrder
@@ -323,6 +337,11 @@ export type MembershipMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
+}
+
+export type MembershipScalarRelationFilter = {
+  is?: Prisma.MembershipWhereInput
+  isNot?: Prisma.MembershipWhereInput
 }
 
 export type MembershipCreateNestedManyWithoutUserInput = {
@@ -409,11 +428,26 @@ export type MembershipUncheckedUpdateManyWithoutBusinessNestedInput = {
   deleteMany?: Prisma.MembershipScalarWhereInput | Prisma.MembershipScalarWhereInput[]
 }
 
+export type MembershipCreateNestedOneWithoutTaskCompletionsInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedCreateWithoutTaskCompletionsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutTaskCompletionsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+}
+
+export type MembershipUpdateOneRequiredWithoutTaskCompletionsNestedInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedCreateWithoutTaskCompletionsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutTaskCompletionsInput
+  upsert?: Prisma.MembershipUpsertWithoutTaskCompletionsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MembershipUpdateToOneWithWhereWithoutTaskCompletionsInput, Prisma.MembershipUpdateWithoutTaskCompletionsInput>, Prisma.MembershipUncheckedUpdateWithoutTaskCompletionsInput>
+}
+
 export type MembershipCreateWithoutUserInput = {
   id?: string
   role: string
   status: string
   business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutUserInput = {
@@ -421,6 +455,7 @@ export type MembershipUncheckedCreateWithoutUserInput = {
   businessId: string
   role: string
   status: string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutUserInput = {
@@ -465,6 +500,7 @@ export type MembershipCreateWithoutBusinessInput = {
   role: string
   status: string
   user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutBusinessInput = {
@@ -472,6 +508,7 @@ export type MembershipUncheckedCreateWithoutBusinessInput = {
   userId: string
   role: string
   status: string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutBusinessInput = {
@@ -500,6 +537,54 @@ export type MembershipUpdateManyWithWhereWithoutBusinessInput = {
   data: Prisma.XOR<Prisma.MembershipUpdateManyMutationInput, Prisma.MembershipUncheckedUpdateManyWithoutBusinessInput>
 }
 
+export type MembershipCreateWithoutTaskCompletionsInput = {
+  id?: string
+  role: string
+  status: string
+  business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
+  user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+}
+
+export type MembershipUncheckedCreateWithoutTaskCompletionsInput = {
+  id?: string
+  businessId: string
+  userId: string
+  role: string
+  status: string
+}
+
+export type MembershipCreateOrConnectWithoutTaskCompletionsInput = {
+  where: Prisma.MembershipWhereUniqueInput
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedCreateWithoutTaskCompletionsInput>
+}
+
+export type MembershipUpsertWithoutTaskCompletionsInput = {
+  update: Prisma.XOR<Prisma.MembershipUpdateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedUpdateWithoutTaskCompletionsInput>
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedCreateWithoutTaskCompletionsInput>
+  where?: Prisma.MembershipWhereInput
+}
+
+export type MembershipUpdateToOneWithWhereWithoutTaskCompletionsInput = {
+  where?: Prisma.MembershipWhereInput
+  data: Prisma.XOR<Prisma.MembershipUpdateWithoutTaskCompletionsInput, Prisma.MembershipUncheckedUpdateWithoutTaskCompletionsInput>
+}
+
+export type MembershipUpdateWithoutTaskCompletionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
+  user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+}
+
+export type MembershipUncheckedUpdateWithoutTaskCompletionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type MembershipCreateManyUserInput = {
   id?: string
   businessId: string
@@ -512,6 +597,7 @@ export type MembershipUpdateWithoutUserInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutUserInput = {
@@ -519,6 +605,7 @@ export type MembershipUncheckedUpdateWithoutUserInput = {
   businessId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutUserInput = {
@@ -540,6 +627,7 @@ export type MembershipUpdateWithoutBusinessInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutBusinessInput = {
@@ -547,6 +635,7 @@ export type MembershipUncheckedUpdateWithoutBusinessInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutBusinessInput = {
@@ -557,6 +646,35 @@ export type MembershipUncheckedUpdateManyWithoutBusinessInput = {
 }
 
 
+/**
+ * Count Type MembershipCountOutputType
+ */
+
+export type MembershipCountOutputType = {
+  taskCompletions: number
+}
+
+export type MembershipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  taskCompletions?: boolean | MembershipCountOutputTypeCountTaskCompletionsArgs
+}
+
+/**
+ * MembershipCountOutputType without action
+ */
+export type MembershipCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MembershipCountOutputType
+   */
+  select?: Prisma.MembershipCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * MembershipCountOutputType without action
+ */
+export type MembershipCountOutputTypeCountTaskCompletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskCompletionWhereInput
+}
+
 
 export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -566,6 +684,8 @@ export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   status?: boolean
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ApplicationUserDefaultArgs<ExtArgs>
+  taskCompletions?: boolean | Prisma.Membership$taskCompletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["membership"]>
 
 export type MembershipSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -600,6 +720,8 @@ export type MembershipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type MembershipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ApplicationUserDefaultArgs<ExtArgs>
+  taskCompletions?: boolean | Prisma.Membership$taskCompletionsArgs<ExtArgs>
+  _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MembershipIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
@@ -615,6 +737,7 @@ export type $MembershipPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     business: Prisma.$BusinessPayload<ExtArgs>
     user: Prisma.$ApplicationUserPayload<ExtArgs>
+    taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1018,6 +1141,7 @@ export interface Prisma__MembershipClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   business<T extends Prisma.BusinessDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BusinessDefaultArgs<ExtArgs>>): Prisma.Prisma__BusinessClient<runtime.Types.Result.GetResult<Prisma.$BusinessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.ApplicationUserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUserDefaultArgs<ExtArgs>>): Prisma.Prisma__ApplicationUserClient<runtime.Types.Result.GetResult<Prisma.$ApplicationUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  taskCompletions<T extends Prisma.Membership$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1450,6 +1574,30 @@ export type MembershipDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many Memberships to delete.
    */
   limit?: number
+}
+
+/**
+ * Membership.taskCompletions
+ */
+export type Membership$taskCompletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskCompletion
+   */
+  select?: Prisma.TaskCompletionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskCompletion
+   */
+  omit?: Prisma.TaskCompletionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskCompletionInclude<ExtArgs> | null
+  where?: Prisma.TaskCompletionWhereInput
+  orderBy?: Prisma.TaskCompletionOrderByWithRelationInput | Prisma.TaskCompletionOrderByWithRelationInput[]
+  cursor?: Prisma.TaskCompletionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskCompletionScalarFieldEnum | Prisma.TaskCompletionScalarFieldEnum[]
 }
 
 /**

@@ -112,6 +112,11 @@ export type PlannedTask = Prisma.PlannedTaskModel
  */
 export type SeasonContextSnapshot = Prisma.SeasonContextSnapshotModel
 /**
+ * Model TaskCompletion
+ *
+ */
+export type TaskCompletion = Prisma.TaskCompletionModel
+/**
  * Model SeasonCommandIdempotencyRecord
  *
  */

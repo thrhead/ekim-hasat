@@ -233,6 +233,8 @@ export type components = {
             seasonId: string;
             /** @enum {string} */
             sourceKind?: "VALIDATED_TEMPLATE" | "MANUAL";
+            /** @description Base version for a completion command; additive for older clients. */
+            taskVersion: number;
             title: string;
         };
     };
@@ -618,6 +620,8 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @description Resolved authorized business timezone used for local-date and occurrence rendering. */
+                        businessTimezone: string;
                         /**
                          * Format: date
                          * @description Current date in the authorized business timezone across all fields/seasons in that business.

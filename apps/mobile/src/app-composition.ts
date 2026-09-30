@@ -8,19 +8,23 @@ import type { SeasonSetupResult } from "./features/seasons/season-setup-screen";
 import { createSeasonCreateCommandStore } from "./features/seasons/season-create-command-store";
 import { createSeasonSetupFlow } from "./features/seasons/season-setup-screen";
 import { readSeason } from "./features/seasons/season-setup-screen";
+import { createTaskCompletionCommandStore, type TaskCompletionCommandStore } from "./features/tasks/task-completion-command-store";
+import { createTaskCompletionCoordinator } from "./features/tasks/task-completion";
 
 type FirstFieldSummary = components["schemas"]["FirstFieldSummary"];
 type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
   seasonRequest: CreateRequest | null;
   seasonResult: SeasonSetupResult | null;
   seasonDraft: SeasonComponents["schemas"]["SeasonDraft"] | null;
+  historyFieldId: string | null;
+  historySeasonId: string | null;
 }>;
 
 /** Owns production auth-to-onboarding routing while leaving credentials in T051. */
@@ -29,12 +33,15 @@ export function createAppComposition(
   options: Readonly<{
     draftLifecycle?: ReturnType<typeof createOnboardingDraftLifecycle>;
     seasonCreateStore?: ReturnType<typeof createSeasonCreateCommandStore>;
+    taskCompletionStore?: TaskCompletionCommandStore;
   }> = {},
 ) {
   const draftLifecycle = options.draftLifecycle ?? createOnboardingDraftLifecycle({
     store: createOnboardingDraftStore(),
   });
   const seasonCreateStore = options.seasonCreateStore ?? createSeasonCreateCommandStore();
+  const taskCompletionStore = options.taskCompletionStore ?? createTaskCompletionCommandStore();
+  let taskCompletionCoordinator: ReturnType<typeof createTaskCompletionCoordinator> | null = null;
   let state: ProductionAppState = {
     auth: controller.getState(),
     entry: "loading",
@@ -44,6 +51,8 @@ export function createAppComposition(
     seasonRequest: null,
     seasonResult: null,
     seasonDraft: null,
+    historyFieldId: null,
+    historySeasonId: null,
   };
   let disposed = false;
   let statusRevision = 0;
@@ -83,17 +92,46 @@ export function createAppComposition(
                 client,
               });
             } else {
-              publish({ ...state, entry: "home", client });
+              publish({ ...state, entry: "today", client });
             }
           }).catch(() => {
-            if (recoveryRevision === statusRevision) publish({ ...state, entry: "home", client });
+            if (recoveryRevision === statusRevision) publish({ ...state, entry: "today", client });
           });
         } else publish({ ...state, entry, client });
       },
-      () => {
-        if (revision === statusRevision) publish({ ...state, entry: "status-error", client });
+      (failure) => {
+        if (revision !== statusRevision) return;
+        void recoverPendingCompletionEntry(client, revision, failure);
       },
     );
+  }
+
+  async function recoverPendingCompletionEntry(client: ApiClient, revision: number, failure: unknown) {
+    const status = failure && typeof failure === "object" && "status" in failure
+      ? Number((failure as { status: unknown }).status) : undefined;
+    if (status !== undefined && (status < 500 || !Number.isFinite(status))) {
+      if (revision === statusRevision) publish({ ...state, entry: "status-error", client });
+      return;
+    }
+    const accountId = state.auth.status === "authenticated" ? state.auth.accountId : null;
+    if (!accountId) {
+      if (revision === statusRevision) publish({ ...state, entry: "status-error", client });
+      return;
+    }
+    try {
+      const flow = createSeasonSetupFlow(client, seasonCreateStore);
+      const unresolved = await flow.recover(accountId);
+      if (revision !== statusRevision) return;
+      if (unresolved) {
+        publish({ ...state, entry: "season-setup", fieldId: unresolved.fieldId, seasonRequest: unresolved.request, client, seasonDraft: null });
+        return;
+      }
+      const commands = await taskCompletionStore.list(accountId);
+      if (revision !== statusRevision) return;
+      publish({ ...state, entry: commands.some((command) => command.state === "PENDING") ? "today" : "status-error", client, accountId });
+    } catch {
+      if (revision === statusRevision) publish({ ...state, entry: "status-error", client });
+    }
   }
 
   function applyAuth(auth: MobileAuthState) {
@@ -108,10 +146,10 @@ export function createAppComposition(
     }
     statusRevision += 1;
     if (auth.status === "authenticated" && client) {
-      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
+      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null });
       resolveStatus(client);
     } else {
-      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
+      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null });
     }
   }
 
@@ -119,6 +157,14 @@ export function createAppComposition(
   void controller.start();
 
   return {
+    taskCompletionStore,
+    getTaskCompletionCoordinator() {
+      taskCompletionCoordinator ??= createTaskCompletionCoordinator({
+        store: taskCompletionStore,
+        getAuthorizationSession: () => controller.getAuthenticatedApiSession(),
+      });
+      return taskCompletionCoordinator;
+    },
     getState: () => state,
     subscribe(listener: (state: ProductionAppState) => void) {
       listeners.add(listener);
@@ -143,7 +189,10 @@ export function createAppComposition(
     reviewSeason(draft: SeasonComponents["schemas"]["SeasonDraft"]) {
       publish({ ...state, entry: "season-review", seasonDraft: draft });
     },
-    showToday() { publish({ ...state, entry: "today", seasonDraft: null }); },
+    showToday() { publish({ ...state, entry: "today", seasonDraft: null, historyFieldId: null, historySeasonId: null }); },
+    showHistory(fieldId: string, seasonId?: string) {
+      publish({ ...state, entry: "history", historyFieldId: fieldId, historySeasonId: seasonId ?? null, seasonDraft: null });
+    },
     async restoreSeasonReview() {
       if (!state.client || !state.seasonDraft) return;
       try {
@@ -159,11 +208,19 @@ export function createAppComposition(
       publish({ ...state, entry: "home", seasonDraft: null });
     },
     async continueAfterSeason() {
-      if (state.accountId) {
-        const success = await seasonCreateStore.readLastSuccess(state.accountId);
-        if (success) await seasonCreateStore.clearLastSuccess(state.accountId, success.idempotencyKey);
+      const accountId = state.auth.status === "authenticated" ? state.auth.accountId : null;
+      const revision = statusRevision;
+      let hasPendingCompletion = false;
+      if (accountId) {
+        const success = await seasonCreateStore.readLastSuccess(accountId);
+        if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+        if (success) await seasonCreateStore.clearLastSuccess(accountId, success.idempotencyKey);
+        if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+        const commands = await taskCompletionStore.list(accountId);
+        if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+        hasPendingCompletion = commands.some((command) => command.state === "PENDING");
       }
-      publish({ ...state, entry: "home", fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
+      publish({ ...state, entry: hasPendingCompletion ? "today" : "home", fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null });
     },
     dispose() {
       disposed = true;
