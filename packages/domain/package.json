@@ -4,6 +4,30 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./seasons/types": {
+      "types": "./dist/seasons/types.d.ts",
+      "import": "./dist/seasons/types.js"
+    },
+    "./seasons/local-date": {
+      "types": "./dist/seasons/local-date.d.ts",
+      "import": "./dist/seasons/local-date.js"
+    },
+    "./seasons/crop-selection": {
+      "types": "./dist/seasons/crop-selection.d.ts",
+      "import": "./dist/seasons/crop-selection.js"
+    },
+    "./seasons/template-selection": {
+      "types": "./dist/seasons/template-selection.d.ts",
+      "import": "./dist/seasons/template-selection.js"
+    },
+    "./seasons/plan-task-mutations": {
+      "types": "./dist/seasons/plan-task-mutations.d.ts",
+      "import": "./dist/seasons/plan-task-mutations.js"
+    },
+    "./seasons/activation": {
+      "types": "./dist/seasons/activation.d.ts",
+      "import": "./dist/seasons/activation.js"
+    },
     "./identity/auth-provider": {
       "types": "./dist/identity/auth-provider.d.ts",
       "import": "./dist/identity/auth-provider.js"
@@ -20,7 +44,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.type-tests.json",
     "test": "node ../../scripts/run-node-tests.mjs domain"
   },
   "devDependencies": {

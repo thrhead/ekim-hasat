@@ -11,6 +11,10 @@
     "./generated": {
       "types": "./dist/generated/onboarding-api.d.ts",
       "import": "./dist/generated/onboarding-api.js"
+    },
+    "./generated/seasons": {
+      "types": "./dist/generated/seasons-api.d.ts",
+      "import": "./dist/generated/seasons-api.js"
     }
   },
   "scripts": {

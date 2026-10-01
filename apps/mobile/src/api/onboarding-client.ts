@@ -2,6 +2,8 @@ import type { ApiClient } from "../../../../packages/api-client/src/index";
 
 export type { ApiClient };
 export type { components } from "../../../../packages/api-client/src/index";
+export type { SeasonComponents } from "../../../../packages/api-client/src/index";
+export type { SeasonOperations } from "../../../../packages/api-client/src/index";
 
 /** Read the minimum onboarding state through the generated, authenticated API client. */
 export async function getOnboardingStatus(client: ApiClient) {

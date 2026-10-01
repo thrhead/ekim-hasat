@@ -12,6 +12,16 @@ import { parseEnv } from "./config/env.js";
 import { PrismaClient } from "./generated/prisma/client.js";
 import { OnboardingRepository } from "./onboarding/onboarding.repository.js";
 import { completeOnboarding } from "@ekim-hasat/domain/onboarding/complete-onboarding";
+import { SeasonCreateRepository } from "./seasons/seasons-create.repository.js";
+import { createSeasonCreateModule } from "./seasons/seasons-create.controller.js";
+import { SeasonReadRepository } from "./seasons/seasons-read.repository.js";
+import { createSeasonReadModule } from "./seasons/seasons-read.controller.js";
+import { SeasonPlanTaskRepository } from "./seasons/seasons-plan-task.repository.js";
+import { createSeasonPlanTaskModule } from "./seasons/seasons-plan-task.controller.js";
+import { SeasonActivationRepository } from "./seasons/seasons-activation.repository.js";
+import { createSeasonActivationModule } from "./seasons/seasons-activation.controller.js";
+import { TodayRepository } from "./seasons/today.repository.js";
+import { createTodayModule } from "./seasons/today.controller.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -42,16 +52,45 @@ async function bootstrap(): Promise<void> {
     anonKey: env.SUPABASE_ANON_KEY,
   });
   const onboardingRepository = new OnboardingRepository(prisma);
+  const seasonReadRepository = new SeasonReadRepository(prisma);
+  const seasonCreateRepository = new SeasonCreateRepository(prisma);
+  const seasonPlanTaskRepository = new SeasonPlanTaskRepository(prisma);
+  const seasonActivationRepository = new SeasonActivationRepository(prisma);
+  const todayRepository = new TodayRepository(prisma);
+  const verify = (token: string) => authenticator.verify(token);
   const onboardingStatusModule = createOnboardingStatusModule({
-    verify: (token) => authenticator.verify(token),
+    verify,
     readStatus: createOnboardingStatusReader(onboardingRepository),
   });
   const onboardingCompletionModule = createOnboardingCompletionModule({
-    verify: (token) => authenticator.verify(token),
+    verify,
     complete: (identity, request) => completeOnboarding(identity, request, onboardingRepository),
   });
+  const seasonReadModule = createSeasonReadModule({
+    verify,
+    readOptions: (identity, fieldId) => seasonReadRepository.readOptions(identity, fieldId),
+    readSeason: (identity, seasonId) => seasonReadRepository.readSeason(identity, seasonId),
+  });
+  const seasonCreateModule = createSeasonCreateModule({
+    verify,
+    createDraft: (identity, fieldId, body, key) => seasonCreateRepository.createDraft(identity, fieldId, body, key),
+  });
+  const seasonPlanTaskModule = createSeasonPlanTaskModule({
+    verify,
+    addTask: (identity, seasonId, expectedVersion, key, body) => seasonPlanTaskRepository.addTask(identity, seasonId, expectedVersion, key, body),
+    editTask: (identity, seasonId, taskId, expectedVersion, body) => seasonPlanTaskRepository.editTask(identity, seasonId, taskId, expectedVersion, body),
+    removeTask: (identity, seasonId, taskId, expectedVersion) => seasonPlanTaskRepository.removeTask(identity, seasonId, taskId, expectedVersion),
+  });
+  const seasonActivationModule = createSeasonActivationModule({
+    verify,
+    activate: (identity, seasonId, expectedVersion, key) => seasonActivationRepository.activate(identity, seasonId, expectedVersion, key),
+  });
+  const todayModule = createTodayModule({
+    verify,
+    readToday: (identity) => todayRepository.readToday(identity),
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

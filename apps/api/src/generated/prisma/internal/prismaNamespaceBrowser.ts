@@ -57,7 +57,15 @@ export const ModelName = {
   Field: 'Field',
   FieldBoundaryVersion: 'FieldBoundaryVersion',
   OnboardingCompletion: 'OnboardingCompletion',
-  IdempotencyRecord: 'IdempotencyRecord'
+  IdempotencyRecord: 'IdempotencyRecord',
+  CropDefinitionVersion: 'CropDefinitionVersion',
+  CustomCrop: 'CustomCrop',
+  ValidatedTemplateVersion: 'ValidatedTemplateVersion',
+  Season: 'Season',
+  SeasonPlan: 'SeasonPlan',
+  PlannedTask: 'PlannedTask',
+  SeasonContextSnapshot: 'SeasonContextSnapshot',
+  SeasonCommandIdempotencyRecord: 'SeasonCommandIdempotencyRecord'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -89,6 +97,7 @@ export type ApplicationUserScalarFieldEnum = (typeof ApplicationUserScalarFieldE
 
 export const BusinessScalarFieldEnum = {
   id: 'id',
+  timezone: 'timezone',
   createdAt: 'createdAt'
 } as const
 
@@ -152,12 +161,136 @@ export const IdempotencyRecordScalarFieldEnum = {
 export type IdempotencyRecordScalarFieldEnum = (typeof IdempotencyRecordScalarFieldEnum)[keyof typeof IdempotencyRecordScalarFieldEnum]
 
 
+export const CropDefinitionVersionScalarFieldEnum = {
+  id: 'id',
+  cropKey: 'cropKey',
+  version: 'version',
+  displayName: 'displayName',
+  productionType: 'productionType',
+  selectable: 'selectable'
+} as const
+
+export type CropDefinitionVersionScalarFieldEnum = (typeof CropDefinitionVersionScalarFieldEnum)[keyof typeof CropDefinitionVersionScalarFieldEnum]
+
+
+export const CustomCropScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  displayName: 'displayName',
+  createdAt: 'createdAt'
+} as const
+
+export type CustomCropScalarFieldEnum = (typeof CustomCropScalarFieldEnum)[keyof typeof CustomCropScalarFieldEnum]
+
+
+export const ValidatedTemplateVersionScalarFieldEnum = {
+  id: 'id',
+  templateKey: 'templateKey',
+  version: 'version',
+  cropDefinitionVersionId: 'cropDefinitionVersionId',
+  regionSelector: 'regionSelector',
+  taskDefinitions: 'taskDefinitions',
+  published: 'published',
+  available: 'available'
+} as const
+
+export type ValidatedTemplateVersionScalarFieldEnum = (typeof ValidatedTemplateVersionScalarFieldEnum)[keyof typeof ValidatedTemplateVersionScalarFieldEnum]
+
+
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  cropKey: 'cropKey',
+  cropDefinitionVersionId: 'cropDefinitionVersionId',
+  customCropId: 'customCropId',
+  actualPlantingDate: 'actualPlantingDate',
+  status: 'status',
+  version: 'version',
+  createdAt: 'createdAt',
+  activatedAt: 'activatedAt'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const SeasonPlanScalarFieldEnum = {
+  id: 'id',
+  seasonId: 'seasonId',
+  source: 'source',
+  templateVersionId: 'templateVersionId',
+  sourceSnapshot: 'sourceSnapshot',
+  status: 'status'
+} as const
+
+export type SeasonPlanScalarFieldEnum = (typeof SeasonPlanScalarFieldEnum)[keyof typeof SeasonPlanScalarFieldEnum]
+
+
+export const PlannedTaskScalarFieldEnum = {
+  id: 'id',
+  seasonPlanId: 'seasonPlanId',
+  title: 'title',
+  description: 'description',
+  plannedLocalDate: 'plannedLocalDate',
+  sourceTemplateTaskKey: 'sourceTemplateTaskKey',
+  version: 'version'
+} as const
+
+export type PlannedTaskScalarFieldEnum = (typeof PlannedTaskScalarFieldEnum)[keyof typeof PlannedTaskScalarFieldEnum]
+
+
+export const SeasonContextSnapshotScalarFieldEnum = {
+  seasonId: 'seasonId',
+  fieldBoundaryVersionId: 'fieldBoundaryVersionId',
+  regionContext: 'regionContext',
+  cropSnapshot: 'cropSnapshot',
+  source: 'source',
+  templateVersionId: 'templateVersionId',
+  activatedAt: 'activatedAt',
+  businessTimezone: 'businessTimezone',
+  activatedLocalDate: 'activatedLocalDate'
+} as const
+
+export type SeasonContextSnapshotScalarFieldEnum = (typeof SeasonContextSnapshotScalarFieldEnum)[keyof typeof SeasonContextSnapshotScalarFieldEnum]
+
+
+export const SeasonCommandIdempotencyRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  businessId: 'businessId',
+  command: 'command',
+  key: 'key',
+  payloadFingerprint: 'payloadFingerprint',
+  seasonId: 'seasonId',
+  result: 'result',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type SeasonCommandIdempotencyRecordScalarFieldEnum = (typeof SeasonCommandIdempotencyRecordScalarFieldEnum)[keyof typeof SeasonCommandIdempotencyRecordScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -174,3 +307,12 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]

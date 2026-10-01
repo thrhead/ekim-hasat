@@ -1,9 +1,13 @@
 import createClient, { type ClientOptions } from "openapi-fetch";
-import type { paths } from "./generated/onboarding-api.js";
+import type { operations as OnboardingOperations, paths as OnboardingPaths } from "./generated/onboarding-api.js";
+import type { operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
 
-export type { components, operations, paths } from "./generated/onboarding-api.js";
+export type { components } from "./generated/onboarding-api.js";
+export type { components as SeasonComponents, operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
+export type paths = OnboardingPaths & SeasonPaths;
+export type operations = OnboardingOperations & SeasonOperations;
 
-/** Creates the typed SPEC-001 client. Paths and payloads come from OpenAPI. */
+/** Creates the typed onboarding and season client from generated OpenAPI paths. */
 export function createApiClient(options: ClientOptions = {}) {
   const baseUrl = options.baseUrl ?? "/v1";
   const relativeBaseUrl = baseUrl.startsWith("/");

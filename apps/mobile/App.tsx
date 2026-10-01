@@ -4,6 +4,8 @@ import { createMobileAuthBootstrap } from "./src/auth/bootstrap";
 import { createAppComposition, type ProductionAppState } from "./src/app-composition";
 import { FirstFieldScreen } from "./src/features/onboarding/first-field-screen";
 import { OnboardingEntryView } from "./src/features/onboarding/onboarding-entry-view";
+import { SeasonSetupScreen } from "./src/features/seasons/season-setup-screen";
+import { TodayScreen } from "./src/features/seasons/today-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -11,6 +13,10 @@ export default function App() {
     entry: "loading",
     client: null,
     accountId: null,
+    fieldId: null,
+    seasonRequest: null,
+    seasonResult: null,
+    seasonDraft: null,
   });
   const compositionRef = useRef<ReturnType<typeof createAppComposition> | null>(null);
 
@@ -54,6 +60,27 @@ export default function App() {
       />
     );
   }
+
+  if (state.entry === "season-setup" || state.entry === "season-created" || state.entry === "season-review") {
+    if (!state.accountId || !state.client || !state.fieldId) return <OnboardingEntryView state="loading" />;
+    return (
+      <SeasonSetupScreen
+        key={`${state.accountId}:${state.fieldId}:${state.entry === "season-review" ? "season-created" : state.entry}`}
+        client={state.client}
+        fieldId={state.fieldId}
+        initialRequest={state.seasonRequest ?? undefined}
+        initialResult={state.seasonResult ?? undefined}
+        initialDraft={state.entry === "season-review" ? state.seasonDraft ?? undefined : undefined}
+        onCreated={(request) => compositionRef.current!.createSeason(state.fieldId!, request)}
+        onReview={(draft) => compositionRef.current?.reviewSeason(draft)}
+        onExitReview={() => compositionRef.current?.exitSeasonReview()}
+        onBack={state.entry === "season-created" ? () => compositionRef.current?.continueAfterSeason() : undefined}
+        onActivated={() => compositionRef.current?.showToday()}
+      />
+    );
+  }
+
+  if (state.entry === "today" && state.client) return <TodayScreen client={state.client} />;
 
   return <AppShell />;
 }

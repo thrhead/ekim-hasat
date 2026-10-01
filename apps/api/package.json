@@ -9,6 +9,7 @@
     "start": "node dist/main.js",
     "lint": "eslint src test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prisma:generate": "node scripts/generate-prisma.mjs",
     "test": "pnpm run test:unit",
     "test:unit": "node ../../scripts/run-node-tests.mjs api-unit",
     "test:integration": "node scripts/run-integration.mjs",

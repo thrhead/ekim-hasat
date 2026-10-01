@@ -18,7 +18,7 @@ function matches(mode, path) {
   if (mode === "domain") {
     return (
       (normalizedPath.startsWith("src/") && name.endsWith(".test.ts")) ||
-      (normalizedPath.startsWith("test/onboarding/") && name.endsWith(".spec.ts"))
+      ((normalizedPath.startsWith("test/onboarding/") || normalizedPath.startsWith("test/seasons/")) && name.endsWith(".spec.ts"))
     );
   }
   if (mode === "api-unit") {
@@ -40,7 +40,7 @@ function matches(mode, path) {
 
 const roots =
   mode === "domain"
-    ? ["src", "test/onboarding"].filter((path) => existsSync(path))
+    ? ["src", "test/onboarding", "test/seasons"].filter((path) => existsSync(path))
     : ["test"];
 const files = roots.flatMap(walk)
   .map((path) => relative(cwd, path))
