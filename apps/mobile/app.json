@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Ekim Hasat",
+    "slug": "ekim-hasat",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Konumunuzu haritada göstermek için konum izni gerekir."
+        }
+      ]
+    ]
+  }
+}

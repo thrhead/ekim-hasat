@@ -29,7 +29,7 @@ The recommended target architecture is:
 | Mobile offline DB | SQLite |
 | API contract | Versioned REST + OpenAPI |
 | API client | Generated typed TypeScript client |
-| Authentication | External identity provider behind an auth adapter; recommended initial provider: Supabase Auth |
+| Authentication | Supabase Auth behind an auth adapter (ADR-006) |
 | Object storage | S3-compatible storage behind a storage adapter |
 | Background jobs | PostgreSQL-backed queue; recommended initial implementation: pg-boss |
 | Push notifications | Expo Notifications → FCM/APNs |
@@ -848,7 +848,7 @@ The API must confirm that the authenticated user can act in that business.
 
 ## 11.4 Defense in Depth
 
-Database-level RLS may be introduced where it can be implemented safely with connection pooling.
+Database-level RLS may be introduced as optional defense-in-depth where it can be implemented safely with connection pooling; it is not required for MVP (ADR-009).
 
 However, application-layer authorization remains mandatory.
 
@@ -877,7 +877,7 @@ The application domain references the provider subject ID rather than provider-s
 
 ## 12.2 Recommended Initial Provider
 
-Supabase Auth is a reasonable initial baseline because the PRD prioritizes phone-based sign-in while still allowing email/social identity.
+Supabase Auth is the approved initial provider because the PRD prioritizes phone-based sign-in while still allowing email/social identity (ADR-006).
 
 The adapter boundary must make replacement possible.
 
@@ -2655,6 +2655,7 @@ ADR-010 Audit and Deletion Semantics
 ADR-011 Mobile SQLite Library
 ADR-012 Weather Provider
 ADR-013 Satellite Provider
+ADR-014 Mobile Map SDK
 ```
 
 ADRs explain why.
@@ -3264,11 +3265,11 @@ Did implementation complexity leak into the farmer interface?
 
 These decisions should be resolved by ADR/spec before their implementation milestone:
 
-1. exact Auth provider and SMS provider;
+1. exact SMS provider;
 2. exact managed PostgreSQL provider;
 3. exact object storage provider;
 4. exact mobile SQLite access library;
-5. exact map SDK/provider;
+5. map provider configuration and platform setup for the selected `react-native-maps` SDK (ADR-014);
 6. weather provider production policy;
 7. satellite provider;
 8. exact job queue package/configuration;

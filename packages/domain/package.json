@@ -1,0 +1,30 @@
+{
+  "name": "@ekim-hasat/domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./identity/auth-provider": {
+      "types": "./dist/identity/auth-provider.d.ts",
+      "import": "./dist/identity/auth-provider.js"
+    },
+    "./onboarding/get-onboarding-status": {
+      "types": "./dist/onboarding/get-onboarding-status.d.ts",
+      "import": "./dist/onboarding/get-onboarding-status.js"
+    },
+    "./onboarding/complete-onboarding": {
+      "types": "./dist/onboarding/complete-onboarding.d.ts",
+      "import": "./dist/onboarding/complete-onboarding.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/run-node-tests.mjs domain"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
