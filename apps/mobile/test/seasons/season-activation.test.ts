@@ -39,8 +39,8 @@ describe("mobile server-authoritative activation and Today", () => {
     expect(GET).toHaveBeenCalledWith("/seasons/{seasonId}", { params: { path: { seasonId: "season-1" } } });
   });
 
-  it("renders Today's server-local date and tasks read-only without completion controls", async () => {
-    const payload = { localDate: "2026-08-02", tasks: [{ id: "task-1", seasonId: "season-1", fieldId: "field-1", cropDisplayName: "Arpa", title: "Gözlem", plannedLocalDate: "2026-08-02", sourceKind: "MANUAL" as const }] };
+  it("renders Today's server-local date and tasks without a completion callback", async () => {
+    const payload = { localDate: "2026-08-02", businessTimezone: "Europe/Istanbul", tasks: [{ id: "task-1", seasonId: "season-1", fieldId: "field-1", cropDisplayName: "Arpa", title: "Gözlem", plannedLocalDate: "2026-08-02", sourceKind: "MANUAL" as const, taskVersion: 1 }] };
     const GET = jest.fn().mockResolvedValue({ data: payload, error: undefined, response: { ok: true } });
     await expect(readTodayPlannedWork({ GET } as unknown as ApiClient)).resolves.toEqual(payload);
     expect(GET).toHaveBeenCalledWith("/today");
@@ -58,7 +58,7 @@ describe("mobile server-authoritative activation and Today", () => {
     expect(loading.some(({ type, props }) => type === Text && props.accessibilityRole === "progressbar"
       && props.accessibilityLabel === "Bugünün işleri yükleniyor")).toBe(true);
 
-    const empty = collectElements(TodayContent({ loading: false, error: null, data: { localDate: "2026-08-02", tasks: [] }, onRetry: jest.fn() }));
+    const empty = collectElements(TodayContent({ loading: false, error: null, data: { localDate: "2026-08-02", businessTimezone: "Europe/Istanbul", tasks: [] }, onRetry: jest.fn() }));
     expect(empty.some(({ type, props }) => type === Text && props.children === "Bugün için planlanmış iş yok.")).toBe(true);
 
     const onRetry = jest.fn();

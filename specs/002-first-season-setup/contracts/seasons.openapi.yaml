@@ -245,12 +245,15 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [localDate, tasks]
+                required: [localDate, businessTimezone, tasks]
                 properties:
                   localDate:
                     type: string
                     format: date
                     description: Current date in the authorized business timezone across all fields/seasons in that business.
+                  businessTimezone:
+                    type: string
+                    description: Resolved authorized business timezone used for local-date and occurrence rendering.
                   tasks:
                     type: array
                     items: { $ref: '#/components/schemas/TodayPlannedTask' }
@@ -404,7 +407,7 @@ components:
             activatedAt: { type: string, format: date-time }
     TodayPlannedTask:
       type: object
-      required: [id, seasonId, fieldId, cropDisplayName, title, plannedLocalDate]
+      required: [id, seasonId, fieldId, cropDisplayName, title, plannedLocalDate, taskVersion]
       properties:
         id: { type: string, format: uuid }
         seasonId: { type: string, format: uuid }
@@ -412,6 +415,7 @@ components:
         cropDisplayName: { type: string }
         title: { type: string }
         plannedLocalDate: { type: string, format: date }
+        taskVersion: { type: integer, minimum: 1, description: Base version for a completion command; additive for older clients. }
         sourceKind: { type: string, enum: [VALIDATED_TEMPLATE, MANUAL] }
     ApiError:
       type: object

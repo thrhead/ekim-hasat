@@ -39,6 +39,10 @@
     "./onboarding/complete-onboarding": {
       "types": "./dist/onboarding/complete-onboarding.d.ts",
       "import": "./dist/onboarding/complete-onboarding.js"
+    },
+    "./tasks/completion": {
+      "types": "./dist/tasks/completion.d.ts",
+      "import": "./dist/tasks/completion.js"
     }
   },
   "scripts": {

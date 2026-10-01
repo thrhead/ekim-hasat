@@ -1,0 +1,202 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Task Completion API
+  version: 1.0.0
+  description: Completion commands and bounded field/season history. Client path and schema types are generated from this contract.
+security:
+  - BearerAuth: []
+paths:
+  /tasks/{taskId}/completions:
+    post:
+      tags: [task-completions]
+      operationId: completePlannedTask
+      summary: Record completion of one actionable task
+      description: The client creates and durably retains completionId and occurredAt before sending. A successful replay requires the same completionId and command payload, the same authenticated actor, and currently authorized task/business context; it returns the original committed completion. A different actor is not given another actor's completion as a replay and receives the already-completed/competing-completion conflict without disclosing the record outside authorized scope. The server resolves business and Membership from authentication and never trusts a client business identifier.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/ExpectedTaskVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteTaskRequest' }
+      responses:
+        '201':
+          description: Completion accepted and committed for the first time
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskCompletion' }
+        '200':
+          description: Exact retry by the same authenticated actor in the same currently authorized task/business context replayed the original committed completion
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskCompletion' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Completion ID reused with changed command data or a different actor, stale task version, task already completed by another command (including another actor), or task/season no longer actionable. Such attempts are conflicts, never another actor's successful replay; no completion details outside authorized scope are disclosed, and no conflicting intent is silently accepted or overwritten.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /fields/{fieldId}/task-completions:
+    get:
+      tags: [task-completions]
+      operationId: getFieldTaskCompletionHistory
+      summary: Read accepted task completions for an authorized field
+      description: This bounded history contains accepted task completions only. Results are ordered by occurredAt DESC, completionId DESC. The default page size is 50 and the maximum is 100. Farmer-facing items distinguish planned date from actual occurrence, with occurredAt rendered in the authorized Business timezone. recordedAt is persisted server audit/synchronization metadata and is not required in this normal history response; actor attribution is also excluded. A seasonId filter provides the season-specific view. Pending and conflicted device-local commands are not reported as server-accepted history.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+        - name: seasonId
+          in: query
+          required: false
+          description: Limit results to a season belonging to this authorized field.
+          schema: { type: string, format: uuid }
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque continuation token from the prior page.
+          schema: { type: string, minLength: 1, maxLength: 512 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: A page of accepted completions ordered by occurredAt DESC, completionId DESC. Items include plannedLocalDate and occurredAt; recordedAt and actor identity are intentionally omitted from the farmer-facing representation.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskCompletionHistoryPage' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ExpectedTaskVersion:
+      name: If-Match
+      in: header
+      required: true
+      description: Version of the planned task cached from the authorized Today response. Stale version returns 409 and never overwrites server state.
+      schema: { type: string, minLength: 1, maxLength: 40 }
+  schemas:
+    CompleteTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [completionId, occurredAt]
+      properties:
+        completionId:
+          type: string
+          format: uuid
+          description: Stable client-generated identifier for this completion action and its idempotent retry identity.
+        occurredAt:
+          type: string
+          format: date-time
+          description: Absolute instant when the farmer recorded the work as done. Captured on the device at the action, including offline; server recording time is separate.
+    TaskCompletion:
+      type: object
+      description: Farmer-facing accepted completion representation. recordedAt and actor identity remain server-side persisted metadata and are not included in this response.
+      required: [id, taskId, seasonId, fieldId, title, plannedLocalDate, occurredAt, sourceKind, businessTimezone]
+      properties:
+        id: { type: string, format: uuid, description: Same stable identity as request completionId. }
+        taskId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        occurredAt: { type: string, format: date-time, description: Original absolute occurrence instant; never replaced by sync time. }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
+        templateVersionId: { type: string, format: uuid, nullable: true }
+        businessTimezone: { type: string, description: Resolved authorized Business timezone used to render the occurrence. }
+    TaskCompletionHistoryPage:
+      type: object
+      required: [items, businessTimezone, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/TaskCompletion' }
+        businessTimezone: { type: string, description: Resolved authorized Business timezone for farmer-facing occurrence rendering. }
+        nextCursor: { type: string, nullable: true, description: Null when there are no more results. }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, TASK_VERSION_CONFLICT, TASK_ALREADY_COMPLETED, TASK_NOT_ACTIONABLE, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
+    InvalidRequest:
+      type: object
+      required: [error]
+      properties:
+        error: { type: object }
+    Unauthorized:
+      type: object
+      required: [error]
+      properties:
+        error: { type: object }
+    Forbidden:
+      type: object
+      required: [error]
+      properties:
+        error: { type: object }
+    NotFound:
+      type: object
+      required: [error]
+      properties:
+        error: { type: object }
+    Unexpected:
+      type: object
+      required: [error]
+      properties:
+        error: { type: object }
+  responses:
+    InvalidRequest:
+      description: Malformed identifier, timestamp, version, or history cursor.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: No current authorized Business Membership/scope. Does not reveal target record existence.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Target task or field is unavailable in the authorized Business scope.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unexpected:
+      description: Unexpected failure; a retry uses the exact same completionId and payload.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }

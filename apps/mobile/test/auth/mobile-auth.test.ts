@@ -84,6 +84,26 @@ describe("mobile authenticated session bootstrap", () => {
       .toBe("Bearer refreshed-access-token");
   });
 
+  it("keeps a session-bound generated client on its captured account token after a switch", async () => {
+    const port = createAuthPort({ accountId: "account-1", accessToken: "account-1-token" });
+    const fetchMock = jest.fn<Promise<Response>, [RequestInfo | URL, RequestInit?]>()
+      .mockImplementation(async () => response({ firstFieldOnboardingNeeded: true }));
+    const controller = createMobileAuthController(port.port, {
+      apiBaseUrl: "https://api.example.test/v1",
+      fetch: fetchMock,
+    });
+    await controller.start();
+    const accountOneSession = controller.getAuthenticatedApiSession()!;
+
+    port.setSession({ accountId: "account-2", accessToken: "account-2-token" });
+    await accountOneSession.client.GET("/onboarding/status");
+
+    expect(accountOneSession.accountId).toBe("account-1");
+    expect((fetchMock.mock.calls[0]?.[0] as Request).headers.get("Authorization"))
+      .toBe("Bearer account-1-token");
+    expect(controller.getAuthenticatedApiSession()?.accountId).toBe("account-2");
+  });
+
   it("stops exposing the client and rejects stale client requests after sign-out", async () => {
     const port = createAuthPort({ accountId: "account-1", accessToken: "active-token" });
     const fetchMock = jest.fn<Promise<Response>, [RequestInfo | URL, RequestInit?]>()

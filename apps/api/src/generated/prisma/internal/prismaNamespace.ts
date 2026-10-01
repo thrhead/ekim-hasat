@@ -411,6 +411,7 @@ export const ModelName = {
   SeasonPlan: 'SeasonPlan',
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
+  TaskCompletion: 'TaskCompletion',
   SeasonCommandIdempotencyRecord: 'SeasonCommandIdempotencyRecord'
 } as const
 
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "fieldBoundaryVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "seasonCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "fieldBoundaryVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "seasonCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1435,6 +1436,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TaskCompletion: {
+      payload: Prisma.$TaskCompletionPayload<ExtArgs>
+      fields: Prisma.TaskCompletionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TaskCompletionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TaskCompletionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        findFirst: {
+          args: Prisma.TaskCompletionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TaskCompletionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        findMany: {
+          args: Prisma.TaskCompletionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>[]
+        }
+        create: {
+          args: Prisma.TaskCompletionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        createMany: {
+          args: Prisma.TaskCompletionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TaskCompletionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>[]
+        }
+        delete: {
+          args: Prisma.TaskCompletionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        update: {
+          args: Prisma.TaskCompletionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        deleteMany: {
+          args: Prisma.TaskCompletionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TaskCompletionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TaskCompletionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>[]
+        }
+        upsert: {
+          args: Prisma.TaskCompletionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskCompletionPayload>
+        }
+        aggregate: {
+          args: Prisma.TaskCompletionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskCompletion>
+        }
+        groupBy: {
+          args: Prisma.TaskCompletionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskCompletionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TaskCompletionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskCompletionCountAggregateOutputType> | number
+        }
+      }
+    }
     SeasonCommandIdempotencyRecord: {
       payload: Prisma.$SeasonCommandIdempotencyRecordPayload<ExtArgs>
       fields: Prisma.SeasonCommandIdempotencyRecordFieldRefs
@@ -1716,6 +1791,26 @@ export const SeasonContextSnapshotScalarFieldEnum = {
 } as const
 
 export type SeasonContextSnapshotScalarFieldEnum = (typeof SeasonContextSnapshotScalarFieldEnum)[keyof typeof SeasonContextSnapshotScalarFieldEnum]
+
+
+export const TaskCompletionScalarFieldEnum = {
+  id: 'id',
+  plannedTaskId: 'plannedTaskId',
+  seasonPlanId: 'seasonPlanId',
+  seasonId: 'seasonId',
+  fieldId: 'fieldId',
+  businessId: 'businessId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  occurredAt: 'occurredAt',
+  recordedAt: 'recordedAt',
+  baseTaskVersion: 'baseTaskVersion',
+  payloadFingerprint: 'payloadFingerprint',
+  taskTitleSnapshot: 'taskTitleSnapshot',
+  plannedLocalDateSnapshot: 'plannedLocalDateSnapshot'
+} as const
+
+export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
 export const SeasonCommandIdempotencyRecordScalarFieldEnum = {
@@ -2029,6 +2124,7 @@ export type GlobalOmitConfig = {
   seasonPlan?: Prisma.SeasonPlanOmit
   plannedTask?: Prisma.PlannedTaskOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
+  taskCompletion?: Prisma.TaskCompletionOmit
   seasonCommandIdempotencyRecord?: Prisma.SeasonCommandIdempotencyRecordOmit
 }
 

@@ -65,6 +65,7 @@ export const ModelName = {
   SeasonPlan: 'SeasonPlan',
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
+  TaskCompletion: 'TaskCompletion',
   SeasonCommandIdempotencyRecord: 'SeasonCommandIdempotencyRecord'
 } as const
 
@@ -252,6 +253,26 @@ export const SeasonContextSnapshotScalarFieldEnum = {
 } as const
 
 export type SeasonContextSnapshotScalarFieldEnum = (typeof SeasonContextSnapshotScalarFieldEnum)[keyof typeof SeasonContextSnapshotScalarFieldEnum]
+
+
+export const TaskCompletionScalarFieldEnum = {
+  id: 'id',
+  plannedTaskId: 'plannedTaskId',
+  seasonPlanId: 'seasonPlanId',
+  seasonId: 'seasonId',
+  fieldId: 'fieldId',
+  businessId: 'businessId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  occurredAt: 'occurredAt',
+  recordedAt: 'recordedAt',
+  baseTaskVersion: 'baseTaskVersion',
+  payloadFingerprint: 'payloadFingerprint',
+  taskTitleSnapshot: 'taskTitleSnapshot',
+  plannedLocalDateSnapshot: 'plannedLocalDateSnapshot'
+} as const
+
+export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
 export const SeasonCommandIdempotencyRecordScalarFieldEnum = {

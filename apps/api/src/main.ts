@@ -21,6 +21,9 @@ import { createSeasonPlanTaskModule } from "./seasons/seasons-plan-task.controll
 import { SeasonActivationRepository } from "./seasons/seasons-activation.repository.js";
 import { createSeasonActivationModule } from "./seasons/seasons-activation.controller.js";
 import { TodayRepository } from "./seasons/today.repository.js";
+import { TaskCompletionRepository } from "./tasks/task-completion.repository.js";
+import { TaskCompletionService } from "./tasks/task-completion.service.js";
+import { createTaskCompletionModule } from "./tasks/task-completion.controller.js";
 import { createTodayModule } from "./seasons/today.controller.js";
 import {
   configureApiObservability,
@@ -57,6 +60,8 @@ async function bootstrap(): Promise<void> {
   const seasonPlanTaskRepository = new SeasonPlanTaskRepository(prisma);
   const seasonActivationRepository = new SeasonActivationRepository(prisma);
   const todayRepository = new TodayRepository(prisma);
+  const taskCompletionRepository = new TaskCompletionRepository(prisma);
+  const taskCompletionService = new TaskCompletionService(taskCompletionRepository);
   const verify = (token: string) => authenticator.verify(token);
   const onboardingStatusModule = createOnboardingStatusModule({
     verify,
@@ -89,8 +94,13 @@ async function bootstrap(): Promise<void> {
     verify,
     readToday: (identity) => todayRepository.readToday(identity),
   });
+  const taskCompletionModule = createTaskCompletionModule({
+    verify,
+    complete: (identity, taskId, version, input) => taskCompletionService.complete(identity, taskId, version, input),
+    readHistory: (identity, fieldId, filters) => taskCompletionService.readHistory(identity, fieldId, filters),
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

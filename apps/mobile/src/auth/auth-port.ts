@@ -17,12 +17,15 @@ export type MobileAuthState =
   | Readonly<{ status: "signed-out" }>
   | Readonly<{ status: "authenticated"; accountId: string }>;
 
+export type AuthenticatedApiSession = Readonly<{ accountId: string; client: ApiClient }>;
+
 export type MobileAuthController = Readonly<{
   getState(): MobileAuthState;
   subscribe(listener: (state: MobileAuthState) => void): () => void;
   start(): Promise<void>;
   signOut(): Promise<void>;
   getAuthenticatedApiClient(): ApiClient | null;
+  getAuthenticatedApiSession(): AuthenticatedApiSession | null;
   dispose(): void;
 }>;
 
@@ -46,19 +49,23 @@ export function createMobileAuthController(
     for (const listener of listeners) listener(state);
   }
 
-  const apiClient = createApiClient({
-    baseUrl: options.apiBaseUrl,
-    fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const accessToken = session?.accessToken;
-      if (!accessToken) throw new Error("Authentication required");
+  function createAuthenticatedApiClient(getAccessToken: () => string | undefined): ApiClient {
+    return createApiClient({
+      baseUrl: options.apiBaseUrl,
+      fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const accessToken = getAccessToken();
+        if (!accessToken) throw new Error("Authentication required");
 
-      const request = new Request(input, init);
-      const headers = new Headers(request.headers);
-      headers.set("Authorization", `Bearer ${accessToken}`);
-      const authenticatedRequest = new Request(request, { headers });
-      return (options.fetch ?? globalThis.fetch)(authenticatedRequest);
-    }) as typeof fetch,
-  });
+        const request = new Request(input, init);
+        const headers = new Headers(request.headers);
+        headers.set("Authorization", `Bearer ${accessToken}`);
+        const authenticatedRequest = new Request(request, { headers });
+        return (options.fetch ?? globalThis.fetch)(authenticatedRequest);
+      }) as typeof fetch,
+    });
+  }
+
+  const apiClient = createAuthenticatedApiClient(() => session?.accessToken);
 
   return {
     getState: () => state,
@@ -88,6 +95,14 @@ export function createMobileAuthController(
       updateSession(null);
     },
     getAuthenticatedApiClient: () => state.status === "authenticated" ? apiClient : null,
+    getAuthenticatedApiSession() {
+      const currentSession = session;
+      if (!currentSession || state.status !== "authenticated" || state.accountId !== currentSession.accountId) return null;
+      return {
+        accountId: currentSession.accountId,
+        client: createAuthenticatedApiClient(() => currentSession.accessToken),
+      };
+    },
     dispose() {
       stopObserving?.();
       stopObserving = null;

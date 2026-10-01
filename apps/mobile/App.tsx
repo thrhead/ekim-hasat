@@ -6,6 +6,7 @@ import { FirstFieldScreen } from "./src/features/onboarding/first-field-screen";
 import { OnboardingEntryView } from "./src/features/onboarding/onboarding-entry-view";
 import { SeasonSetupScreen } from "./src/features/seasons/season-setup-screen";
 import { TodayScreen } from "./src/features/seasons/today-screen";
+import { TaskCompletionHistoryScreen } from "./src/features/tasks/task-completion-history-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -17,6 +18,8 @@ export default function App() {
     seasonRequest: null,
     seasonResult: null,
     seasonDraft: null,
+    historyFieldId: null,
+    historySeasonId: null,
   });
   const compositionRef = useRef<ReturnType<typeof createAppComposition> | null>(null);
 
@@ -80,7 +83,14 @@ export default function App() {
     );
   }
 
-  if (state.entry === "today" && state.client) return <TodayScreen client={state.client} />;
+  if (state.entry === "today" && state.client && state.accountId) return <TodayScreen key={state.accountId} client={state.client} accountId={state.accountId}
+    store={compositionRef.current?.taskCompletionStore}
+    coordinator={compositionRef.current?.getTaskCompletionCoordinator()}
+    onOpenHistory={(fieldId, seasonId) => compositionRef.current?.showHistory(fieldId, seasonId)} />;
+  if (state.entry === "history" && state.client && state.accountId && state.historyFieldId) return <TaskCompletionHistoryScreen
+    key={`${state.auth.status === "authenticated" ? state.auth.accountId : ""}:${state.historyFieldId}:${state.historySeasonId ?? "all"}`}
+    client={state.client} accountId={state.accountId} fieldId={state.historyFieldId} initialSeasonId={state.historySeasonId ?? undefined}
+    onBack={() => compositionRef.current?.showToday()} />;
 
   return <AppShell />;
 }

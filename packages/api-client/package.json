@@ -15,6 +15,10 @@
     "./generated/seasons": {
       "types": "./dist/generated/seasons-api.d.ts",
       "import": "./dist/generated/seasons-api.js"
+    },
+    "./generated/task-completions": {
+      "types": "./dist/generated/task-completions-api.d.ts",
+      "import": "./dist/generated/task-completions-api.js"
     }
   },
   "scripts": {
