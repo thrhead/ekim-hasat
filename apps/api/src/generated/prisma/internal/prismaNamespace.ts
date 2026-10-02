@@ -401,6 +401,9 @@ export const ModelName = {
   Business: 'Business',
   Membership: 'Membership',
   Field: 'Field',
+  WeatherSnapshot: 'WeatherSnapshot',
+  WeatherRefreshState: 'WeatherRefreshState',
+  WeatherDailyForecast: 'WeatherDailyForecast',
   FieldBoundaryVersion: 'FieldBoundaryVersion',
   OnboardingCompletion: 'OnboardingCompletion',
   IdempotencyRecord: 'IdempotencyRecord',
@@ -428,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "fieldBoundaryVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "seasonCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "seasonCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -709,6 +712,212 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FieldCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FieldCountAggregateOutputType> | number
+        }
+      }
+    }
+    WeatherSnapshot: {
+      payload: Prisma.$WeatherSnapshotPayload<ExtArgs>
+      fields: Prisma.WeatherSnapshotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WeatherSnapshotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WeatherSnapshotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>
+        }
+        findFirst: {
+          args: Prisma.WeatherSnapshotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WeatherSnapshotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>
+        }
+        findMany: {
+          args: Prisma.WeatherSnapshotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>[]
+        }
+        delete: {
+          args: Prisma.WeatherSnapshotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>
+        }
+        update: {
+          args: Prisma.WeatherSnapshotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>
+        }
+        deleteMany: {
+          args: Prisma.WeatherSnapshotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WeatherSnapshotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WeatherSnapshotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherSnapshotPayload>[]
+        }
+        aggregate: {
+          args: Prisma.WeatherSnapshotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWeatherSnapshot>
+        }
+        groupBy: {
+          args: Prisma.WeatherSnapshotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherSnapshotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WeatherSnapshotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherSnapshotCountAggregateOutputType> | number
+        }
+      }
+    }
+    WeatherRefreshState: {
+      payload: Prisma.$WeatherRefreshStatePayload<ExtArgs>
+      fields: Prisma.WeatherRefreshStateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WeatherRefreshStateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WeatherRefreshStateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        findFirst: {
+          args: Prisma.WeatherRefreshStateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WeatherRefreshStateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        findMany: {
+          args: Prisma.WeatherRefreshStateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>[]
+        }
+        create: {
+          args: Prisma.WeatherRefreshStateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        createMany: {
+          args: Prisma.WeatherRefreshStateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WeatherRefreshStateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>[]
+        }
+        delete: {
+          args: Prisma.WeatherRefreshStateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        update: {
+          args: Prisma.WeatherRefreshStateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        deleteMany: {
+          args: Prisma.WeatherRefreshStateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WeatherRefreshStateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WeatherRefreshStateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>[]
+        }
+        upsert: {
+          args: Prisma.WeatherRefreshStateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherRefreshStatePayload>
+        }
+        aggregate: {
+          args: Prisma.WeatherRefreshStateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWeatherRefreshState>
+        }
+        groupBy: {
+          args: Prisma.WeatherRefreshStateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherRefreshStateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WeatherRefreshStateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherRefreshStateCountAggregateOutputType> | number
+        }
+      }
+    }
+    WeatherDailyForecast: {
+      payload: Prisma.$WeatherDailyForecastPayload<ExtArgs>
+      fields: Prisma.WeatherDailyForecastFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WeatherDailyForecastFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WeatherDailyForecastFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        findFirst: {
+          args: Prisma.WeatherDailyForecastFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WeatherDailyForecastFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        findMany: {
+          args: Prisma.WeatherDailyForecastFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>[]
+        }
+        create: {
+          args: Prisma.WeatherDailyForecastCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        createMany: {
+          args: Prisma.WeatherDailyForecastCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WeatherDailyForecastCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>[]
+        }
+        delete: {
+          args: Prisma.WeatherDailyForecastDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        update: {
+          args: Prisma.WeatherDailyForecastUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        deleteMany: {
+          args: Prisma.WeatherDailyForecastDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WeatherDailyForecastUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WeatherDailyForecastUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>[]
+        }
+        upsert: {
+          args: Prisma.WeatherDailyForecastUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeatherDailyForecastPayload>
+        }
+        aggregate: {
+          args: Prisma.WeatherDailyForecastAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWeatherDailyForecast>
+        }
+        groupBy: {
+          args: Prisma.WeatherDailyForecastGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherDailyForecastGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WeatherDailyForecastCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeatherDailyForecastCountAggregateOutputType> | number
         }
       }
     }
@@ -1665,6 +1874,55 @@ export const FieldScalarFieldEnum = {
 export type FieldScalarFieldEnum = (typeof FieldScalarFieldEnum)[keyof typeof FieldScalarFieldEnum]
 
 
+export const WeatherSnapshotScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  locationFingerprint: 'locationFingerprint',
+  businessTimezone: 'businessTimezone',
+  coverageStart: 'coverageStart',
+  coverageEnd: 'coverageEnd',
+  forecastLocalDates: 'forecastLocalDates',
+  fetchedAt: 'fetchedAt',
+  refreshStartedAt: 'refreshStartedAt',
+  providerIssuedAt: 'providerIssuedAt',
+  qualityStatus: 'qualityStatus',
+  observedAt: 'observedAt',
+  conditionCode: 'conditionCode',
+  conditionLabel: 'conditionLabel',
+  temperatureC: 'temperatureC',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WeatherSnapshotScalarFieldEnum = (typeof WeatherSnapshotScalarFieldEnum)[keyof typeof WeatherSnapshotScalarFieldEnum]
+
+
+export const WeatherRefreshStateScalarFieldEnum = {
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  lastAttemptedAt: 'lastAttemptedAt',
+  lastAttemptOrder: 'lastAttemptOrder'
+} as const
+
+export type WeatherRefreshStateScalarFieldEnum = (typeof WeatherRefreshStateScalarFieldEnum)[keyof typeof WeatherRefreshStateScalarFieldEnum]
+
+
+export const WeatherDailyForecastScalarFieldEnum = {
+  id: 'id',
+  snapshotId: 'snapshotId',
+  localDate: 'localDate',
+  conditionCode: 'conditionCode',
+  conditionLabel: 'conditionLabel',
+  temperatureHighC: 'temperatureHighC',
+  temperatureLowC: 'temperatureLowC',
+  precipitationChancePercent: 'precipitationChancePercent',
+  windSpeedKph: 'windSpeedKph'
+} as const
+
+export type WeatherDailyForecastScalarFieldEnum = (typeof WeatherDailyForecastScalarFieldEnum)[keyof typeof WeatherDailyForecastScalarFieldEnum]
+
+
 export const FieldBoundaryVersionScalarFieldEnum = {
   id: 'id',
   fieldId: 'fieldId',
@@ -1926,6 +2184,34 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+
+
+
+/**
+ * Reference to a field of type 'BigInt'
+ */
+export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+
+
+
+/**
+ * Reference to a field of type 'BigInt[]'
+ */
+export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -1943,20 +2229,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
 
 
 /**
@@ -2114,6 +2386,9 @@ export type GlobalOmitConfig = {
   business?: Prisma.BusinessOmit
   membership?: Prisma.MembershipOmit
   field?: Prisma.FieldOmit
+  weatherSnapshot?: Prisma.WeatherSnapshotOmit
+  weatherRefreshState?: Prisma.WeatherRefreshStateOmit
+  weatherDailyForecast?: Prisma.WeatherDailyForecastOmit
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionOmit
   onboardingCompletion?: Prisma.OnboardingCompletionOmit
   idempotencyRecord?: Prisma.IdempotencyRecordOmit

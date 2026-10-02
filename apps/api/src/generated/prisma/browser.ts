@@ -38,6 +38,21 @@ export type Membership = Prisma.MembershipModel
  */
 export type Field = Prisma.FieldModel
 /**
+ * Model WeatherSnapshot
+ *
+ */
+export type WeatherSnapshot = Prisma.WeatherSnapshotModel
+/**
+ * Model WeatherRefreshState
+ *
+ */
+export type WeatherRefreshState = Prisma.WeatherRefreshStateModel
+/**
+ * Model WeatherDailyForecast
+ *
+ */
+export type WeatherDailyForecast = Prisma.WeatherDailyForecastModel
+/**
  * Model FieldBoundaryVersion
  *
  */

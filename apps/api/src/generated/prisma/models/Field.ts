@@ -222,6 +222,8 @@ export type FieldWhereInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
+  weatherRefreshState?: Prisma.XOR<Prisma.WeatherRefreshStateNullableScalarRelationFilter, Prisma.WeatherRefreshStateWhereInput> | null
 }
 
 export type FieldOrderByWithRelationInput = {
@@ -236,6 +238,8 @@ export type FieldOrderByWithRelationInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordOrderByRelationAggregateInput
   seasons?: Prisma.SeasonOrderByRelationAggregateInput
   taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
+  weatherSnapshot?: Prisma.WeatherSnapshotOrderByWithRelationInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateOrderByWithRelationInput
 }
 
 export type FieldWhereUniqueInput = Prisma.AtLeast<{
@@ -254,6 +258,8 @@ export type FieldWhereUniqueInput = Prisma.AtLeast<{
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
+  weatherRefreshState?: Prisma.XOR<Prisma.WeatherRefreshStateNullableScalarRelationFilter, Prisma.WeatherRefreshStateWhereInput> | null
 }, "id" | "id_businessId">
 
 export type FieldOrderByWithAggregationInput = {
@@ -291,6 +297,8 @@ export type FieldUpdateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateInput = {
@@ -304,6 +312,8 @@ export type FieldUncheckedUpdateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateManyMutationInput = {
@@ -409,6 +419,20 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type FieldUpdateOneRequiredWithoutWeatherSnapshotNestedInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutWeatherSnapshotInput, Prisma.FieldUpdateWithoutWeatherSnapshotInput>, Prisma.FieldUncheckedUpdateWithoutWeatherSnapshotInput>
+}
+
+export type FieldCreateNestedOneWithoutWeatherRefreshStateInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUpdateOneRequiredWithoutWeatherRefreshStateNestedInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutWeatherRefreshStateInput, Prisma.FieldUpdateWithoutWeatherRefreshStateInput>, Prisma.FieldUncheckedUpdateWithoutWeatherRefreshStateInput>
+}
+
 export type FieldUpdateOneRequiredWithoutBoundaryVersionsNestedInput = {
   connect?: Prisma.FieldWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutBoundaryVersionsInput, Prisma.FieldUpdateWithoutBoundaryVersionsInput>, Prisma.FieldUncheckedUpdateWithoutBoundaryVersionsInput>
@@ -471,6 +495,72 @@ export type FieldScalarWhereInput = {
   version?: Prisma.IntFilter<"Field"> | number
 }
 
+export type FieldUpdateToOneWithWhereWithoutWeatherSnapshotInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutWeatherSnapshotInput, Prisma.FieldUncheckedUpdateWithoutWeatherSnapshotInput>
+}
+
+export type FieldUpdateWithoutWeatherSnapshotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutWeatherSnapshotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutWeatherRefreshStateInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutWeatherRefreshStateInput, Prisma.FieldUncheckedUpdateWithoutWeatherRefreshStateInput>
+}
+
+export type FieldUpdateWithoutWeatherRefreshStateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutWeatherRefreshStateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+}
+
 export type FieldUpdateToOneWithWhereWithoutBoundaryVersionsInput = {
   where?: Prisma.FieldWhereInput
   data: Prisma.XOR<Prisma.FieldUpdateWithoutBoundaryVersionsInput, Prisma.FieldUncheckedUpdateWithoutBoundaryVersionsInput>
@@ -486,6 +576,8 @@ export type FieldUpdateWithoutBoundaryVersionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
@@ -498,6 +590,8 @@ export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutCompletionsInput = {
@@ -515,6 +609,8 @@ export type FieldUpdateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutCompletionsInput = {
@@ -527,6 +623,8 @@ export type FieldUncheckedUpdateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutIdempotencyRecordsInput = {
@@ -544,6 +642,8 @@ export type FieldUpdateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
@@ -556,6 +656,8 @@ export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutSeasonsInput = {
@@ -573,6 +675,8 @@ export type FieldUpdateWithoutSeasonsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutSeasonsInput = {
@@ -585,6 +689,8 @@ export type FieldUncheckedUpdateWithoutSeasonsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateToOneWithWhereWithoutTaskCompletionsInput = {
@@ -602,6 +708,8 @@ export type FieldUpdateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -614,6 +722,8 @@ export type FieldUncheckedUpdateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUpdateWithoutBusinessInput = {
@@ -626,6 +736,8 @@ export type FieldUpdateWithoutBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateWithoutBusinessInput = {
@@ -638,6 +750,8 @@ export type FieldUncheckedUpdateWithoutBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
 export type FieldUncheckedUpdateManyWithoutBusinessInput = {
@@ -726,6 +840,8 @@ export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
   seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Field$taskCompletionsArgs<ExtArgs>
+  weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
+  weatherRefreshState?: boolean | Prisma.Field$weatherRefreshStateArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["field"]>
 
@@ -755,6 +871,8 @@ export type FieldInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
   seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Field$taskCompletionsArgs<ExtArgs>
+  weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
+  weatherRefreshState?: boolean | Prisma.Field$weatherRefreshStateArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FieldIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -770,6 +888,8 @@ export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     idempotencyRecords: Prisma.$IdempotencyRecordPayload<ExtArgs>[]
     seasons: Prisma.$SeasonPayload<ExtArgs>[]
     taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
+    weatherSnapshot: Prisma.$WeatherSnapshotPayload<ExtArgs> | null
+    weatherRefreshState: Prisma.$WeatherRefreshStatePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1106,6 +1226,8 @@ export interface Prisma__FieldClient<T, Null = never, ExtArgs extends runtime.Ty
   idempotencyRecords<T extends Prisma.Field$idempotencyRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$idempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   seasons<T extends Prisma.Field$seasonsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$seasonsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskCompletions<T extends Prisma.Field$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  weatherSnapshot<T extends Prisma.Field$weatherSnapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$weatherSnapshotArgs<ExtArgs>>): Prisma.Prisma__WeatherSnapshotClient<runtime.Types.Result.GetResult<Prisma.$WeatherSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  weatherRefreshState<T extends Prisma.Field$weatherRefreshStateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$weatherRefreshStateArgs<ExtArgs>>): Prisma.Prisma__WeatherRefreshStateClient<runtime.Types.Result.GetResult<Prisma.$WeatherRefreshStatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1572,6 +1694,44 @@ export type Field$taskCompletionsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.TaskCompletionScalarFieldEnum | Prisma.TaskCompletionScalarFieldEnum[]
+}
+
+/**
+ * Field.weatherSnapshot
+ */
+export type Field$weatherSnapshotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WeatherSnapshot
+   */
+  select?: Prisma.WeatherSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WeatherSnapshot
+   */
+  omit?: Prisma.WeatherSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WeatherSnapshotInclude<ExtArgs> | null
+  where?: Prisma.WeatherSnapshotWhereInput
+}
+
+/**
+ * Field.weatherRefreshState
+ */
+export type Field$weatherRefreshStateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WeatherRefreshState
+   */
+  select?: Prisma.WeatherRefreshStateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WeatherRefreshState
+   */
+  omit?: Prisma.WeatherRefreshStateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WeatherRefreshStateInclude<ExtArgs> | null
+  where?: Prisma.WeatherRefreshStateWhereInput
 }
 
 /**

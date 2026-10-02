@@ -8,6 +8,7 @@ const contracts = [
   { schema: "../../specs/001-farmer-onboarding-first-field/contracts/onboarding.openapi.yaml", output: "./src/generated/onboarding-api.ts" },
   { schema: "../../specs/002-first-season-setup/contracts/seasons.openapi.yaml", output: "./src/generated/seasons-api.ts" },
   { schema: "../../specs/003-task-completion-history/contracts/task-completions.openapi.yaml", output: "./src/generated/task-completions-api.ts" },
+  { schema: "../../specs/004-weather-context-display/contracts/weather.openapi.yaml", output: "./src/generated/weather-api.ts" },
 ];
 const normalizeLineEndings = (text: string) => text.replace(/\r\n/g, "\n");
 

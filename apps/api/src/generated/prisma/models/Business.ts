@@ -172,6 +172,7 @@ export type BusinessWhereInput = {
   completions?: Prisma.OnboardingCompletionListRelationFilter
   customCrops?: Prisma.CustomCropListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
+  weatherSnapshots?: Prisma.WeatherSnapshotListRelationFilter
 }
 
 export type BusinessOrderByWithRelationInput = {
@@ -184,6 +185,7 @@ export type BusinessOrderByWithRelationInput = {
   completions?: Prisma.OnboardingCompletionOrderByRelationAggregateInput
   customCrops?: Prisma.CustomCropOrderByRelationAggregateInput
   seasons?: Prisma.SeasonOrderByRelationAggregateInput
+  weatherSnapshots?: Prisma.WeatherSnapshotOrderByRelationAggregateInput
 }
 
 export type BusinessWhereUniqueInput = Prisma.AtLeast<{
@@ -199,6 +201,7 @@ export type BusinessWhereUniqueInput = Prisma.AtLeast<{
   completions?: Prisma.OnboardingCompletionListRelationFilter
   customCrops?: Prisma.CustomCropListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
+  weatherSnapshots?: Prisma.WeatherSnapshotListRelationFilter
 }, "id">
 
 export type BusinessOrderByWithAggregationInput = {
@@ -229,6 +232,7 @@ export type BusinessCreateInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateInput = {
@@ -241,6 +245,7 @@ export type BusinessUncheckedCreateInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUpdateInput = {
@@ -253,6 +258,7 @@ export type BusinessUpdateInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateInput = {
@@ -265,6 +271,7 @@ export type BusinessUncheckedUpdateInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateManyInput = {
@@ -351,6 +358,14 @@ export type BusinessUpdateOneRequiredWithoutFieldsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutFieldsInput, Prisma.BusinessUpdateWithoutFieldsInput>, Prisma.BusinessUncheckedUpdateWithoutFieldsInput>
 }
 
+export type BusinessUpdateOneRequiredWithoutWeatherSnapshotsNestedInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutWeatherSnapshotsInput, Prisma.BusinessUncheckedCreateWithoutWeatherSnapshotsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutWeatherSnapshotsInput
+  upsert?: Prisma.BusinessUpsertWithoutWeatherSnapshotsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutWeatherSnapshotsInput, Prisma.BusinessUpdateWithoutWeatherSnapshotsInput>, Prisma.BusinessUncheckedUpdateWithoutWeatherSnapshotsInput>
+}
+
 export type BusinessCreateNestedOneWithoutCompletionsInput = {
   create?: Prisma.XOR<Prisma.BusinessCreateWithoutCompletionsInput, Prisma.BusinessUncheckedCreateWithoutCompletionsInput>
   connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutCompletionsInput
@@ -402,6 +417,7 @@ export type BusinessCreateWithoutDefaultUsersInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutDefaultUsersInput = {
@@ -413,6 +429,7 @@ export type BusinessUncheckedCreateWithoutDefaultUsersInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutDefaultUsersInput = {
@@ -440,6 +457,7 @@ export type BusinessUpdateWithoutDefaultUsersInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutDefaultUsersInput = {
@@ -451,6 +469,7 @@ export type BusinessUncheckedUpdateWithoutDefaultUsersInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutMembershipsInput = {
@@ -462,6 +481,7 @@ export type BusinessCreateWithoutMembershipsInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutMembershipsInput = {
@@ -473,6 +493,7 @@ export type BusinessUncheckedCreateWithoutMembershipsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutMembershipsInput = {
@@ -500,6 +521,7 @@ export type BusinessUpdateWithoutMembershipsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutMembershipsInput = {
@@ -511,6 +533,7 @@ export type BusinessUncheckedUpdateWithoutMembershipsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutFieldsInput = {
@@ -522,6 +545,7 @@ export type BusinessCreateWithoutFieldsInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutFieldsInput = {
@@ -533,6 +557,7 @@ export type BusinessUncheckedCreateWithoutFieldsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutFieldsInput = {
@@ -560,6 +585,7 @@ export type BusinessUpdateWithoutFieldsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutFieldsInput = {
@@ -568,6 +594,71 @@ export type BusinessUncheckedUpdateWithoutFieldsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessCreateWithoutWeatherSnapshotsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessUncheckedCreateWithoutWeatherSnapshotsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessCreateOrConnectWithoutWeatherSnapshotsInput = {
+  where: Prisma.BusinessWhereUniqueInput
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutWeatherSnapshotsInput, Prisma.BusinessUncheckedCreateWithoutWeatherSnapshotsInput>
+}
+
+export type BusinessUpsertWithoutWeatherSnapshotsInput = {
+  update: Prisma.XOR<Prisma.BusinessUpdateWithoutWeatherSnapshotsInput, Prisma.BusinessUncheckedUpdateWithoutWeatherSnapshotsInput>
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutWeatherSnapshotsInput, Prisma.BusinessUncheckedCreateWithoutWeatherSnapshotsInput>
+  where?: Prisma.BusinessWhereInput
+}
+
+export type BusinessUpdateToOneWithWhereWithoutWeatherSnapshotsInput = {
+  where?: Prisma.BusinessWhereInput
+  data: Prisma.XOR<Prisma.BusinessUpdateWithoutWeatherSnapshotsInput, Prisma.BusinessUncheckedUpdateWithoutWeatherSnapshotsInput>
+}
+
+export type BusinessUpdateWithoutWeatherSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessUncheckedUpdateWithoutWeatherSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
@@ -582,6 +673,7 @@ export type BusinessCreateWithoutCompletionsInput = {
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutCompletionsInput = {
@@ -593,6 +685,7 @@ export type BusinessUncheckedCreateWithoutCompletionsInput = {
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutCompletionsInput = {
@@ -620,6 +713,7 @@ export type BusinessUpdateWithoutCompletionsInput = {
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutCompletionsInput = {
@@ -631,6 +725,7 @@ export type BusinessUncheckedUpdateWithoutCompletionsInput = {
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutCustomCropsInput = {
@@ -642,6 +737,7 @@ export type BusinessCreateWithoutCustomCropsInput = {
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutCustomCropsInput = {
@@ -653,6 +749,7 @@ export type BusinessUncheckedCreateWithoutCustomCropsInput = {
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutCustomCropsInput = {
@@ -680,6 +777,7 @@ export type BusinessUpdateWithoutCustomCropsInput = {
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutCustomCropsInput = {
@@ -691,6 +789,7 @@ export type BusinessUncheckedUpdateWithoutCustomCropsInput = {
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessCreateWithoutSeasonsInput = {
@@ -702,6 +801,7 @@ export type BusinessCreateWithoutSeasonsInput = {
   fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessUncheckedCreateWithoutSeasonsInput = {
@@ -713,6 +813,7 @@ export type BusinessUncheckedCreateWithoutSeasonsInput = {
   fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
   customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
 }
 
 export type BusinessCreateOrConnectWithoutSeasonsInput = {
@@ -740,6 +841,7 @@ export type BusinessUpdateWithoutSeasonsInput = {
   fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
 }
 
 export type BusinessUncheckedUpdateWithoutSeasonsInput = {
@@ -751,6 +853,7 @@ export type BusinessUncheckedUpdateWithoutSeasonsInput = {
   fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
   customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
 
@@ -765,6 +868,7 @@ export type BusinessCountOutputType = {
   completions: number
   customCrops: number
   seasons: number
+  weatherSnapshots: number
 }
 
 export type BusinessCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -774,6 +878,7 @@ export type BusinessCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   completions?: boolean | BusinessCountOutputTypeCountCompletionsArgs
   customCrops?: boolean | BusinessCountOutputTypeCountCustomCropsArgs
   seasons?: boolean | BusinessCountOutputTypeCountSeasonsArgs
+  weatherSnapshots?: boolean | BusinessCountOutputTypeCountWeatherSnapshotsArgs
 }
 
 /**
@@ -828,6 +933,13 @@ export type BusinessCountOutputTypeCountSeasonsArgs<ExtArgs extends runtime.Type
   where?: Prisma.SeasonWhereInput
 }
 
+/**
+ * BusinessCountOutputType without action
+ */
+export type BusinessCountOutputTypeCountWeatherSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WeatherSnapshotWhereInput
+}
+
 
 export type BusinessSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -839,6 +951,7 @@ export type BusinessSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   completions?: boolean | Prisma.Business$completionsArgs<ExtArgs>
   customCrops?: boolean | Prisma.Business$customCropsArgs<ExtArgs>
   seasons?: boolean | Prisma.Business$seasonsArgs<ExtArgs>
+  weatherSnapshots?: boolean | Prisma.Business$weatherSnapshotsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["business"]>
 
@@ -868,6 +981,7 @@ export type BusinessInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   completions?: boolean | Prisma.Business$completionsArgs<ExtArgs>
   customCrops?: boolean | Prisma.Business$customCropsArgs<ExtArgs>
   seasons?: boolean | Prisma.Business$seasonsArgs<ExtArgs>
+  weatherSnapshots?: boolean | Prisma.Business$weatherSnapshotsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BusinessIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -882,6 +996,7 @@ export type $BusinessPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     completions: Prisma.$OnboardingCompletionPayload<ExtArgs>[]
     customCrops: Prisma.$CustomCropPayload<ExtArgs>[]
     seasons: Prisma.$SeasonPayload<ExtArgs>[]
+    weatherSnapshots: Prisma.$WeatherSnapshotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1287,6 +1402,7 @@ export interface Prisma__BusinessClient<T, Null = never, ExtArgs extends runtime
   completions<T extends Prisma.Business$completionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$completionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   customCrops<T extends Prisma.Business$customCropsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$customCropsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomCropPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   seasons<T extends Prisma.Business$seasonsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$seasonsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  weatherSnapshots<T extends Prisma.Business$weatherSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$weatherSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeatherSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1853,6 +1969,30 @@ export type Business$seasonsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.SeasonScalarFieldEnum | Prisma.SeasonScalarFieldEnum[]
+}
+
+/**
+ * Business.weatherSnapshots
+ */
+export type Business$weatherSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WeatherSnapshot
+   */
+  select?: Prisma.WeatherSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WeatherSnapshot
+   */
+  omit?: Prisma.WeatherSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WeatherSnapshotInclude<ExtArgs> | null
+  where?: Prisma.WeatherSnapshotWhereInput
+  orderBy?: Prisma.WeatherSnapshotOrderByWithRelationInput | Prisma.WeatherSnapshotOrderByWithRelationInput[]
+  cursor?: Prisma.WeatherSnapshotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WeatherSnapshotScalarFieldEnum | Prisma.WeatherSnapshotScalarFieldEnum[]
 }
 
 /**

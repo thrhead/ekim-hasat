@@ -4,6 +4,7 @@ export type ApiEnvironment = {
   NODE_ENV: "development" | "test" | "production";
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  WEATHER_SNAPSHOT_MAX_AGE_HOURS: number;
 };
 
 export function parseEnv(input: Record<string, string | undefined>): ApiEnvironment {
@@ -59,11 +60,18 @@ export function parseEnv(input: Record<string, string | undefined>): ApiEnvironm
     throw new Error("SUPABASE_ANON_KEY is required");
   }
 
+  const maxWeatherAgeInput = input.WEATHER_SNAPSHOT_MAX_AGE_HOURS ?? "6";
+  const maxWeatherAgeHours = Number(maxWeatherAgeInput);
+  if (!maxWeatherAgeInput.trim() || !Number.isFinite(maxWeatherAgeHours) || maxWeatherAgeHours <= 0) {
+    throw new Error("WEATHER_SNAPSHOT_MAX_AGE_HOURS must be a positive finite number");
+  }
+
   return {
     DATABASE_URL: databaseUrl,
     PORT: port,
     NODE_ENV: nodeEnv as ApiEnvironment["NODE_ENV"],
     SUPABASE_URL: supabaseUrl,
     SUPABASE_ANON_KEY: supabaseAnonKey,
+    WEATHER_SNAPSHOT_MAX_AGE_HOURS: maxWeatherAgeHours,
   };
 }

@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppState, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient, SeasonOperations } from "../../api/onboarding-client";
 import { readTodayPlannedWork } from "./season-activation";
 import { belongsToBusinessToday, createTaskCompletionCommandStore, type TaskCompletionCommand, type TaskCompletionCommandStore, type TodaySnapshot } from "../tasks/task-completion-command-store";
 import { createTaskCompletionCoordinator } from "../tasks/task-completion";
+import { readWeatherOverview, type WeatherOverviewPage } from "../weather/weather-client";
+import { WeatherCard, WeatherOverviewCards, type WeatherCardState } from "../weather/weather-card";
+import { WeatherAnnouncement, weatherAnnouncementMessage } from "../weather/weather-announcement";
 
 type Today = SeasonOperations["getTodayPlannedTasks"]["responses"][200]["content"]["application/json"];
 type Task = Today["tasks"][number];
@@ -34,6 +37,8 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
   const [taskStates, setTaskStates] = useState<Record<string, TodayTaskState>>({});
   const [savingTaskIds, setSavingTaskIds] = useState<Set<string>>(new Set());
   const [completions, setCompletions] = useState<TaskCompletionCommand[]>([]);
+  const [weather, setWeather] = useState<{ kind: "loading" } | { kind: "error" } | { kind: "access-error" } | { kind: "data"; page: WeatherOverviewPage }>({ kind: "loading" });
+  const weatherRequestGeneration = useRef(0);
   const refreshCommands = useCallback(async () => {
     const rows = await store.list(accountId);
     setCompletions(rows);
@@ -71,6 +76,20 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     }
     finally { setLoading(false); }
   }, [accountId, client, coordinator, now, refreshCommands, store]);
+
+  const loadWeather = useCallback(async () => {
+    const generation = ++weatherRequestGeneration.current;
+    setWeather({ kind: "loading" });
+    try {
+      const page = await readWeatherOverview(client);
+      if (generation === weatherRequestGeneration.current) setWeather({ kind: "data", page });
+    } catch (failure) {
+      if (generation !== weatherRequestGeneration.current) return;
+      const status = failure && typeof failure === "object" && "status" in failure
+        ? Number((failure as { status: unknown }).status) : undefined;
+      setWeather({ kind: status === 401 || status === 403 ? "access-error" : "error" });
+    }
+  }, [client]);
 
   const updateTaskState = useCallback(async (taskId: string) => {
     const rows = await refreshCommands();
@@ -134,6 +153,8 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     return () => { current = false; };
   }, [refreshCommands]);
   useEffect(() => { if (commandsLoaded) void load(); }, [commandsLoaded, load]);
+  useEffect(() => { void loadWeather(); }, [loadWeather]);
+  useEffect(() => () => { weatherRequestGeneration.current++; }, []);
   useEffect(() => {
     if (!retryPendingOnOpen) return;
     setRetryPendingOnOpen(false);
@@ -156,7 +177,19 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     });
     return () => subscription.remove();
   }, [accountId, coordinator, refreshCommands]);
-  return <TodayContent loading={loading} error={error} data={data} onRetry={() => void load()} onBack={onBack} cached={cached}
+  const weatherState: WeatherCardState = weather.kind === "data" ? { kind: "loading" } : weather;
+  const announcement = weather.kind === "loading" ? null
+    : weather.kind === "access-error" ? "Hava durumu erişiminiz doğrulanamadı."
+      : weather.kind === "error" ? "Hava durumu yüklenemedi. Yeniden deneyebilirsiniz."
+        : weatherAnnouncementMessage(weather.page.items);
+  const weatherSection: ReactNode = <View style={styles.weather}>
+    <Text accessibilityRole="header" style={styles.taskTitle}>Hava durumu</Text>
+    {weather.kind === "data"
+      ? <WeatherOverviewCards items={weather.page.items} onRetry={() => void loadWeather()} />
+      : <WeatherCard state={weatherState} onRetry={() => void loadWeather()} />}
+    <WeatherAnnouncement message={announcement} />
+  </View>;
+  return <TodayContent loading={loading} error={error} data={data} onRetry={() => void load()} onBack={onBack} cached={cached} weather={weatherSection}
     taskStates={Object.fromEntries(Object.keys(taskStates).map((taskId) => [taskId, savingTaskIds.has(taskId) ? "SAVING" : taskStates[taskId]])) as Record<string, TodayTaskState>}
     commands={completions}
     onComplete={(task) => void completeTask(task)} onRetryCompletion={(task) => void retryTask(task)}
@@ -167,7 +200,7 @@ export function mayUseCachedToday(snapshot: TodaySnapshot | null, failureStatus:
   return Boolean(snapshot) && ![401, 403, 404].includes(failureStatus ?? 0) && belongsToBusinessToday(snapshot!, now);
 }
 
-export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, cached = false }: {
+export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, cached = false, weather }: {
   loading: boolean;
   error: string | null;
   data: Today | null;
@@ -180,6 +213,7 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
   onReviewConflict?: (task: Task) => void;
   onOpenHistory?: (fieldId: string, seasonId?: string) => void;
   cached?: boolean;
+  weather?: ReactNode;
 }) {
   const retainedCommands = commands.filter((command) => !data?.tasks.some((task) => task.id === command.taskId));
   return <ScrollView contentContainerStyle={styles.content}>
@@ -253,6 +287,7 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
         </View>}
       </View>)}
     </> : null}
+    {weather}
   </ScrollView>;
 }
 
@@ -266,6 +301,7 @@ function commandTask(command: TaskCompletionCommand): Task {
 
 const styles = StyleSheet.create({
   content: { flexGrow: 1, gap: 14, padding: 20, paddingBottom: 32 },
+  weather: { gap: 8 },
   title: { color: "#142b1f", fontSize: 26, fontWeight: "700" },
   body: { color: "#263a30", fontSize: 17, lineHeight: 26 },
   error: { color: "#8b1d1d", fontSize: 16, lineHeight: 24 },

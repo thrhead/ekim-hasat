@@ -55,6 +55,9 @@ export const ModelName = {
   Business: 'Business',
   Membership: 'Membership',
   Field: 'Field',
+  WeatherSnapshot: 'WeatherSnapshot',
+  WeatherRefreshState: 'WeatherRefreshState',
+  WeatherDailyForecast: 'WeatherDailyForecast',
   FieldBoundaryVersion: 'FieldBoundaryVersion',
   OnboardingCompletion: 'OnboardingCompletion',
   IdempotencyRecord: 'IdempotencyRecord',
@@ -125,6 +128,55 @@ export const FieldScalarFieldEnum = {
 } as const
 
 export type FieldScalarFieldEnum = (typeof FieldScalarFieldEnum)[keyof typeof FieldScalarFieldEnum]
+
+
+export const WeatherSnapshotScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  locationFingerprint: 'locationFingerprint',
+  businessTimezone: 'businessTimezone',
+  coverageStart: 'coverageStart',
+  coverageEnd: 'coverageEnd',
+  forecastLocalDates: 'forecastLocalDates',
+  fetchedAt: 'fetchedAt',
+  refreshStartedAt: 'refreshStartedAt',
+  providerIssuedAt: 'providerIssuedAt',
+  qualityStatus: 'qualityStatus',
+  observedAt: 'observedAt',
+  conditionCode: 'conditionCode',
+  conditionLabel: 'conditionLabel',
+  temperatureC: 'temperatureC',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WeatherSnapshotScalarFieldEnum = (typeof WeatherSnapshotScalarFieldEnum)[keyof typeof WeatherSnapshotScalarFieldEnum]
+
+
+export const WeatherRefreshStateScalarFieldEnum = {
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  lastAttemptedAt: 'lastAttemptedAt',
+  lastAttemptOrder: 'lastAttemptOrder'
+} as const
+
+export type WeatherRefreshStateScalarFieldEnum = (typeof WeatherRefreshStateScalarFieldEnum)[keyof typeof WeatherRefreshStateScalarFieldEnum]
+
+
+export const WeatherDailyForecastScalarFieldEnum = {
+  id: 'id',
+  snapshotId: 'snapshotId',
+  localDate: 'localDate',
+  conditionCode: 'conditionCode',
+  conditionLabel: 'conditionLabel',
+  temperatureHighC: 'temperatureHighC',
+  temperatureLowC: 'temperatureLowC',
+  precipitationChancePercent: 'precipitationChancePercent',
+  windSpeedKph: 'windSpeedKph'
+} as const
+
+export type WeatherDailyForecastScalarFieldEnum = (typeof WeatherDailyForecastScalarFieldEnum)[keyof typeof WeatherDailyForecastScalarFieldEnum]
 
 
 export const FieldBoundaryVersionScalarFieldEnum = {

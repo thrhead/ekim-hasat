@@ -37,6 +37,7 @@ model Business {
   completions  OnboardingCompletion[]
   customCrops  CustomCrop[]
   seasons      Season[]
+  weatherSnapshots WeatherSnapshot[]
 
   @@map("businesses")
 }
@@ -72,10 +73,73 @@ model Field {
   idempotencyRecords IdempotencyRecord[]
   seasons            Season[]
   taskCompletions    TaskCompletion[]
+  weatherSnapshot    WeatherSnapshot?
+  weatherRefreshState WeatherRefreshState?
 
   @@unique([id, businessId])
   @@index([businessId])
   @@map("fields")
+}
+
+model WeatherSnapshot {
+  id                  String   @id @default(uuid()) @db.Uuid
+  businessId          String   @map("business_id") @db.Uuid
+  fieldId             String   @map("field_id") @db.Uuid
+  representativePoint Unsupported("geometry(Point,4326)") @map("representative_point")
+  locationFingerprint String   @map("location_fingerprint")
+  businessTimezone    String   @map("business_timezone")
+  coverageStart       DateTime @map("coverage_start") @db.Timestamptz(6)
+  coverageEnd         DateTime @map("coverage_end") @db.Timestamptz(6)
+  forecastLocalDates  String[] @map("forecast_local_dates")
+  fetchedAt           DateTime @map("fetched_at") @db.Timestamptz(6)
+  refreshStartedAt    DateTime @map("refresh_started_at") @db.Timestamptz(6)
+  providerIssuedAt    DateTime? @map("provider_issued_at") @db.Timestamptz(6)
+  qualityStatus       String   @default("ACCEPTED") @map("quality_status")
+  observedAt          DateTime @map("observed_at") @db.Timestamptz(6)
+  conditionCode       String   @map("condition_code")
+  conditionLabel      String?  @map("condition_label")
+  temperatureC        Float    @map("temperature_c")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  business Business               @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  field    Field                  @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  dailyForecasts WeatherDailyForecast[]
+
+  @@unique([fieldId, businessId])
+  @@index([businessId, fetchedAt])
+  @@map("weather_snapshots")
+}
+
+model WeatherRefreshState {
+  businessId      String   @map("business_id") @db.Uuid
+  fieldId         String   @map("field_id") @db.Uuid
+  lastAttemptedAt DateTime @map("last_attempted_at") @db.Timestamptz(6)
+  lastAttemptOrder BigInt  @default(autoincrement()) @map("last_attempt_order") @db.BigInt
+
+  field Field @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Cascade)
+
+  @@id([fieldId, businessId])
+  @@index([lastAttemptOrder])
+  @@map("weather_refresh_states")
+}
+
+model WeatherDailyForecast {
+  id                         String   @id @default(uuid()) @db.Uuid
+  snapshotId                 String   @map("snapshot_id") @db.Uuid
+  localDate                  DateTime @map("local_date") @db.Date
+  conditionCode              String   @map("condition_code")
+  conditionLabel             String?  @map("condition_label")
+  temperatureHighC           Float    @map("temperature_high_c")
+  temperatureLowC            Float    @map("temperature_low_c")
+  precipitationChancePercent Float    @map("precipitation_chance_percent")
+  windSpeedKph               Float    @map("wind_speed_kph")
+
+  snapshot WeatherSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@unique([snapshotId, localDate])
+  @@index([localDate])
+  @@map("weather_daily_forecasts")
 }
 
 model FieldBoundaryVersion {

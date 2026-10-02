@@ -696,10 +696,6 @@ export type SeasonUncheckedUpdateManyWithoutCustomCropNestedInput = {
   deleteMany?: Prisma.SeasonScalarWhereInput | Prisma.SeasonScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type SeasonCreateNestedOneWithoutPlanInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutPlanInput, Prisma.SeasonUncheckedCreateWithoutPlanInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutPlanInput
