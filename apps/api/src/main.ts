@@ -25,6 +25,7 @@ import { TaskCompletionRepository } from "./tasks/task-completion.repository.js"
 import { TaskCompletionService } from "./tasks/task-completion.service.js";
 import { createTaskCompletionModule } from "./tasks/task-completion.controller.js";
 import { createTodayModule } from "./seasons/today.controller.js";
+import { createWeatherModule } from "./weather/weather.module.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -99,8 +100,13 @@ async function bootstrap(): Promise<void> {
     complete: (identity, taskId, version, input) => taskCompletionService.complete(identity, taskId, version, input),
     readHistory: (identity, fieldId, filters) => taskCompletionService.readHistory(identity, fieldId, filters),
   });
+  const weatherModule = createWeatherModule({
+    verify,
+    prisma,
+    maxAgeHours: env.WEATHER_SNAPSHOT_MAX_AGE_HOURS,
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, weatherModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

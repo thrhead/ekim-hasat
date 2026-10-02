@@ -1,0 +1,278 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Field Weather API
+  version: 1.0.0
+  description: Authorized field weather reads from the last valid normalized snapshot. Provider refresh is asynchronous and never occurs in this operation.
+servers:
+  - url: /v1
+security:
+  - bearerAuth: []
+paths:
+  /weather/fields:
+    get:
+      tags: [weather]
+      operationId: getWeatherFieldOverview
+      summary: List authorized field weather summaries
+      description: >-
+        This weather-owned projection includes fields in the caller's current authorized Business
+        and field scope whether or not a Today task exists. It is not a general field-list API.
+        Each row contains only fieldId, fieldName, and weather context. Fields without a usable
+        representative point or accepted snapshot are included as UNAVAILABLE without weather values.
+        A snapshot for a changed representative point is also UNAVAILABLE. A timezone mismatch or
+        incomplete requested local-date coverage is STALE while retaining the last-valid values.
+        The server resolves current Membership/scope; no client business ID, coordinates, timezone,
+        or local date establishes authority or selection. Results sort by fieldName then fieldId.
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque continuation token from the preceding page.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 512
+        - name: limit
+          in: query
+          required: false
+          description: Maximum summaries in this page.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: A bounded page of current authorized field weather summaries, including unavailable fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherFieldOverviewPage'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/Unexpected'
+  /fields/{fieldId}/weather:
+    get:
+      tags: [weather]
+      operationId: getFieldWeather
+      summary: Read the current authorized weather context for a field
+      description: >-
+        Authenticates the caller and resolves current Business membership and field scope on the server.
+        The request does not accept a business identifier, coordinates, timezone, or local date. The
+        server uses the Field's existing representative point and the authorized Business timezone.
+        This read returns a persisted normalized snapshot only and never calls an external provider.
+        A CURRENT snapshot is within the configured maximum age (default and deterministic test value
+        six hours; exactly six hours remains CURRENT), covers today and the next two Business-local
+        dates, matches the current representative point, and has valid timezone/date context. Older
+        snapshots or snapshots with invalid/expired forecast coverage or changed timezone/date context
+        are STALE with retained values. A missing/unusable point or point fingerprint mismatch is
+        UNAVAILABLE with no weather values. Provider refresh failure alone does not change status.
+        A cross-business, missing, revoked, or out-of-scope field receives a privacy-safe denial.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+      responses:
+        '200':
+          description: Current, stale, or unavailable weather context. Unavailable responses contain no weather values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldWeather'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/Unexpected'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    FieldWeather:
+      type: object
+      additionalProperties: false
+      required: [fieldId, fieldName, status, businessTimezone, fetchedAt, coverage, current, dailyForecasts]
+      properties:
+        fieldId:
+          type: string
+          format: uuid
+        fieldName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        status:
+          type: string
+          enum: [CURRENT, STALE, UNAVAILABLE]
+          description: >-
+            Derived on read. CURRENT requires age at or below the configured maximum (default/test six
+            hours, inclusive), valid requested local-date coverage, matching representative point, and
+            valid timezone/date context. STALE means freshness/coverage policy has expired. UNAVAILABLE
+            is distinct. Provider refresh failure alone is not a stale condition.
+        businessTimezone:
+          type: string
+          description: Authorized Business timezone resolved by the server; falls back to Europe/Istanbul under the SPEC-002 policy.
+        fetchedAt:
+          type: [string, 'null']
+          format: date-time
+          description: Server UTC time of the last valid accepted refresh; null when unavailable.
+        coverage:
+          oneOf:
+            - $ref: '#/components/schemas/ForecastCoverage'
+            - type: 'null'
+          description: Period covered by retained snapshot, null when unavailable.
+        current:
+          oneOf:
+            - $ref: '#/components/schemas/CurrentConditions'
+            - type: 'null'
+          description: Current conditions; null when unavailable.
+        dailyForecasts:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/DailyForecast'
+          description: Exactly today and the next two Business-local days when a snapshot is present; empty when unavailable.
+    WeatherFieldOverviewPage:
+      type: object
+      additionalProperties: false
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/FieldWeather'
+        nextCursor:
+          type: [string, 'null']
+          maxLength: 512
+    ForecastCoverage:
+      type: object
+      additionalProperties: false
+      required: [startAt, endAt, localStartDate, localEndDate]
+      properties:
+        startAt:
+          type: string
+          format: date-time
+          description: Inclusive UTC instant at the start of represented forecast coverage.
+        endAt:
+          type: string
+          format: date-time
+          description: Exclusive UTC instant at the end of represented forecast coverage.
+        localStartDate:
+          type: string
+          format: date
+        localEndDate:
+          type: string
+          format: date
+    CurrentConditions:
+      type: object
+      additionalProperties: false
+      required: [observedAt, conditionCode, temperatureC]
+      properties:
+        observedAt:
+          type: string
+          format: date-time
+        conditionCode:
+          $ref: '#/components/schemas/WeatherCondition'
+        conditionLabel:
+          type: [string, 'null']
+          maxLength: 80
+          description: Safe application-owned farmer-facing label; never copied from raw provider text.
+        temperatureC:
+          type: number
+          description: Temperature in degrees Celsius.
+    DailyForecast:
+      type: object
+      additionalProperties: false
+      required: [localDate, conditionCode, temperatureHighC, temperatureLowC, precipitationChancePercent, windSpeedKph]
+      properties:
+        localDate:
+          type: string
+          format: date
+          description: ISO date in businessTimezone.
+        conditionCode:
+          $ref: '#/components/schemas/WeatherCondition'
+        conditionLabel:
+          type: [string, 'null']
+          maxLength: 80
+        temperatureHighC:
+          type: number
+          description: High temperature in degrees Celsius.
+        temperatureLowC:
+          type: number
+          description: Low temperature in degrees Celsius; must be less than or equal to high.
+        precipitationChancePercent:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Probability of precipitation as a percentage.
+        windSpeedKph:
+          type: number
+          minimum: 0
+          description: Wind speed in kilometers per hour.
+    WeatherCondition:
+      type: string
+      enum: [CLEAR, PARTLY_CLOUDY, CLOUDY, FOG, RAIN, SNOW, THUNDERSTORM, WINDY, UNKNOWN]
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+              description: Stable machine-readable error category/code; weather reads reuse repository error semantics.
+            message:
+              type: string
+            requestId:
+              type: string
+  responses:
+    InvalidRequest:
+      description: The field identifier is malformed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: No current authorized Business membership or field scope. Does not reveal target existence.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Field is unavailable in the caller's authorized Business scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unexpected:
+      description: Unexpected API failure with the existing correlation request ID and stable machine-readable error code; server diagnostics are correlated and privacy-safe.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

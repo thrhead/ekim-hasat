@@ -13,6 +13,7 @@ test("uses safe development defaults", () => {
     DATABASE_URL: "postgresql://user:pass@localhost:5432/ekim",
     PORT: 3000,
     NODE_ENV: "development",
+    WEATHER_SNAPSHOT_MAX_AGE_HOURS: 6,
     ...validSupabaseEnv,
   });
 });
@@ -22,13 +23,23 @@ test("accepts valid explicit settings", () => {
     DATABASE_URL: "postgres://user:pass@localhost:5432/ekim?schema=public",
     PORT: "5432",
     NODE_ENV: "test",
+    WEATHER_SNAPSHOT_MAX_AGE_HOURS: "8",
     ...validSupabaseEnv,
   }), {
     DATABASE_URL: "postgres://user:pass@localhost:5432/ekim?schema=public",
     PORT: 5432,
     NODE_ENV: "test",
+    WEATHER_SNAPSHOT_MAX_AGE_HOURS: 8,
     ...validSupabaseEnv,
   });
+});
+
+test("validates configurable weather snapshot maximum age with a six-hour default", () => {
+  assert.equal(parseEnv({ DATABASE_URL: "postgresql://user:pass@localhost:5432/ekim", ...validSupabaseEnv }).WEATHER_SNAPSHOT_MAX_AGE_HOURS, 6);
+  assert.equal(parseEnv({ DATABASE_URL: "postgresql://user:pass@localhost:5432/ekim", WEATHER_SNAPSHOT_MAX_AGE_HOURS: "2.5", ...validSupabaseEnv }).WEATHER_SNAPSHOT_MAX_AGE_HOURS, 2.5);
+  for (const value of ["0", "-1", "Infinity", "NaN", "abc"]) {
+    assert.throws(() => parseEnv({ DATABASE_URL: "postgresql://user:pass@localhost:5432/ekim", WEATHER_SNAPSHOT_MAX_AGE_HOURS: value, ...validSupabaseEnv }), /WEATHER_SNAPSHOT_MAX_AGE_HOURS/);
+  }
 });
 
 test("rejects missing or invalid PostgreSQL URLs", () => {

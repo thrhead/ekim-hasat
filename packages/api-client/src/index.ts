@@ -2,14 +2,16 @@ import createClient, { type ClientOptions } from "openapi-fetch";
 import type { operations as OnboardingOperations, paths as OnboardingPaths } from "./generated/onboarding-api.js";
 import type { operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
 import type { operations as TaskCompletionOperations, paths as TaskCompletionPaths } from "./generated/task-completions-api.js";
+import type { operations as WeatherOperations, paths as WeatherPaths } from "./generated/weather-api.js";
 
 export type { components } from "./generated/onboarding-api.js";
 export type { components as SeasonComponents, operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
 export type { components as TaskCompletionComponents, operations as TaskCompletionOperations, paths as TaskCompletionPaths } from "./generated/task-completions-api.js";
-export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths;
-export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations;
+export type { components as WeatherComponents, operations as WeatherOperations, paths as WeatherPaths } from "./generated/weather-api.js";
+export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths;
+export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations;
 
-/** Creates the typed client from the generated onboarding, season, and task-completion paths. */
+/** Creates the typed client from the generated application API paths. */
 export function createApiClient(options: ClientOptions = {}) {
   const baseUrl = options.baseUrl ?? "/v1";
   const relativeBaseUrl = baseUrl.startsWith("/");
