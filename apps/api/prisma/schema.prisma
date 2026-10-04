@@ -14,12 +14,12 @@ model ApplicationUser {
   defaultBusinessId String?  @map("default_business_id") @db.Uuid
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  defaultBusiness      Business?                        @relation("DefaultBusiness", fields: [defaultBusinessId], references: [id], onDelete: Restrict)
-  memberships          Membership[]
-  completions          OnboardingCompletion[]
-  idempotencyRecords   IdempotencyRecord[]
-  seasonCommandRecords SeasonCommandIdempotencyRecord[]
-  taskCompletions      TaskCompletion[]                 @relation("CompletionActorUser")
+  defaultBusiness    Business?                          @relation("DefaultBusiness", fields: [defaultBusinessId], references: [id], onDelete: Restrict)
+  memberships        Membership[]
+  completions        OnboardingCompletion[]
+  idempotencyRecords IdempotencyRecord[]
+  commandRecords     BusinessCommandIdempotencyRecord[]
+  taskCompletions    TaskCompletion[]                   @relation("CompletionActorUser")
 
   @@unique([authProvider, authSubject])
   @@index([defaultBusinessId])
@@ -31,12 +31,12 @@ model Business {
   timezone  String?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  defaultUsers ApplicationUser[]      @relation("DefaultBusiness")
-  memberships  Membership[]
-  fields       Field[]
-  completions  OnboardingCompletion[]
-  customCrops  CustomCrop[]
-  seasons      Season[]
+  defaultUsers     ApplicationUser[]      @relation("DefaultBusiness")
+  memberships      Membership[]
+  fields           Field[]
+  completions      OnboardingCompletion[]
+  customCrops      CustomCrop[]
+  seasons          Season[]
   weatherSnapshots WeatherSnapshot[]
 
   @@map("businesses")
@@ -60,50 +60,58 @@ model Membership {
 }
 
 model Field {
-  id                  String                              @id @default(uuid()) @db.Uuid
-  businessId          String                              @map("business_id") @db.Uuid
-  name                String
-  representativePoint Unsupported("geometry(Point,4326)") @map("representative_point")
-  createdAt           DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
-  version             Int                                 @default(1)
+  id                            String                              @id @default(uuid()) @db.Uuid
+  businessId                    String                              @map("business_id") @db.Uuid
+  name                          String
+  representativePoint           Unsupported("geometry(Point,4326)") @map("representative_point")
+  createdAt                     DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  version                       Int                                 @default(1)
+  currentBoundaryVersionId      String?                             @map("current_boundary_version_id") @db.Uuid
+  currentRegionContextVersionId String?                             @map("current_region_context_version_id") @db.Uuid
 
-  business           Business               @relation(fields: [businessId], references: [id], onDelete: Restrict)
-  boundaryVersions   FieldBoundaryVersion[]
-  completions        OnboardingCompletion[]
-  idempotencyRecords IdempotencyRecord[]
-  seasons            Season[]
-  taskCompletions    TaskCompletion[]
-  weatherSnapshot    WeatherSnapshot?
-  weatherRefreshState WeatherRefreshState?
+  business                    Business                           @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  boundaryVersions            FieldBoundaryVersion[]
+  currentBoundaryVersion      FieldBoundaryVersion?              @relation("CurrentFieldBoundaryVersion", fields: [currentBoundaryVersionId, id], references: [id, fieldId], onDelete: Restrict)
+  regionContextVersions       FieldRegionContextVersion[]
+  currentRegionContextVersion FieldRegionContextVersion?         @relation("CurrentFieldRegionContextVersion", fields: [currentRegionContextVersionId, id], references: [id, fieldId], onDelete: Restrict)
+  completions                 OnboardingCompletion[]
+  idempotencyRecords          IdempotencyRecord[]
+  commandRecords              BusinessCommandIdempotencyRecord[]
+  seasons                     Season[]
+  taskCompletions             TaskCompletion[]
+  weatherSnapshot             WeatherSnapshot?
+  weatherRefreshState         WeatherRefreshState?
 
   @@unique([id, businessId])
+  @@unique([currentBoundaryVersionId, id])
+  @@unique([currentRegionContextVersionId, id])
   @@index([businessId])
   @@map("fields")
 }
 
 model WeatherSnapshot {
-  id                  String   @id @default(uuid()) @db.Uuid
-  businessId          String   @map("business_id") @db.Uuid
-  fieldId             String   @map("field_id") @db.Uuid
+  id                  String                              @id @default(uuid()) @db.Uuid
+  businessId          String                              @map("business_id") @db.Uuid
+  fieldId             String                              @map("field_id") @db.Uuid
   representativePoint Unsupported("geometry(Point,4326)") @map("representative_point")
-  locationFingerprint String   @map("location_fingerprint")
-  businessTimezone    String   @map("business_timezone")
-  coverageStart       DateTime @map("coverage_start") @db.Timestamptz(6)
-  coverageEnd         DateTime @map("coverage_end") @db.Timestamptz(6)
-  forecastLocalDates  String[] @map("forecast_local_dates")
-  fetchedAt           DateTime @map("fetched_at") @db.Timestamptz(6)
-  refreshStartedAt    DateTime @map("refresh_started_at") @db.Timestamptz(6)
-  providerIssuedAt    DateTime? @map("provider_issued_at") @db.Timestamptz(6)
-  qualityStatus       String   @default("ACCEPTED") @map("quality_status")
-  observedAt          DateTime @map("observed_at") @db.Timestamptz(6)
-  conditionCode       String   @map("condition_code")
-  conditionLabel      String?  @map("condition_label")
-  temperatureC        Float    @map("temperature_c")
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  locationFingerprint String                              @map("location_fingerprint")
+  businessTimezone    String                              @map("business_timezone")
+  coverageStart       DateTime                            @map("coverage_start") @db.Timestamptz(6)
+  coverageEnd         DateTime                            @map("coverage_end") @db.Timestamptz(6)
+  forecastLocalDates  String[]                            @map("forecast_local_dates")
+  fetchedAt           DateTime                            @map("fetched_at") @db.Timestamptz(6)
+  refreshStartedAt    DateTime                            @map("refresh_started_at") @db.Timestamptz(6)
+  providerIssuedAt    DateTime?                           @map("provider_issued_at") @db.Timestamptz(6)
+  qualityStatus       String                              @default("ACCEPTED") @map("quality_status")
+  observedAt          DateTime                            @map("observed_at") @db.Timestamptz(6)
+  conditionCode       String                              @map("condition_code")
+  conditionLabel      String?                             @map("condition_label")
+  temperatureC        Float                               @map("temperature_c")
+  createdAt           DateTime                            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  business Business               @relation(fields: [businessId], references: [id], onDelete: Restrict)
-  field    Field                  @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  business       Business               @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  field          Field                  @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
   dailyForecasts WeatherDailyForecast[]
 
   @@unique([fieldId, businessId])
@@ -112,10 +120,10 @@ model WeatherSnapshot {
 }
 
 model WeatherRefreshState {
-  businessId      String   @map("business_id") @db.Uuid
-  fieldId         String   @map("field_id") @db.Uuid
-  lastAttemptedAt DateTime @map("last_attempted_at") @db.Timestamptz(6)
-  lastAttemptOrder BigInt  @default(autoincrement()) @map("last_attempt_order") @db.BigInt
+  businessId       String   @map("business_id") @db.Uuid
+  fieldId          String   @map("field_id") @db.Uuid
+  lastAttemptedAt  DateTime @map("last_attempted_at") @db.Timestamptz(6)
+  lastAttemptOrder BigInt   @default(autoincrement()) @map("last_attempt_order") @db.BigInt
 
   field Field @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Cascade)
 
@@ -151,10 +159,44 @@ model FieldBoundaryVersion {
   createdAt          DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
 
   field           Field                   @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+  currentForField Field?                  @relation("CurrentFieldBoundaryVersion")
   seasonSnapshots SeasonContextSnapshot[]
 
+  @@unique([id, fieldId])
   @@index([fieldId])
   @@map("field_boundary_versions")
+}
+
+model FieldRegionContextVersion {
+  id                        String    @id @default(uuid()) @db.Uuid
+  fieldId                   String    @map("field_id") @db.Uuid
+  version                   Int
+  resolutionLocationKey     String    @map("resolution_location_key")
+  administrativeState       String    @default("UNRESOLVED") @map("administrative_state")
+  administrativeCode        String?   @map("administrative_code")
+  administrativeLabel       String?   @map("administrative_label")
+  administrativeSourceId    String?   @map("administrative_source_id")
+  administrativeDataVersion String?   @map("administrative_data_version")
+  administrativeConfidence  Float?    @map("administrative_confidence")
+  administrativeResolvedAt  DateTime? @map("administrative_resolved_at") @db.Timestamptz(6)
+  agriculturalState         String    @default("UNRESOLVED") @map("agricultural_state")
+  agriculturalCode          String?   @map("agricultural_code")
+  agriculturalLabel         String?   @map("agricultural_label")
+  agriculturalSourceId      String?   @map("agricultural_source_id")
+  agriculturalDataVersion   String?   @map("agricultural_data_version")
+  agriculturalConfidence    Float?    @map("agricultural_confidence")
+  agriculturalResolvedAt    DateTime? @map("agricultural_resolved_at") @db.Timestamptz(6)
+  overrideCode              String?   @map("override_code")
+  overrideLabel             String?   @map("override_label")
+  createdAt                 DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  field           Field  @relation(fields: [fieldId], references: [id], onDelete: Restrict)
+  currentForField Field? @relation("CurrentFieldRegionContextVersion")
+
+  @@unique([id, fieldId])
+  @@unique([fieldId, version])
+  @@index([fieldId, resolutionLocationKey])
+  @@map("field_region_context_versions")
 }
 
 model OnboardingCompletion {
@@ -254,13 +296,13 @@ model Season {
   createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   activatedAt             DateTime? @map("activated_at") @db.Timestamptz(6)
 
-  business              Business                         @relation(fields: [businessId], references: [id], onDelete: Restrict)
-  field                 Field                            @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
-  cropDefinitionVersion CropDefinitionVersion?           @relation(fields: [cropDefinitionVersionId, cropKey], references: [id, cropKey], onDelete: Restrict)
-  customCrop            CustomCrop?                      @relation(fields: [customCropId, businessId], references: [id, businessId], onDelete: Restrict)
+  business              Business                           @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  field                 Field                              @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  cropDefinitionVersion CropDefinitionVersion?             @relation(fields: [cropDefinitionVersionId, cropKey], references: [id, cropKey], onDelete: Restrict)
+  customCrop            CustomCrop?                        @relation(fields: [customCropId, businessId], references: [id, businessId], onDelete: Restrict)
   plan                  SeasonPlan?
   snapshot              SeasonContextSnapshot?
-  commandRecords        SeasonCommandIdempotencyRecord[]
+  commandRecords        BusinessCommandIdempotencyRecord[]
   taskCompletions       TaskCompletion[]
 
   // Partial unique indexes for CENTRAL and CUSTOM logical identities are migration-owned.
@@ -358,23 +400,26 @@ model TaskCompletion {
   @@map("task_completions")
 }
 
-model SeasonCommandIdempotencyRecord {
+model BusinessCommandIdempotencyRecord {
   id                 String   @id @default(uuid()) @db.Uuid
   userId             String   @map("user_id") @db.Uuid
   businessId         String   @map("business_id") @db.Uuid
   command            String
   key                String
   payloadFingerprint String   @map("payload_fingerprint")
-  seasonId           String   @map("season_id") @db.Uuid
+  fieldId            String?  @map("field_id") @db.Uuid
+  seasonId           String?  @map("season_id") @db.Uuid
   result             Json
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   expiresAt          DateTime @map("expires_at") @db.Timestamptz(6)
 
   user   ApplicationUser @relation(fields: [userId], references: [id], onDelete: Restrict)
-  season Season          @relation(fields: [seasonId, businessId], references: [id, businessId], onDelete: Restrict)
+  field  Field?          @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  season Season?         @relation(fields: [seasonId, businessId], references: [id, businessId], onDelete: Restrict)
 
-  @@unique([userId, businessId, command, key], map: "season_commands_user_business_command_key")
+  @@unique([userId, businessId, command, key], map: "business_command_user_business_command_key")
+  @@index([fieldId])
   @@index([seasonId])
   @@index([expiresAt])
-  @@map("season_command_idempotency_records")
+  @@map("business_command_idempotency_records")
 }

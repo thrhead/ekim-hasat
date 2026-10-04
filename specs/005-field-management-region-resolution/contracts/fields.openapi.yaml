@@ -1,0 +1,298 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Fields API (SPEC-005)
+  version: 1.0.0
+  description: >-
+    Planning contract for authorized Field management. Business scope is always
+    resolved from the authenticated user's current membership; clients do not
+    submit a Business identifier as authorization.
+servers:
+  - url: /v1
+security:
+  - bearerAuth: []
+paths:
+  /fields:
+    get:
+      operationId: listFields
+      summary: List Fields in the authorized Business
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 100 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+          description: Opaque keyset cursor for name ASC, id ASC ordering.
+      responses:
+        '200':
+          description: Authorized Field page.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FieldPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+    post:
+      operationId: createField
+      summary: Create an additional Field
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          description: Identifies an idempotent create command scoped to the authenticated user, server-resolved Business, and CREATE_FIELD command. Retry the exact same normalized payload and context with the same key to replay the canonical result; changed payload or authentication/Business/command context conflicts with IDEMPOTENCY_KEY_REUSED. A result is never replayed across contexts.
+          schema: { type: string, minLength: 1, maxLength: 200 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FieldCreate' }
+      responses:
+        '200':
+          description: Canonical result replayed for the same authenticated user, Business, command, key, and normalized payload.
+          headers:
+            ETag:
+              schema: { type: string }
+              description: Quoted Field version.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FieldDetail' }
+        '201':
+          description: Field accepted and created.
+          headers:
+            ETag:
+              schema: { type: string }
+              description: Quoted Field version.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FieldDetail' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /fields/{fieldId}:
+    parameters:
+      - in: path
+        name: fieldId
+        required: true
+        schema: { type: string }
+    get:
+      operationId: getField
+      summary: Get authorized Field detail
+      responses:
+        '200':
+          description: Field detail and optional read-only ACTIVE season summary.
+          headers:
+            ETag:
+              schema: { type: string }
+              description: Quoted Field version.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FieldDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      operationId: updateField
+      summary: Update supported current Field values
+      parameters:
+        - in: header
+          name: If-Match
+          required: true
+          schema: { type: string }
+          description: ETag returned by Field detail/create; stale versions conflict.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FieldUpdate' }
+      responses:
+        '200':
+          description: Updated current Field state.
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FieldDetail' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Stale Field version reported as STALE_VERSION. The mobile client reads the latest Field and requires explicit farmer action before another mutation; no automatic overwrite, retry, merge, or rebase.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    Unauthorized:
+      description: Authentication required or no longer valid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: Current membership/scope does not authorize this operation. For Field IDs, this does not disclose whether the Field exists.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: The Field ID is absent from the currently authorized Business; absent and out-of-Business IDs have the same response.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    InvalidRequest:
+      description: Invalid request, location, cursor, or geometry.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: Existing API HTTP 409 conflict semantics. For PATCH, a stale If-Match ETag is reported as STALE_VERSION; for create, this includes conflicting Idempotency-Key reuse. Clients must not infer a new status convention from this feature contract.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+  schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
+    FieldPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/FieldListItem' }
+        nextCursor:
+          type: [string, 'null']
+    FieldListItem:
+      type: object
+      required: [id, name, version, representativePoint, hasCurrentBoundary]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        version: { type: integer, minimum: 1 }
+        representativePoint: { $ref: '#/components/schemas/Point' }
+        hasCurrentBoundary: { type: boolean }
+    FieldCreate:
+      type: object
+      required: [location]
+      properties:
+        name:
+          type: [string, 'null']
+          description: Optional; omitted or blank/whitespace-only receives the first available Tarla N server label. A nonblank value is trimmed. A same-key exact retry returns the original result and never allocates another label.
+        location: { $ref: '#/components/schemas/FieldLocation' }
+    FieldUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          pattern: '.*\S.*'
+          description: Omission leaves the existing name unchanged. If supplied, the value must contain a non-whitespace character and is trimmed. Blank/whitespace-only values are invalid; updates never allocate or reset to a generated Tarla N name.
+        location: { $ref: '#/components/schemas/FieldLocation' }
+        agriculturalRegionOverride:
+          oneOf:
+            - { $ref: '#/components/schemas/RegionOverride' }
+            - { type: 'null' }
+          description: Set an explicit choice or clear it with null. Omission leaves it unchanged.
+    FieldLocation:
+      oneOf:
+        - type: object
+          required: [type, point]
+          properties:
+            type: { const: POINT }
+            point: { $ref: '#/components/schemas/Point' }
+        - type: object
+          required: [type, polygon]
+          properties:
+            type: { const: POLYGON }
+            polygon: { $ref: '#/components/schemas/Polygon' }
+      description: Existing Point/Polygon model; Polygon representative point is server-derived.
+    Point:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { const: Point }
+        coordinates:
+          type: array
+          prefixItems: [{ type: number }, { type: number }]
+          minItems: 2
+          maxItems: 2
+          description: Longitude, latitude in EPSG:4326 order.
+    Polygon:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { const: Polygon }
+        coordinates:
+          type: array
+          description: GeoJSON Polygon coordinates; server performs existing geometry validation.
+    RegionOverride:
+      type: object
+      required: [code, label]
+      properties:
+        code: { type: string, minLength: 1 }
+        label: { type: string, minLength: 1 }
+    RegionSuggestion:
+      type: object
+      required: [state, resolvedAt]
+      description: For RESOLVED, code, label, sourceId, confidence, dataVersion, and resolvedAt describe the accepted suggestion. For UNRESOLVED, suggestion values and resolvedAt are null. Confidence is the normalized quality/confidence value; dataVersion identifies the immutable source-data version.
+      properties:
+        state: { type: string, enum: [RESOLVED, UNRESOLVED] }
+        code: { type: [string, 'null'] }
+        label: { type: [string, 'null'] }
+        sourceId: { type: [string, 'null'] }
+        confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+        dataVersion: { type: [string, 'null'] }
+        resolvedAt:
+          type: [string, 'null']
+          format: date-time
+          description: Server UTC time when the resolver result was obtained and accepted; null when unresolved. This is not the source dataset publication date.
+    RegionContext:
+      type: object
+      required: [administrativeLocation, agriculturalRegion, agriculturalRegionOverride]
+      description: For legacy Fields with no persisted region-context pointer, the read model returns both suggestions as UNRESOLVED and agriculturalRegionOverride as null. This does not imply region absence in the real world.
+      properties:
+        administrativeLocation: { $ref: '#/components/schemas/RegionSuggestion' }
+        agriculturalRegion: { $ref: '#/components/schemas/RegionSuggestion' }
+        agriculturalRegionOverride:
+          oneOf:
+            - { $ref: '#/components/schemas/RegionOverride' }
+            - { type: 'null' }
+    ActiveSeasonSummary:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { const: ACTIVE }
+        cropLabel: { type: [string, 'null'] }
+        plantingDate: { type: [string, 'null'], format: date }
+    FieldDetail:
+      allOf:
+        - $ref: '#/components/schemas/FieldListItem'
+        - type: object
+          required: [regionContext, boundary, activeSeason]
+          properties:
+            regionContext: { $ref: '#/components/schemas/RegionContext' }
+            boundary:
+              oneOf:
+                - { $ref: '#/components/schemas/Polygon' }
+                - { type: 'null' }
+            activeSeason:
+              oneOf:
+                - { $ref: '#/components/schemas/ActiveSeasonSummary' }
+                - { type: 'null' }

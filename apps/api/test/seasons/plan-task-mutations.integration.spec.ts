@@ -62,7 +62,7 @@ before(async () => {
 
 after(async () => {
   try {
-    await prisma.seasonCommandIdempotencyRecord.deleteMany({ where: { businessId: { in: [businessId, otherBusinessId] } } });
+    await prisma.businessCommandIdempotencyRecord.deleteMany({ where: { businessId: { in: [businessId, otherBusinessId] } } });
     await prisma.plannedTask.deleteMany({ where: { seasonPlan: { season: { businessId: { in: [businessId, otherBusinessId] } } } } });
     await prisma.seasonPlan.deleteMany({ where: { season: { businessId: { in: [businessId, otherBusinessId] } } } });
     await prisma.season.deleteMany({ where: { businessId: { in: [businessId, otherBusinessId] } } });
@@ -117,7 +117,7 @@ test("failed add rolls back the season version, task, and idempotency outcome at
   finally { if (previous === undefined) delete process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS; else process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS = previous; }
   assert.equal(await prisma.plannedTask.count({ where: { seasonPlanId: planId } }), beforeTasks);
   assert.equal((await prisma.season.findUniqueOrThrow({ where: { id: seasonId } })).version, beforeVersion);
-  assert.equal(await prisma.seasonCommandIdempotencyRecord.count({ where: { businessId, key, command: "ADD_PLAN_TASK" } }), 0);
+  assert.equal(await prisma.businessCommandIdempotencyRecord.count({ where: { businessId, key, command: "ADD_PLAN_TASK" } }), 0);
 });
 
 test("ACTIVE seasons reject every task mutation; cross-business or missing task IDs do not expose records", async () => {

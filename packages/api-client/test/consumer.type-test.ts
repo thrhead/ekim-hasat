@@ -49,9 +49,6 @@ const privacySafeError: components["schemas"]["Error"] = {
 };
 void privacySafeError;
 
-// @ts-expect-error SPEC-002 field listing is outside this contract.
-void client.GET("/fields");
-
 void client.POST("/onboarding/complete", {
   params: { header: { "Idempotency-Key": "first-field-try-2" } },
   body: {

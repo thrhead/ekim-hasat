@@ -32,6 +32,14 @@
       "types": "./dist/identity/auth-provider.d.ts",
       "import": "./dist/identity/auth-provider.js"
     },
+    "./fields/field-region-context": {
+      "types": "./dist/fields/field-region-context.d.ts",
+      "import": "./dist/fields/field-region-context.js"
+    },
+    "./fields/field-location": {
+      "types": "./dist/fields/field-location.d.ts",
+      "import": "./dist/fields/field-location.js"
+    },
     "./onboarding/get-onboarding-status": {
       "types": "./dist/onboarding/get-onboarding-status.d.ts",
       "import": "./dist/onboarding/get-onboarding-status.js"

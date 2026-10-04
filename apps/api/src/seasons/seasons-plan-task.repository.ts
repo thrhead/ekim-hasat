@@ -111,7 +111,7 @@ export class SeasonPlanTaskRepository {
     const scope = await this.authorizedScope(identity);
     const payloadFingerprint = fingerprint(seasonId, expectedVersion, command);
     return this.mutate(identity, scope, seasonId, expectedVersion, async (tx, season) => {
-      const retained = await tx.seasonCommandIdempotencyRecord.findUnique({ where: {
+      const retained = await tx.businessCommandIdempotencyRecord.findUnique({ where: {
         userId_businessId_command_key: { userId: scope.userId, businessId: scope.businessId, command: "ADD_PLAN_TASK", key },
       } });
       if (retained) {
@@ -130,7 +130,7 @@ export class SeasonPlanTaskRepository {
       const row = await tx.season.findUniqueOrThrow({ where: { id: season.id }, include: seasonSetupInclude });
       const response = seasonRecordToResponse(row);
       const now = this.now();
-      await tx.seasonCommandIdempotencyRecord.create({ data: {
+      await tx.businessCommandIdempotencyRecord.create({ data: {
         userId: scope.userId, businessId: scope.businessId, seasonId: season.id,
         command: "ADD_PLAN_TASK", key, payloadFingerprint, result: response as unknown as Prisma.InputJsonValue,
         createdAt: now, expiresAt: idempotencyExpiry(now),

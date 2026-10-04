@@ -36,7 +36,7 @@ before(async () => {
 });
 after(async () => {
   try {
-    await prisma.seasonCommandIdempotencyRecord.deleteMany({ where: { businessId: { in: [businessId, otherBusinessId] } } });
+    await prisma.businessCommandIdempotencyRecord.deleteMany({ where: { businessId: { in: [businessId, otherBusinessId] } } });
     await prisma.season.updateMany({ where: { businessId }, data: { status: "DRAFT", activatedAt: null } });
     await prisma.plannedTask.deleteMany({ where: { seasonPlan: { season: { businessId } } } });
     await prisma.seasonPlan.deleteMany({ where: { season: { businessId } } });
@@ -88,7 +88,7 @@ test("different keys dedupe stable central crop identity across definition versi
 test("concurrent different keys and different authorized users create one logical season", async () => {
   const results = await Promise.all(Array.from({ length: 6 }, (_, i) => create(command("2026-08-05"), randomUUID(), i % 2 ? identity : teammate)));
   assert.equal(new Set(results.map((r) => r.season.id)).size, 1); assert.equal(results.filter((r) => r.kind === "created").length, 1);
-  assert.equal(await prisma.seasonCommandIdempotencyRecord.count({ where: { seasonId: results[0].season.id } }), 6);
+  assert.equal(await prisma.businessCommandIdempotencyRecord.count({ where: { seasonId: results[0].season.id } }), 6);
 });
 test("concurrent identical keys replay one commit; changed same-key command conflicts", async () => {
   const key = randomUUID(); const results = await Promise.all([create(command("2026-08-06"), key), create(command("2026-08-06"), key)]);
@@ -133,11 +133,11 @@ test("cross-business fields and nonexistent fields share 404; revoked membership
   assert.equal(await prisma.season.count({ where: { businessId: otherBusinessId } }), 0);
 });
 test("failure after season and plan creation atomically rolls back custom crop and idempotency outcome", async () => {
-  const counts = await Promise.all([prisma.customCrop.count({ where: { businessId } }), prisma.season.count({ where: { businessId } }), prisma.seasonPlan.count({ where: { season: { businessId } } }), prisma.seasonCommandIdempotencyRecord.count({ where: { businessId } })]);
+  const counts = await Promise.all([prisma.customCrop.count({ where: { businessId } }), prisma.season.count({ where: { businessId } }), prisma.seasonPlan.count({ where: { season: { businessId } } }), prisma.businessCommandIdempotencyRecord.count({ where: { businessId } })]);
   const prior = process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS; process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS = "invalid";
   try { await assert.rejects(() => create(manual("2026-08-13", "Rollback crop")), /retention/); await assert.rejects(() => create(command("2026-08-13")), /retention/); }
   finally { if (prior === undefined) delete process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS; else process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS = prior; }
-  const afterCounts = await Promise.all([prisma.customCrop.count({ where: { businessId } }), prisma.season.count({ where: { businessId } }), prisma.seasonPlan.count({ where: { season: { businessId } } }), prisma.seasonCommandIdempotencyRecord.count({ where: { businessId } })]);
+  const afterCounts = await Promise.all([prisma.customCrop.count({ where: { businessId } }), prisma.season.count({ where: { businessId } }), prisma.seasonPlan.count({ where: { season: { businessId } } }), prisma.businessCommandIdempotencyRecord.count({ where: { businessId } })]);
   assert.deepEqual(afterCounts, counts); assert.equal(await prisma.plannedTask.count({ where: { seasonPlan: { season: { businessId, actualPlantingDate: new Date("2026-08-13") } } } }), 0);
   assert.equal((await create(manual("2026-08-13", "Rollback crop"))).kind, "created");
 });
@@ -148,7 +148,7 @@ test("idempotency timestamps use one injected clock for historical deterministic
   const repo = new SeasonCreateRepository(prisma, () => new Date(createdAt));
   const result = await repo.createDraft(identity, fieldId, manual("1900-01-01", "Historical clock crop"), key);
   assert.equal(result.kind, "created");
-  const outcome = await prisma.seasonCommandIdempotencyRecord.findFirstOrThrow({
+  const outcome = await prisma.businessCommandIdempotencyRecord.findFirstOrThrow({
     where: { seasonId: result.season.id, command: "CREATE", key },
     select: { createdAt: true, expiresAt: true },
   });

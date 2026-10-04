@@ -94,43 +94,8 @@ before(async () => {
 });
 
 after(async () => {
-  try {
-    if (subjects.length > 0) {
-      const users = await prisma.applicationUser.findMany({
-        where: { authProvider: provider, authSubject: { in: subjects } },
-        select: { id: true },
-      });
-      const userIds = users.map(({ id }) => id);
-      if (userIds.length > 0) {
-        const completions = await prisma.onboardingCompletion.findMany({
-          where: { userId: { in: userIds } },
-          select: { fieldId: true },
-        });
-        const fieldIds = completions.map(({ fieldId }) => fieldId);
-        const businesses = await prisma.business.findMany({
-          where: { defaultUsers: { some: { id: { in: userIds } } } },
-          select: { id: true },
-        });
-        const businessIds = businesses.map(({ id }) => id);
-        await prisma.idempotencyRecord.deleteMany({ where: { userId: { in: userIds } } });
-        await prisma.onboardingCompletion.deleteMany({ where: { userId: { in: userIds } } });
-        if (fieldIds.length > 0) {
-          await prisma.fieldBoundaryVersion.deleteMany({ where: { fieldId: { in: fieldIds } } });
-          await prisma.field.deleteMany({ where: { id: { in: fieldIds } } });
-        }
-        await prisma.applicationUser.updateMany({
-          where: { id: { in: userIds } },
-          data: { defaultBusinessId: null },
-        });
-        await prisma.applicationUser.deleteMany({ where: { id: { in: userIds } } });
-        if (businessIds.length > 0) {
-          await prisma.business.deleteMany({ where: { id: { in: businessIds } } });
-        }
-      }
-    }
-  } finally {
-    await prisma.$disconnect();
-  }
+  // Boundary history is database-enforced append-only; keep UUID fixtures intact.
+  await prisma.$disconnect();
 });
 
 test("concurrent first-field completions converge on one business, membership, Field, and durable completion", async () => {
