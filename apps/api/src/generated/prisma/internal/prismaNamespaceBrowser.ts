@@ -59,6 +59,7 @@ export const ModelName = {
   WeatherRefreshState: 'WeatherRefreshState',
   WeatherDailyForecast: 'WeatherDailyForecast',
   FieldBoundaryVersion: 'FieldBoundaryVersion',
+  FieldRegionContextVersion: 'FieldRegionContextVersion',
   OnboardingCompletion: 'OnboardingCompletion',
   IdempotencyRecord: 'IdempotencyRecord',
   CropDefinitionVersion: 'CropDefinitionVersion',
@@ -69,7 +70,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
-  SeasonCommandIdempotencyRecord: 'SeasonCommandIdempotencyRecord'
+  BusinessCommandIdempotencyRecord: 'BusinessCommandIdempotencyRecord'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -124,7 +125,9 @@ export const FieldScalarFieldEnum = {
   businessId: 'businessId',
   name: 'name',
   createdAt: 'createdAt',
-  version: 'version'
+  version: 'version',
+  currentBoundaryVersionId: 'currentBoundaryVersionId',
+  currentRegionContextVersionId: 'currentRegionContextVersionId'
 } as const
 
 export type FieldScalarFieldEnum = (typeof FieldScalarFieldEnum)[keyof typeof FieldScalarFieldEnum]
@@ -188,6 +191,33 @@ export const FieldBoundaryVersionScalarFieldEnum = {
 } as const
 
 export type FieldBoundaryVersionScalarFieldEnum = (typeof FieldBoundaryVersionScalarFieldEnum)[keyof typeof FieldBoundaryVersionScalarFieldEnum]
+
+
+export const FieldRegionContextVersionScalarFieldEnum = {
+  id: 'id',
+  fieldId: 'fieldId',
+  version: 'version',
+  resolutionLocationKey: 'resolutionLocationKey',
+  administrativeState: 'administrativeState',
+  administrativeCode: 'administrativeCode',
+  administrativeLabel: 'administrativeLabel',
+  administrativeSourceId: 'administrativeSourceId',
+  administrativeDataVersion: 'administrativeDataVersion',
+  administrativeConfidence: 'administrativeConfidence',
+  administrativeResolvedAt: 'administrativeResolvedAt',
+  agriculturalState: 'agriculturalState',
+  agriculturalCode: 'agriculturalCode',
+  agriculturalLabel: 'agriculturalLabel',
+  agriculturalSourceId: 'agriculturalSourceId',
+  agriculturalDataVersion: 'agriculturalDataVersion',
+  agriculturalConfidence: 'agriculturalConfidence',
+  agriculturalResolvedAt: 'agriculturalResolvedAt',
+  overrideCode: 'overrideCode',
+  overrideLabel: 'overrideLabel',
+  createdAt: 'createdAt'
+} as const
+
+export type FieldRegionContextVersionScalarFieldEnum = (typeof FieldRegionContextVersionScalarFieldEnum)[keyof typeof FieldRegionContextVersionScalarFieldEnum]
 
 
 export const OnboardingCompletionScalarFieldEnum = {
@@ -327,20 +357,21 @@ export const TaskCompletionScalarFieldEnum = {
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
-export const SeasonCommandIdempotencyRecordScalarFieldEnum = {
+export const BusinessCommandIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   businessId: 'businessId',
   command: 'command',
   key: 'key',
   payloadFingerprint: 'payloadFingerprint',
+  fieldId: 'fieldId',
   seasonId: 'seasonId',
   result: 'result',
   createdAt: 'createdAt',
   expiresAt: 'expiresAt'
 } as const
 
-export type SeasonCommandIdempotencyRecordScalarFieldEnum = (typeof SeasonCommandIdempotencyRecordScalarFieldEnum)[keyof typeof SeasonCommandIdempotencyRecordScalarFieldEnum]
+export type BusinessCommandIdempotencyRecordScalarFieldEnum = (typeof BusinessCommandIdempotencyRecordScalarFieldEnum)[keyof typeof BusinessCommandIdempotencyRecordScalarFieldEnum]
 
 
 export const SortOrder = {

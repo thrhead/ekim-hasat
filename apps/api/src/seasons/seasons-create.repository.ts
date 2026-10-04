@@ -62,7 +62,7 @@ export class SeasonCreateRepository {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const timezone = await this.lockAuthorizedField(tx, scope, fieldId);
-        const retained = await tx.seasonCommandIdempotencyRecord.findUnique({ where: {
+        const retained = await tx.businessCommandIdempotencyRecord.findUnique({ where: {
           userId_businessId_command_key: { userId: scope.userId, businessId: scope.businessId, command: "CREATE", key: idempotencyKey },
         } });
         // Committed snapshots replay unchanged, even if the plan was later edited,
@@ -141,7 +141,7 @@ export class SeasonCreateRepository {
     const retentionHours = Number(process.env.SEASON_IDEMPOTENCY_RETENTION_HOURS ?? "24");
     if (!Number.isFinite(retentionHours) || retentionHours <= 0) throw new Error("Season idempotency retention must be positive");
     const createdAt = this.now();
-    await tx.seasonCommandIdempotencyRecord.create({ data: { userId: scope.userId, businessId: scope.businessId,
+    await tx.businessCommandIdempotencyRecord.create({ data: { userId: scope.userId, businessId: scope.businessId,
       command: "CREATE", key, payloadFingerprint, seasonId: season.id, result: season as unknown as Prisma.InputJsonValue,
       createdAt, expiresAt: new Date(createdAt.getTime() + retentionHours * 3600000) } });
   }

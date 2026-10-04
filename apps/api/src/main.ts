@@ -26,6 +26,16 @@ import { TaskCompletionService } from "./tasks/task-completion.service.js";
 import { createTaskCompletionModule } from "./tasks/task-completion.controller.js";
 import { createTodayModule } from "./seasons/today.controller.js";
 import { createWeatherModule } from "./weather/weather.module.js";
+import { FieldsReadRepository } from "./fields/fields-read.repository.js";
+import { FieldsReadService } from "./fields/fields-read.service.js";
+import { createFieldsModule } from "./fields/fields.module.js";
+import { MembershipScopeService } from "./authorization/membership-scope.service.js";
+import { FieldCreateRepository } from "./fields/fields-create.repository.js";
+import { FieldCreateService } from "./fields/fields-create.service.js";
+import { FieldUpdateRepository } from "./fields/fields-update.repository.js";
+import { FieldUpdateService } from "./fields/fields-update.service.js";
+import { createRegionsModule } from "./regions/regions.module.js";
+import { UnavailableRegionResolver } from "./regions/unavailable-region-resolver.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -64,6 +74,10 @@ async function bootstrap(): Promise<void> {
   const taskCompletionRepository = new TaskCompletionRepository(prisma);
   const taskCompletionService = new TaskCompletionService(taskCompletionRepository);
   const verify = (token: string) => authenticator.verify(token);
+  const regionResolver = new UnavailableRegionResolver();
+  const fieldsReadService = new FieldsReadService(new MembershipScopeService(prisma), new FieldsReadRepository(prisma));
+  const fieldsCreateService = new FieldCreateService(new FieldCreateRepository(prisma, regionResolver));
+  const fieldsUpdateService = new FieldUpdateService(new FieldUpdateRepository(prisma, regionResolver));
   const onboardingStatusModule = createOnboardingStatusModule({
     verify,
     readStatus: createOnboardingStatusReader(onboardingRepository),
@@ -105,8 +119,18 @@ async function bootstrap(): Promise<void> {
     prisma,
     maxAgeHours: env.WEATHER_SNAPSHOT_MAX_AGE_HOURS,
   });
+  const fieldsModule = createFieldsModule({
+    read: {
+      verify,
+      readPage: (identity, query) => fieldsReadService.list(identity, query),
+      readField: (identity, fieldId) => fieldsReadService.read(identity, fieldId),
+    },
+    create: { verify, createField: (identity, body, key) => fieldsCreateService.create(identity, body, key) },
+    update: { verify, updateField: async (identity, fieldId, version, body) => (await fieldsUpdateService.update(identity, fieldId, version, body)).field },
+  });
+  const regionsModule = createRegionsModule({ prisma, resolver: regionResolver });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, weatherModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, weatherModule, fieldsModule, regionsModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

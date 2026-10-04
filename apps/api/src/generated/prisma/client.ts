@@ -82,6 +82,11 @@ export type WeatherDailyForecast = Prisma.WeatherDailyForecastModel
  */
 export type FieldBoundaryVersion = Prisma.FieldBoundaryVersionModel
 /**
+ * Model FieldRegionContextVersion
+ *
+ */
+export type FieldRegionContextVersion = Prisma.FieldRegionContextVersionModel
+/**
  * Model OnboardingCompletion
  *
  */
@@ -132,7 +137,7 @@ export type SeasonContextSnapshot = Prisma.SeasonContextSnapshotModel
  */
 export type TaskCompletion = Prisma.TaskCompletionModel
 /**
- * Model SeasonCommandIdempotencyRecord
+ * Model BusinessCommandIdempotencyRecord
  *
  */
-export type SeasonCommandIdempotencyRecord = Prisma.SeasonCommandIdempotencyRecordModel
+export type BusinessCommandIdempotencyRecord = Prisma.BusinessCommandIdempotencyRecordModel

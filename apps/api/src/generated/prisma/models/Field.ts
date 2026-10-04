@@ -40,6 +40,8 @@ export type FieldMinAggregateOutputType = {
   name: string | null
   createdAt: Date | null
   version: number | null
+  currentBoundaryVersionId: string | null
+  currentRegionContextVersionId: string | null
 }
 
 export type FieldMaxAggregateOutputType = {
@@ -48,6 +50,8 @@ export type FieldMaxAggregateOutputType = {
   name: string | null
   createdAt: Date | null
   version: number | null
+  currentBoundaryVersionId: string | null
+  currentRegionContextVersionId: string | null
 }
 
 export type FieldCountAggregateOutputType = {
@@ -56,6 +60,8 @@ export type FieldCountAggregateOutputType = {
   name: number
   createdAt: number
   version: number
+  currentBoundaryVersionId: number
+  currentRegionContextVersionId: number
   _all: number
 }
 
@@ -74,6 +80,8 @@ export type FieldMinAggregateInputType = {
   name?: true
   createdAt?: true
   version?: true
+  currentBoundaryVersionId?: true
+  currentRegionContextVersionId?: true
 }
 
 export type FieldMaxAggregateInputType = {
@@ -82,6 +90,8 @@ export type FieldMaxAggregateInputType = {
   name?: true
   createdAt?: true
   version?: true
+  currentBoundaryVersionId?: true
+  currentRegionContextVersionId?: true
 }
 
 export type FieldCountAggregateInputType = {
@@ -90,6 +100,8 @@ export type FieldCountAggregateInputType = {
   name?: true
   createdAt?: true
   version?: true
+  currentBoundaryVersionId?: true
+  currentRegionContextVersionId?: true
   _all?: true
 }
 
@@ -185,6 +197,8 @@ export type FieldGroupByOutputType = {
   name: string
   createdAt: Date
   version: number
+  currentBoundaryVersionId: string | null
+  currentRegionContextVersionId: string | null
   _count: FieldCountAggregateOutputType | null
   _avg: FieldAvgAggregateOutputType | null
   _sum: FieldSumAggregateOutputType | null
@@ -216,10 +230,16 @@ export type FieldWhereInput = {
   name?: Prisma.StringFilter<"Field"> | string
   createdAt?: Prisma.DateTimeFilter<"Field"> | Date | string
   version?: Prisma.IntFilter<"Field"> | number
+  currentBoundaryVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
+  currentRegionContextVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   boundaryVersions?: Prisma.FieldBoundaryVersionListRelationFilter
+  currentBoundaryVersion?: Prisma.XOR<Prisma.FieldBoundaryVersionNullableScalarRelationFilter, Prisma.FieldBoundaryVersionWhereInput> | null
+  regionContextVersions?: Prisma.FieldRegionContextVersionListRelationFilter
+  currentRegionContextVersion?: Prisma.XOR<Prisma.FieldRegionContextVersionNullableScalarRelationFilter, Prisma.FieldRegionContextVersionWhereInput> | null
   completions?: Prisma.OnboardingCompletionListRelationFilter
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
   weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
@@ -232,10 +252,16 @@ export type FieldOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  currentBoundaryVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentRegionContextVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   business?: Prisma.BusinessOrderByWithRelationInput
   boundaryVersions?: Prisma.FieldBoundaryVersionOrderByRelationAggregateInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionOrderByWithRelationInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionOrderByRelationAggregateInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionOrderByWithRelationInput
   completions?: Prisma.OnboardingCompletionOrderByRelationAggregateInput
   idempotencyRecords?: Prisma.IdempotencyRecordOrderByRelationAggregateInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordOrderByRelationAggregateInput
   seasons?: Prisma.SeasonOrderByRelationAggregateInput
   taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
   weatherSnapshot?: Prisma.WeatherSnapshotOrderByWithRelationInput
@@ -245,6 +271,8 @@ export type FieldOrderByWithRelationInput = {
 export type FieldWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   id_businessId?: Prisma.FieldIdBusinessIdCompoundUniqueInput
+  currentBoundaryVersionId_id?: Prisma.FieldCurrentBoundaryVersionIdIdCompoundUniqueInput
+  currentRegionContextVersionId_id?: Prisma.FieldCurrentRegionContextVersionIdIdCompoundUniqueInput
   AND?: Prisma.FieldWhereInput | Prisma.FieldWhereInput[]
   OR?: Prisma.FieldWhereInput[]
   NOT?: Prisma.FieldWhereInput | Prisma.FieldWhereInput[]
@@ -252,15 +280,21 @@ export type FieldWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Field"> | string
   createdAt?: Prisma.DateTimeFilter<"Field"> | Date | string
   version?: Prisma.IntFilter<"Field"> | number
+  currentBoundaryVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
+  currentRegionContextVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   boundaryVersions?: Prisma.FieldBoundaryVersionListRelationFilter
+  currentBoundaryVersion?: Prisma.XOR<Prisma.FieldBoundaryVersionNullableScalarRelationFilter, Prisma.FieldBoundaryVersionWhereInput> | null
+  regionContextVersions?: Prisma.FieldRegionContextVersionListRelationFilter
+  currentRegionContextVersion?: Prisma.XOR<Prisma.FieldRegionContextVersionNullableScalarRelationFilter, Prisma.FieldRegionContextVersionWhereInput> | null
   completions?: Prisma.OnboardingCompletionListRelationFilter
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   seasons?: Prisma.SeasonListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
   weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
   weatherRefreshState?: Prisma.XOR<Prisma.WeatherRefreshStateNullableScalarRelationFilter, Prisma.WeatherRefreshStateWhereInput> | null
-}, "id" | "id_businessId">
+}, "id" | "id_businessId" | "currentBoundaryVersionId_id" | "currentRegionContextVersionId_id">
 
 export type FieldOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -268,6 +302,8 @@ export type FieldOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  currentBoundaryVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentRegionContextVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FieldCountOrderByAggregateInput
   _avg?: Prisma.FieldAvgOrderByAggregateInput
   _max?: Prisma.FieldMaxOrderByAggregateInput
@@ -284,17 +320,22 @@ export type FieldScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Field"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Field"> | Date | string
   version?: Prisma.IntWithAggregatesFilter<"Field"> | number
+  currentBoundaryVersionId?: Prisma.UuidNullableWithAggregatesFilter<"Field"> | string | null
+  currentRegionContextVersionId?: Prisma.UuidNullableWithAggregatesFilter<"Field"> | string | null
 }
 
 export type FieldUpdateInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -307,9 +348,13 @@ export type FieldUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -317,7 +362,6 @@ export type FieldUncheckedUpdateInput = {
 }
 
 export type FieldUpdateManyMutationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -329,6 +373,8 @@ export type FieldUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FieldListRelationFilter = {
@@ -346,12 +392,24 @@ export type FieldIdBusinessIdCompoundUniqueInput = {
   businessId: string
 }
 
+export type FieldCurrentBoundaryVersionIdIdCompoundUniqueInput = {
+  currentBoundaryVersionId: string
+  id: string
+}
+
+export type FieldCurrentRegionContextVersionIdIdCompoundUniqueInput = {
+  currentRegionContextVersionId: string
+  id: string
+}
+
 export type FieldCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   businessId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  currentBoundaryVersionId?: Prisma.SortOrder
+  currentRegionContextVersionId?: Prisma.SortOrder
 }
 
 export type FieldAvgOrderByAggregateInput = {
@@ -364,6 +422,8 @@ export type FieldMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  currentBoundaryVersionId?: Prisma.SortOrder
+  currentRegionContextVersionId?: Prisma.SortOrder
 }
 
 export type FieldMinOrderByAggregateInput = {
@@ -372,6 +432,8 @@ export type FieldMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  currentBoundaryVersionId?: Prisma.SortOrder
+  currentRegionContextVersionId?: Prisma.SortOrder
 }
 
 export type FieldSumOrderByAggregateInput = {
@@ -381,6 +443,11 @@ export type FieldSumOrderByAggregateInput = {
 export type FieldScalarRelationFilter = {
   is?: Prisma.FieldWhereInput
   isNot?: Prisma.FieldWhereInput
+}
+
+export type FieldNullableScalarRelationFilter = {
+  is?: Prisma.FieldWhereInput | null
+  isNot?: Prisma.FieldWhereInput | null
 }
 
 export type FieldCreateNestedManyWithoutBusinessInput = {
@@ -438,6 +505,51 @@ export type FieldUpdateOneRequiredWithoutBoundaryVersionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutBoundaryVersionsInput, Prisma.FieldUpdateWithoutBoundaryVersionsInput>, Prisma.FieldUncheckedUpdateWithoutBoundaryVersionsInput>
 }
 
+export type FieldUpdateOneWithoutCurrentBoundaryVersionNestedInput = {
+  disconnect?: Prisma.FieldWhereInput | boolean
+  delete?: Prisma.FieldWhereInput | boolean
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutCurrentBoundaryVersionInput, Prisma.FieldUpdateWithoutCurrentBoundaryVersionInput>, Prisma.FieldUncheckedUpdateWithoutCurrentBoundaryVersionInput>
+}
+
+export type FieldUncheckedUpdateOneWithoutCurrentBoundaryVersionNestedInput = {
+  disconnect?: Prisma.FieldWhereInput | boolean
+  delete?: Prisma.FieldWhereInput | boolean
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutCurrentBoundaryVersionInput, Prisma.FieldUpdateWithoutCurrentBoundaryVersionInput>, Prisma.FieldUncheckedUpdateWithoutCurrentBoundaryVersionInput>
+}
+
+export type FieldCreateNestedOneWithoutRegionContextVersionsInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldCreateNestedOneWithoutCurrentRegionContextVersionInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUncheckedCreateNestedOneWithoutCurrentRegionContextVersionInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUpdateOneRequiredWithoutRegionContextVersionsNestedInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutRegionContextVersionsInput, Prisma.FieldUpdateWithoutRegionContextVersionsInput>, Prisma.FieldUncheckedUpdateWithoutRegionContextVersionsInput>
+}
+
+export type FieldUpdateOneWithoutCurrentRegionContextVersionNestedInput = {
+  disconnect?: Prisma.FieldWhereInput | boolean
+  delete?: Prisma.FieldWhereInput | boolean
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutCurrentRegionContextVersionInput, Prisma.FieldUpdateWithoutCurrentRegionContextVersionInput>, Prisma.FieldUncheckedUpdateWithoutCurrentRegionContextVersionInput>
+}
+
+export type FieldUncheckedUpdateOneWithoutCurrentRegionContextVersionNestedInput = {
+  disconnect?: Prisma.FieldWhereInput | boolean
+  delete?: Prisma.FieldWhereInput | boolean
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutCurrentRegionContextVersionInput, Prisma.FieldUpdateWithoutCurrentRegionContextVersionInput>, Prisma.FieldUncheckedUpdateWithoutCurrentRegionContextVersionInput>
+}
+
 export type FieldCreateNestedOneWithoutCompletionsInput = {
   connect?: Prisma.FieldWhereUniqueInput
 }
@@ -474,6 +586,17 @@ export type FieldUpdateOneRequiredWithoutTaskCompletionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutTaskCompletionsInput, Prisma.FieldUpdateWithoutTaskCompletionsInput>, Prisma.FieldUncheckedUpdateWithoutTaskCompletionsInput>
 }
 
+export type FieldCreateNestedOneWithoutCommandRecordsInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUpdateOneWithoutCommandRecordsNestedInput = {
+  disconnect?: Prisma.FieldWhereInput | boolean
+  delete?: Prisma.FieldWhereInput | boolean
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutCommandRecordsInput, Prisma.FieldUpdateWithoutCommandRecordsInput>, Prisma.FieldUncheckedUpdateWithoutCommandRecordsInput>
+}
+
 export type FieldUpdateWithWhereUniqueWithoutBusinessInput = {
   where: Prisma.FieldWhereUniqueInput
   data: Prisma.XOR<Prisma.FieldUpdateWithoutBusinessInput, Prisma.FieldUncheckedUpdateWithoutBusinessInput>
@@ -493,6 +616,8 @@ export type FieldScalarWhereInput = {
   name?: Prisma.StringFilter<"Field"> | string
   createdAt?: Prisma.DateTimeFilter<"Field"> | Date | string
   version?: Prisma.IntFilter<"Field"> | number
+  currentBoundaryVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
+  currentRegionContextVersionId?: Prisma.UuidNullableFilter<"Field"> | string | null
 }
 
 export type FieldUpdateToOneWithWhereWithoutWeatherSnapshotInput = {
@@ -501,14 +626,17 @@ export type FieldUpdateToOneWithWhereWithoutWeatherSnapshotInput = {
 }
 
 export type FieldUpdateWithoutWeatherSnapshotInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
@@ -520,9 +648,13 @@ export type FieldUncheckedUpdateWithoutWeatherSnapshotInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
@@ -534,14 +666,17 @@ export type FieldUpdateToOneWithWhereWithoutWeatherRefreshStateInput = {
 }
 
 export type FieldUpdateWithoutWeatherRefreshStateInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -553,9 +688,13 @@ export type FieldUncheckedUpdateWithoutWeatherRefreshStateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -567,13 +706,16 @@ export type FieldUpdateToOneWithWhereWithoutBoundaryVersionsInput = {
 }
 
 export type FieldUpdateWithoutBoundaryVersionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -586,8 +728,130 @@ export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutCurrentBoundaryVersionInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutCurrentBoundaryVersionInput, Prisma.FieldUncheckedUpdateWithoutCurrentBoundaryVersionInput>
+}
+
+export type FieldUpdateWithoutCurrentBoundaryVersionInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutCurrentBoundaryVersionInput = {
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutRegionContextVersionsInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutRegionContextVersionsInput, Prisma.FieldUncheckedUpdateWithoutRegionContextVersionsInput>
+}
+
+export type FieldUpdateWithoutRegionContextVersionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutRegionContextVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutCurrentRegionContextVersionInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutCurrentRegionContextVersionInput, Prisma.FieldUncheckedUpdateWithoutCurrentRegionContextVersionInput>
+}
+
+export type FieldUpdateWithoutCurrentRegionContextVersionInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutCurrentRegionContextVersionInput = {
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -600,13 +864,16 @@ export type FieldUpdateToOneWithWhereWithoutCompletionsInput = {
 }
 
 export type FieldUpdateWithoutCompletionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -619,8 +886,12 @@ export type FieldUncheckedUpdateWithoutCompletionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -633,13 +904,16 @@ export type FieldUpdateToOneWithWhereWithoutIdempotencyRecordsInput = {
 }
 
 export type FieldUpdateWithoutIdempotencyRecordsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -652,8 +926,12 @@ export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -666,14 +944,17 @@ export type FieldUpdateToOneWithWhereWithoutSeasonsInput = {
 }
 
 export type FieldUpdateWithoutSeasonsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
@@ -685,9 +966,13 @@ export type FieldUncheckedUpdateWithoutSeasonsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
@@ -699,14 +984,17 @@ export type FieldUpdateToOneWithWhereWithoutTaskCompletionsInput = {
 }
 
 export type FieldUpdateWithoutTaskCompletionsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
@@ -718,22 +1006,69 @@ export type FieldUncheckedUpdateWithoutTaskCompletionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
-export type FieldUpdateWithoutBusinessInput = {
+export type FieldUpdateToOneWithWhereWithoutCommandRecordsInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutCommandRecordsInput, Prisma.FieldUncheckedUpdateWithoutCommandRecordsInput>
+}
+
+export type FieldUpdateWithoutCommandRecordsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutCommandRecordsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateWithoutBusinessInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
@@ -745,9 +1080,13 @@ export type FieldUncheckedUpdateWithoutBusinessInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
   seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
@@ -759,6 +1098,8 @@ export type FieldUncheckedUpdateManyWithoutBusinessInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -768,16 +1109,20 @@ export type FieldUncheckedUpdateManyWithoutBusinessInput = {
 
 export type FieldCountOutputType = {
   boundaryVersions: number
+  regionContextVersions: number
   completions: number
   idempotencyRecords: number
+  commandRecords: number
   seasons: number
   taskCompletions: number
 }
 
 export type FieldCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   boundaryVersions?: boolean | FieldCountOutputTypeCountBoundaryVersionsArgs
+  regionContextVersions?: boolean | FieldCountOutputTypeCountRegionContextVersionsArgs
   completions?: boolean | FieldCountOutputTypeCountCompletionsArgs
   idempotencyRecords?: boolean | FieldCountOutputTypeCountIdempotencyRecordsArgs
+  commandRecords?: boolean | FieldCountOutputTypeCountCommandRecordsArgs
   seasons?: boolean | FieldCountOutputTypeCountSeasonsArgs
   taskCompletions?: boolean | FieldCountOutputTypeCountTaskCompletionsArgs
 }
@@ -802,6 +1147,13 @@ export type FieldCountOutputTypeCountBoundaryVersionsArgs<ExtArgs extends runtim
 /**
  * FieldCountOutputType without action
  */
+export type FieldCountOutputTypeCountRegionContextVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FieldRegionContextVersionWhereInput
+}
+
+/**
+ * FieldCountOutputType without action
+ */
 export type FieldCountOutputTypeCountCompletionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OnboardingCompletionWhereInput
 }
@@ -811,6 +1163,13 @@ export type FieldCountOutputTypeCountCompletionsArgs<ExtArgs extends runtime.Typ
  */
 export type FieldCountOutputTypeCountIdempotencyRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.IdempotencyRecordWhereInput
+}
+
+/**
+ * FieldCountOutputType without action
+ */
+export type FieldCountOutputTypeCountCommandRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BusinessCommandIdempotencyRecordWhereInput
 }
 
 /**
@@ -834,10 +1193,16 @@ export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   name?: boolean
   createdAt?: boolean
   version?: boolean
+  currentBoundaryVersionId?: boolean
+  currentRegionContextVersionId?: boolean
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   boundaryVersions?: boolean | Prisma.Field$boundaryVersionsArgs<ExtArgs>
+  currentBoundaryVersion?: boolean | Prisma.Field$currentBoundaryVersionArgs<ExtArgs>
+  regionContextVersions?: boolean | Prisma.Field$regionContextVersionsArgs<ExtArgs>
+  currentRegionContextVersion?: boolean | Prisma.Field$currentRegionContextVersionArgs<ExtArgs>
   completions?: boolean | Prisma.Field$completionsArgs<ExtArgs>
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
+  commandRecords?: boolean | Prisma.Field$commandRecordsArgs<ExtArgs>
   seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Field$taskCompletionsArgs<ExtArgs>
   weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
@@ -852,7 +1217,11 @@ export type FieldSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   name?: boolean
   createdAt?: boolean
   version?: boolean
+  currentBoundaryVersionId?: boolean
+  currentRegionContextVersionId?: boolean
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
+  currentBoundaryVersion?: boolean | Prisma.Field$currentBoundaryVersionArgs<ExtArgs>
+  currentRegionContextVersion?: boolean | Prisma.Field$currentRegionContextVersionArgs<ExtArgs>
 }, ExtArgs["result"]["field"]>
 
 export type FieldSelectScalar = {
@@ -861,14 +1230,20 @@ export type FieldSelectScalar = {
   name?: boolean
   createdAt?: boolean
   version?: boolean
+  currentBoundaryVersionId?: boolean
+  currentRegionContextVersionId?: boolean
 }
 
-export type FieldOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "businessId" | "name" | "createdAt" | "version", ExtArgs["result"]["field"]>
+export type FieldOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "businessId" | "name" | "createdAt" | "version" | "currentBoundaryVersionId" | "currentRegionContextVersionId", ExtArgs["result"]["field"]>
 export type FieldInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   boundaryVersions?: boolean | Prisma.Field$boundaryVersionsArgs<ExtArgs>
+  currentBoundaryVersion?: boolean | Prisma.Field$currentBoundaryVersionArgs<ExtArgs>
+  regionContextVersions?: boolean | Prisma.Field$regionContextVersionsArgs<ExtArgs>
+  currentRegionContextVersion?: boolean | Prisma.Field$currentRegionContextVersionArgs<ExtArgs>
   completions?: boolean | Prisma.Field$completionsArgs<ExtArgs>
   idempotencyRecords?: boolean | Prisma.Field$idempotencyRecordsArgs<ExtArgs>
+  commandRecords?: boolean | Prisma.Field$commandRecordsArgs<ExtArgs>
   seasons?: boolean | Prisma.Field$seasonsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Field$taskCompletionsArgs<ExtArgs>
   weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
@@ -877,6 +1252,8 @@ export type FieldInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 }
 export type FieldIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
+  currentBoundaryVersion?: boolean | Prisma.Field$currentBoundaryVersionArgs<ExtArgs>
+  currentRegionContextVersion?: boolean | Prisma.Field$currentRegionContextVersionArgs<ExtArgs>
 }
 
 export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -884,8 +1261,12 @@ export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     business: Prisma.$BusinessPayload<ExtArgs>
     boundaryVersions: Prisma.$FieldBoundaryVersionPayload<ExtArgs>[]
+    currentBoundaryVersion: Prisma.$FieldBoundaryVersionPayload<ExtArgs> | null
+    regionContextVersions: Prisma.$FieldRegionContextVersionPayload<ExtArgs>[]
+    currentRegionContextVersion: Prisma.$FieldRegionContextVersionPayload<ExtArgs> | null
     completions: Prisma.$OnboardingCompletionPayload<ExtArgs>[]
     idempotencyRecords: Prisma.$IdempotencyRecordPayload<ExtArgs>[]
+    commandRecords: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>[]
     seasons: Prisma.$SeasonPayload<ExtArgs>[]
     taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
     weatherSnapshot: Prisma.$WeatherSnapshotPayload<ExtArgs> | null
@@ -897,6 +1278,8 @@ export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     name: string
     createdAt: Date
     version: number
+    currentBoundaryVersionId: string | null
+    currentRegionContextVersionId: string | null
   }, ExtArgs["result"]["field"]>
   composites: {}
 }
@@ -1222,8 +1605,12 @@ export interface Prisma__FieldClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   business<T extends Prisma.BusinessDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BusinessDefaultArgs<ExtArgs>>): Prisma.Prisma__BusinessClient<runtime.Types.Result.GetResult<Prisma.$BusinessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   boundaryVersions<T extends Prisma.Field$boundaryVersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$boundaryVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldBoundaryVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  currentBoundaryVersion<T extends Prisma.Field$currentBoundaryVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$currentBoundaryVersionArgs<ExtArgs>>): Prisma.Prisma__FieldBoundaryVersionClient<runtime.Types.Result.GetResult<Prisma.$FieldBoundaryVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  regionContextVersions<T extends Prisma.Field$regionContextVersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$regionContextVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldRegionContextVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  currentRegionContextVersion<T extends Prisma.Field$currentRegionContextVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$currentRegionContextVersionArgs<ExtArgs>>): Prisma.Prisma__FieldRegionContextVersionClient<runtime.Types.Result.GetResult<Prisma.$FieldRegionContextVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   completions<T extends Prisma.Field$completionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$completionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnboardingCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   idempotencyRecords<T extends Prisma.Field$idempotencyRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$idempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  commandRecords<T extends Prisma.Field$commandRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$commandRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   seasons<T extends Prisma.Field$seasonsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$seasonsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskCompletions<T extends Prisma.Field$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   weatherSnapshot<T extends Prisma.Field$weatherSnapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$weatherSnapshotArgs<ExtArgs>>): Prisma.Prisma__WeatherSnapshotClient<runtime.Types.Result.GetResult<Prisma.$WeatherSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1262,6 +1649,8 @@ export interface FieldFieldRefs {
   readonly name: Prisma.FieldRef<"Field", 'String'>
   readonly createdAt: Prisma.FieldRef<"Field", 'DateTime'>
   readonly version: Prisma.FieldRef<"Field", 'Int'>
+  readonly currentBoundaryVersionId: Prisma.FieldRef<"Field", 'String'>
+  readonly currentRegionContextVersionId: Prisma.FieldRef<"Field", 'String'>
 }
 
 
@@ -1601,6 +1990,68 @@ export type Field$boundaryVersionsArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
+ * Field.currentBoundaryVersion
+ */
+export type Field$currentBoundaryVersionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldBoundaryVersion
+   */
+  select?: Prisma.FieldBoundaryVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FieldBoundaryVersion
+   */
+  omit?: Prisma.FieldBoundaryVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FieldBoundaryVersionInclude<ExtArgs> | null
+  where?: Prisma.FieldBoundaryVersionWhereInput
+}
+
+/**
+ * Field.regionContextVersions
+ */
+export type Field$regionContextVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldRegionContextVersion
+   */
+  select?: Prisma.FieldRegionContextVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FieldRegionContextVersion
+   */
+  omit?: Prisma.FieldRegionContextVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FieldRegionContextVersionInclude<ExtArgs> | null
+  where?: Prisma.FieldRegionContextVersionWhereInput
+  orderBy?: Prisma.FieldRegionContextVersionOrderByWithRelationInput | Prisma.FieldRegionContextVersionOrderByWithRelationInput[]
+  cursor?: Prisma.FieldRegionContextVersionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FieldRegionContextVersionScalarFieldEnum | Prisma.FieldRegionContextVersionScalarFieldEnum[]
+}
+
+/**
+ * Field.currentRegionContextVersion
+ */
+export type Field$currentRegionContextVersionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldRegionContextVersion
+   */
+  select?: Prisma.FieldRegionContextVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FieldRegionContextVersion
+   */
+  omit?: Prisma.FieldRegionContextVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FieldRegionContextVersionInclude<ExtArgs> | null
+  where?: Prisma.FieldRegionContextVersionWhereInput
+}
+
+/**
  * Field.completions
  */
 export type Field$completionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1646,6 +2097,30 @@ export type Field$idempotencyRecordsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.IdempotencyRecordScalarFieldEnum | Prisma.IdempotencyRecordScalarFieldEnum[]
+}
+
+/**
+ * Field.commandRecords
+ */
+export type Field$commandRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BusinessCommandIdempotencyRecord
+   */
+  select?: Prisma.BusinessCommandIdempotencyRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BusinessCommandIdempotencyRecord
+   */
+  omit?: Prisma.BusinessCommandIdempotencyRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BusinessCommandIdempotencyRecordInclude<ExtArgs> | null
+  where?: Prisma.BusinessCommandIdempotencyRecordWhereInput
+  orderBy?: Prisma.BusinessCommandIdempotencyRecordOrderByWithRelationInput | Prisma.BusinessCommandIdempotencyRecordOrderByWithRelationInput[]
+  cursor?: Prisma.BusinessCommandIdempotencyRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BusinessCommandIdempotencyRecordScalarFieldEnum | Prisma.BusinessCommandIdempotencyRecordScalarFieldEnum[]
 }
 
 /**

@@ -405,6 +405,7 @@ export const ModelName = {
   WeatherRefreshState: 'WeatherRefreshState',
   WeatherDailyForecast: 'WeatherDailyForecast',
   FieldBoundaryVersion: 'FieldBoundaryVersion',
+  FieldRegionContextVersion: 'FieldRegionContextVersion',
   OnboardingCompletion: 'OnboardingCompletion',
   IdempotencyRecord: 'IdempotencyRecord',
   CropDefinitionVersion: 'CropDefinitionVersion',
@@ -415,7 +416,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
-  SeasonCommandIdempotencyRecord: 'SeasonCommandIdempotencyRecord'
+  BusinessCommandIdempotencyRecord: 'BusinessCommandIdempotencyRecord'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "seasonCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -976,6 +977,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FieldBoundaryVersionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FieldBoundaryVersionCountAggregateOutputType> | number
+        }
+      }
+    }
+    FieldRegionContextVersion: {
+      payload: Prisma.$FieldRegionContextVersionPayload<ExtArgs>
+      fields: Prisma.FieldRegionContextVersionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FieldRegionContextVersionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FieldRegionContextVersionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        findFirst: {
+          args: Prisma.FieldRegionContextVersionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FieldRegionContextVersionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        findMany: {
+          args: Prisma.FieldRegionContextVersionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>[]
+        }
+        create: {
+          args: Prisma.FieldRegionContextVersionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        createMany: {
+          args: Prisma.FieldRegionContextVersionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FieldRegionContextVersionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>[]
+        }
+        delete: {
+          args: Prisma.FieldRegionContextVersionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        update: {
+          args: Prisma.FieldRegionContextVersionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        deleteMany: {
+          args: Prisma.FieldRegionContextVersionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FieldRegionContextVersionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FieldRegionContextVersionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>[]
+        }
+        upsert: {
+          args: Prisma.FieldRegionContextVersionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldRegionContextVersionPayload>
+        }
+        aggregate: {
+          args: Prisma.FieldRegionContextVersionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFieldRegionContextVersion>
+        }
+        groupBy: {
+          args: Prisma.FieldRegionContextVersionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FieldRegionContextVersionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FieldRegionContextVersionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FieldRegionContextVersionCountAggregateOutputType> | number
         }
       }
     }
@@ -1719,77 +1794,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    SeasonCommandIdempotencyRecord: {
-      payload: Prisma.$SeasonCommandIdempotencyRecordPayload<ExtArgs>
-      fields: Prisma.SeasonCommandIdempotencyRecordFieldRefs
+    BusinessCommandIdempotencyRecord: {
+      payload: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>
+      fields: Prisma.BusinessCommandIdempotencyRecordFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.SeasonCommandIdempotencyRecordFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload> | null
+          args: Prisma.BusinessCommandIdempotencyRecordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.SeasonCommandIdempotencyRecordFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         findFirst: {
-          args: Prisma.SeasonCommandIdempotencyRecordFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload> | null
+          args: Prisma.BusinessCommandIdempotencyRecordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.SeasonCommandIdempotencyRecordFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         findMany: {
-          args: Prisma.SeasonCommandIdempotencyRecordFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>[]
+          args: Prisma.BusinessCommandIdempotencyRecordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>[]
         }
         create: {
-          args: Prisma.SeasonCommandIdempotencyRecordCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         createMany: {
-          args: Prisma.SeasonCommandIdempotencyRecordCreateManyArgs<ExtArgs>
+          args: Prisma.BusinessCommandIdempotencyRecordCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.SeasonCommandIdempotencyRecordCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>[]
+          args: Prisma.BusinessCommandIdempotencyRecordCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>[]
         }
         delete: {
-          args: Prisma.SeasonCommandIdempotencyRecordDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         update: {
-          args: Prisma.SeasonCommandIdempotencyRecordUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         deleteMany: {
-          args: Prisma.SeasonCommandIdempotencyRecordDeleteManyArgs<ExtArgs>
+          args: Prisma.BusinessCommandIdempotencyRecordDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.SeasonCommandIdempotencyRecordUpdateManyArgs<ExtArgs>
+          args: Prisma.BusinessCommandIdempotencyRecordUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.SeasonCommandIdempotencyRecordUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>[]
+          args: Prisma.BusinessCommandIdempotencyRecordUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>[]
         }
         upsert: {
-          args: Prisma.SeasonCommandIdempotencyRecordUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonCommandIdempotencyRecordPayload>
+          args: Prisma.BusinessCommandIdempotencyRecordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessCommandIdempotencyRecordPayload>
         }
         aggregate: {
-          args: Prisma.SeasonCommandIdempotencyRecordAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSeasonCommandIdempotencyRecord>
+          args: Prisma.BusinessCommandIdempotencyRecordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBusinessCommandIdempotencyRecord>
         }
         groupBy: {
-          args: Prisma.SeasonCommandIdempotencyRecordGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeasonCommandIdempotencyRecordGroupByOutputType>[]
+          args: Prisma.BusinessCommandIdempotencyRecordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BusinessCommandIdempotencyRecordGroupByOutputType>[]
         }
         count: {
-          args: Prisma.SeasonCommandIdempotencyRecordCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SeasonCommandIdempotencyRecordCountAggregateOutputType> | number
+          args: Prisma.BusinessCommandIdempotencyRecordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BusinessCommandIdempotencyRecordCountAggregateOutputType> | number
         }
       }
     }
@@ -1868,7 +1943,9 @@ export const FieldScalarFieldEnum = {
   businessId: 'businessId',
   name: 'name',
   createdAt: 'createdAt',
-  version: 'version'
+  version: 'version',
+  currentBoundaryVersionId: 'currentBoundaryVersionId',
+  currentRegionContextVersionId: 'currentRegionContextVersionId'
 } as const
 
 export type FieldScalarFieldEnum = (typeof FieldScalarFieldEnum)[keyof typeof FieldScalarFieldEnum]
@@ -1932,6 +2009,33 @@ export const FieldBoundaryVersionScalarFieldEnum = {
 } as const
 
 export type FieldBoundaryVersionScalarFieldEnum = (typeof FieldBoundaryVersionScalarFieldEnum)[keyof typeof FieldBoundaryVersionScalarFieldEnum]
+
+
+export const FieldRegionContextVersionScalarFieldEnum = {
+  id: 'id',
+  fieldId: 'fieldId',
+  version: 'version',
+  resolutionLocationKey: 'resolutionLocationKey',
+  administrativeState: 'administrativeState',
+  administrativeCode: 'administrativeCode',
+  administrativeLabel: 'administrativeLabel',
+  administrativeSourceId: 'administrativeSourceId',
+  administrativeDataVersion: 'administrativeDataVersion',
+  administrativeConfidence: 'administrativeConfidence',
+  administrativeResolvedAt: 'administrativeResolvedAt',
+  agriculturalState: 'agriculturalState',
+  agriculturalCode: 'agriculturalCode',
+  agriculturalLabel: 'agriculturalLabel',
+  agriculturalSourceId: 'agriculturalSourceId',
+  agriculturalDataVersion: 'agriculturalDataVersion',
+  agriculturalConfidence: 'agriculturalConfidence',
+  agriculturalResolvedAt: 'agriculturalResolvedAt',
+  overrideCode: 'overrideCode',
+  overrideLabel: 'overrideLabel',
+  createdAt: 'createdAt'
+} as const
+
+export type FieldRegionContextVersionScalarFieldEnum = (typeof FieldRegionContextVersionScalarFieldEnum)[keyof typeof FieldRegionContextVersionScalarFieldEnum]
 
 
 export const OnboardingCompletionScalarFieldEnum = {
@@ -2071,20 +2175,21 @@ export const TaskCompletionScalarFieldEnum = {
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
-export const SeasonCommandIdempotencyRecordScalarFieldEnum = {
+export const BusinessCommandIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   businessId: 'businessId',
   command: 'command',
   key: 'key',
   payloadFingerprint: 'payloadFingerprint',
+  fieldId: 'fieldId',
   seasonId: 'seasonId',
   result: 'result',
   createdAt: 'createdAt',
   expiresAt: 'expiresAt'
 } as const
 
-export type SeasonCommandIdempotencyRecordScalarFieldEnum = (typeof SeasonCommandIdempotencyRecordScalarFieldEnum)[keyof typeof SeasonCommandIdempotencyRecordScalarFieldEnum]
+export type BusinessCommandIdempotencyRecordScalarFieldEnum = (typeof BusinessCommandIdempotencyRecordScalarFieldEnum)[keyof typeof BusinessCommandIdempotencyRecordScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2390,6 +2495,7 @@ export type GlobalOmitConfig = {
   weatherRefreshState?: Prisma.WeatherRefreshStateOmit
   weatherDailyForecast?: Prisma.WeatherDailyForecastOmit
   fieldBoundaryVersion?: Prisma.FieldBoundaryVersionOmit
+  fieldRegionContextVersion?: Prisma.FieldRegionContextVersionOmit
   onboardingCompletion?: Prisma.OnboardingCompletionOmit
   idempotencyRecord?: Prisma.IdempotencyRecordOmit
   cropDefinitionVersion?: Prisma.CropDefinitionVersionOmit
@@ -2400,7 +2506,7 @@ export type GlobalOmitConfig = {
   plannedTask?: Prisma.PlannedTaskOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
-  seasonCommandIdempotencyRecord?: Prisma.SeasonCommandIdempotencyRecordOmit
+  businessCommandIdempotencyRecord?: Prisma.BusinessCommandIdempotencyRecordOmit
 }
 
 /* Types for Logging */

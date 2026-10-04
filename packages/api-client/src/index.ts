@@ -3,13 +3,15 @@ import type { operations as OnboardingOperations, paths as OnboardingPaths } fro
 import type { operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
 import type { operations as TaskCompletionOperations, paths as TaskCompletionPaths } from "./generated/task-completions-api.js";
 import type { operations as WeatherOperations, paths as WeatherPaths } from "./generated/weather-api.js";
+import type { operations as FieldOperations, paths as FieldPaths } from "./generated/fields-api.js";
 
 export type { components } from "./generated/onboarding-api.js";
 export type { components as SeasonComponents, operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
 export type { components as TaskCompletionComponents, operations as TaskCompletionOperations, paths as TaskCompletionPaths } from "./generated/task-completions-api.js";
 export type { components as WeatherComponents, operations as WeatherOperations, paths as WeatherPaths } from "./generated/weather-api.js";
-export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths;
-export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations;
+export type { components as FieldComponents, operations as FieldOperations, paths as FieldPaths } from "./generated/fields-api.js";
+export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths & FieldPaths;
+export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations & FieldOperations;
 
 /** Creates the typed client from the generated application API paths. */
 export function createApiClient(options: ClientOptions = {}) {

@@ -114,33 +114,6 @@ after(async () => {
   try {
     await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${failureTrigger}" ON "fields"`);
     await prisma.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "${failureFunction}"()`);
-    if (subjects.length > 0) {
-      const users = await prisma.applicationUser.findMany({
-        where: { authProvider: provider, authSubject: { in: subjects } },
-        select: { id: true, defaultBusinessId: true },
-      });
-      const userIds = users.map(({ id }) => id);
-      const completions = await prisma.onboardingCompletion.findMany({
-        where: { userId: { in: userIds } },
-        select: { fieldId: true },
-      });
-      const fieldIds = completions.map(({ fieldId }) => fieldId);
-      businessIds.push(...users.flatMap(({ defaultBusinessId }) => defaultBusinessId ? [defaultBusinessId] : []));
-      await prisma.idempotencyRecord.deleteMany({ where: { userId: { in: userIds } } });
-      await prisma.onboardingCompletion.deleteMany({ where: { userId: { in: userIds } } });
-      await prisma.fieldBoundaryVersion.deleteMany({ where: { fieldId: { in: fieldIds } } });
-      await prisma.field.deleteMany({ where: { id: { in: fieldIds } } });
-      await prisma.applicationUser.updateMany({
-        where: { id: { in: userIds } },
-        data: { defaultBusinessId: null },
-      });
-      await prisma.applicationUser.deleteMany({
-        where: { authProvider: provider, authSubject: { in: subjects } },
-      });
-    }
-    if (businessIds.length > 0) {
-      await prisma.business.deleteMany({ where: { id: { in: businessIds } } });
-    }
   } finally {
     await prisma.$disconnect();
   }

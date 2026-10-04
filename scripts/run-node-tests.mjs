@@ -18,7 +18,7 @@ function matches(mode, path) {
   if (mode === "domain") {
     return (
       (normalizedPath.startsWith("src/") && name.endsWith(".test.ts")) ||
-      ((normalizedPath.startsWith("test/onboarding/") || normalizedPath.startsWith("test/seasons/") || normalizedPath.startsWith("test/tasks/")) && name.endsWith(".spec.ts"))
+      (normalizedPath.startsWith("test/") && name.endsWith(".spec.ts"))
     );
   }
   if (mode === "api-unit") {
@@ -40,12 +40,17 @@ function matches(mode, path) {
 
 const roots =
   mode === "domain"
-    ? ["src", "test/onboarding", "test/seasons", "test/tasks"].filter((path) => existsSync(path))
+    ? ["src", "test"].filter((path) => existsSync(path))
     : ["test"];
 const files = roots.flatMap(walk)
   .map((path) => relative(cwd, path))
   .filter((path) => matches(mode, path))
   .sort();
+
+if (process.argv.includes("--list")) {
+  console.log(files.join("\n"));
+  process.exit(files.length === 0 ? 1 : 0);
+}
 
 if (files.length === 0 && mode !== "api-contract") {
   console.error(`No test files discovered for ${mode} under ${cwd}`);

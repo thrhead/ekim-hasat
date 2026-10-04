@@ -14,6 +14,7 @@ const run = randomUUID();
 const businessId = randomUUID(), otherBusinessId = randomUUID(), fieldId = randomUUID(), otherFieldId = randomUUID();
 const userId = randomUUID(), otherUserId = randomUUID(), cropId = randomUUID(), templateId = randomUUID();
 const seasonId = randomUUID(), emptySeasonId = randomUUID(), concurrentSeasonId = randomUUID(), rollbackSeasonId = randomUUID(), foreignSeasonId = randomUUID();
+const pointerSeasonId = randomUUID(), nullPointerSeasonId = randomUUID();
 const identity = { provider: "activation-test", subject: run };
 const foreign = { provider: identity.provider, subject: `${run}-foreign` };
 const repository = new SeasonActivationRepository(prisma, () => new Date("2026-09-29T00:30:00.000Z"));
@@ -62,6 +63,8 @@ before(async () => {
   await createSeason(emptySeasonId, 0, "MANUAL");
   await createSeason(concurrentSeasonId, 1, "MANUAL");
   await createSeason(rollbackSeasonId, 1, "MANUAL");
+  await createSeason(pointerSeasonId, 1, "MANUAL");
+  await createSeason(nullPointerSeasonId, 1, "MANUAL");
   const foreignCropId = randomUUID();
   await prisma.customCrop.create({ data: { id: foreignCropId, businessId: otherBusinessId, displayName: "Foreign crop" } });
   await prisma.season.create({ data: { id: foreignSeasonId, businessId: otherBusinessId, fieldId: otherFieldId, customCropId: foreignCropId,
@@ -95,7 +98,7 @@ test("activation atomically saves active state, approved copied plan, snapshot, 
   assert.equal(approvedTasks.length, 1);
   assert.deepEqual(approvedTasks[0]?.title, "Task 1");
   assert.equal(await prisma.seasonContextSnapshot.count({ where: { seasonId } }), 1);
-  assert.equal(await prisma.seasonCommandIdempotencyRecord.count({ where: { seasonId, command: "ACTIVATE" } }), 1);
+  assert.equal(await prisma.businessCommandIdempotencyRecord.count({ where: { seasonId, command: "ACTIVATE" } }), 1);
   await assert.rejects(() => planTaskRepository.addTask(identity, seasonId, 2, "after-activation", {
     title: "Should remain unavailable", plannedLocalDate: "2026-10-01",
   }), (error: unknown) => error instanceof SeasonCommandError && error.presentation.code === "SEASON_NOT_DRAFT");
@@ -145,9 +148,50 @@ test("failed idempotency persistence rolls back activation and snapshot; scope f
   assert.equal(concurrent.version, 1);
   assert.equal(concurrent.snapshot, null);
   assert.equal(concurrent.plan?.status, "DRAFT");
-  assert.equal(await prisma.seasonCommandIdempotencyRecord.count({ where: { seasonId: rollbackSeasonId, key: "rollback-key" } }), 0);
+  assert.equal(await prisma.businessCommandIdempotencyRecord.count({ where: { seasonId: rollbackSeasonId, key: "rollback-key" } }), 0);
   await assert.rejects(() => activate(foreignSeasonId), NotFoundException);
   await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "REVOKED" } });
   try { await assert.rejects(() => activate(seasonId), BusinessScopeForbiddenError); }
   finally { await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "ACTIVE" } }); }
+});
+
+test("future activations snapshot exact current boundary and independent region provenance without rewriting old snapshots", async () => {
+  const currentBoundaryId = randomUUID(), newerHistoricalBoundaryId = randomUUID(), regionId = randomUUID();
+  await prisma.$executeRaw`INSERT INTO field_boundary_versions (id,field_id,version,geometry,verification_status)
+    VALUES (${currentBoundaryId}::uuid,${fieldId}::uuid,1,ST_GeomFromText('POLYGON((29 41,29.01 41,29.01 41.01,29 41.01,29 41))',4326),'UNVERIFIED'),
+           (${newerHistoricalBoundaryId}::uuid,${fieldId}::uuid,9,ST_GeomFromText('POLYGON((29.1 41,29.11 41,29.11 41.01,29.1 41.01,29.1 41))',4326),'UNVERIFIED')`;
+  await prisma.fieldRegionContextVersion.create({ data: {
+    id: regionId, fieldId, version: 1, resolutionLocationKey: `activation-key-${run}`,
+    administrativeState: "RESOLVED", administrativeCode: "ADM-X", administrativeLabel: "Admin X",
+    administrativeSourceId: "admin-source", administrativeDataVersion: "admin-v4", administrativeConfidence: 0.93,
+    administrativeResolvedAt: new Date("2026-09-20T10:00:00.000Z"), agriculturalState: "UNRESOLVED",
+    overrideCode: "FARMER-X", overrideLabel: "Farmer choice",
+  } });
+  await prisma.field.update({ where: { id: fieldId }, data: {
+    currentBoundaryVersionId: currentBoundaryId, currentRegionContextVersionId: regionId,
+  } });
+  const oldSnapshotsBefore = await prisma.seasonContextSnapshot.findMany({ where: { seasonId: { notIn: [pointerSeasonId, nullPointerSeasonId] } }, orderBy: { seasonId: "asc" } });
+  const resolved = await activate(pointerSeasonId, 1);
+  assert.equal(resolved.kind, "activated");
+  const resolvedSnapshot = await prisma.seasonContextSnapshot.findUniqueOrThrow({ where: { seasonId: pointerSeasonId } });
+  assert.equal(resolvedSnapshot.fieldBoundaryVersionId, currentBoundaryId, "activation reads the explicit current pointer, not version ordering");
+  assert.deepEqual(resolvedSnapshot.regionContext, {
+    administrativeLocation: { state: "RESOLVED", code: "ADM-X", label: "Admin X", sourceId: "admin-source", confidence: 0.93, dataVersion: "admin-v4", resolvedAt: "2026-09-20T10:00:00.000Z" },
+    agriculturalRegion: { state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null },
+    agriculturalRegionOverride: { state: "RESOLVED", code: "FARMER-X", label: "Farmer choice" },
+  });
+  await prisma.field.update({ where: { id: fieldId }, data: { currentBoundaryVersionId: null, currentRegionContextVersionId: null } });
+  const pointOnly = await activate(nullPointerSeasonId, 1);
+  assert.equal(pointOnly.kind, "activated");
+  const nullSnapshot = await prisma.seasonContextSnapshot.findUniqueOrThrow({ where: { seasonId: nullPointerSeasonId } });
+  assert.equal(nullSnapshot.fieldBoundaryVersionId, null, "point-only activation preserves null despite historical Polygon rows");
+  assert.deepEqual(nullSnapshot.regionContext, {
+    administrativeLocation: { state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null },
+    agriculturalRegion: { state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null },
+    agriculturalRegionOverride: null,
+  });
+  const oldSnapshotsAfter = await prisma.seasonContextSnapshot.findMany({ where: { seasonId: { notIn: [pointerSeasonId, nullPointerSeasonId] } }, orderBy: { seasonId: "asc" } });
+  assert.deepEqual(oldSnapshotsAfter, oldSnapshotsBefore, "future activation must not rewrite any earlier snapshot");
+  assert.equal(await prisma.fieldBoundaryVersion.count({ where: { fieldId } }), 2, "clearing the current pointer preserves history");
+  assert.notEqual(currentBoundaryId, newerHistoricalBoundaryId);
 });

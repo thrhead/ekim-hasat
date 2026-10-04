@@ -83,7 +83,7 @@ before(async () => {
 after(async () => {
   try {
     if ((await db.query("SELECT to_regclass('public.seasons') AS seasons")).rows[0]?.seasons) {
-      await db.query("DELETE FROM season_command_idempotency_records WHERE user_id = $1", [userId]);
+      await db.query("DELETE FROM business_command_idempotency_records WHERE user_id = $1", [userId]);
       // Remove fixtures in DRAFT; the active write guard preserves operational rows.
       await db.query("UPDATE seasons SET status = 'DRAFT', activated_at = NULL WHERE business_id = $1", [businessId]);
       await db.query("DELETE FROM planned_tasks WHERE season_plan_id IN (SELECT p.id FROM season_plans p JOIN seasons s ON s.id = p.season_id WHERE s.business_id = $1)", [businessId]);
@@ -195,7 +195,7 @@ test("failed multi-record transaction rolls back season, plan, task and command 
     await createSeason({ id: seasonId, date: "2026-08-08" });
     const planId = await createPlan(seasonId);
     await createTask(planId, "2026-08-08");
-    await db.query(`INSERT INTO season_command_idempotency_records
+    await db.query(`INSERT INTO business_command_idempotency_records
       (id, user_id, business_id, command, key, payload_fingerprint, season_id, result, expires_at)
       VALUES ($1, $2, $3, 'CREATE', 'rollback', 'fingerprint', $4, '{}'::jsonb, now() + interval '1 day')`,
     [randomUUID(), userId, businessId, seasonId]);
@@ -204,19 +204,19 @@ test("failed multi-record transaction rolls back season, plan, task and command 
     await db.query("ROLLBACK");
   }
   assert.equal((await db.query("SELECT count(*)::int AS count FROM seasons WHERE id = $1", [seasonId])).rows[0].count, 0);
-  assert.equal((await db.query("SELECT count(*)::int AS count FROM season_command_idempotency_records WHERE season_id = $1", [seasonId])).rows[0].count, 0);
+  assert.equal((await db.query("SELECT count(*)::int AS count FROM business_command_idempotency_records WHERE season_id = $1", [seasonId])).rows[0].count, 0);
 });
 
 test("command outcome uniqueness includes authorized business and command scope", async () => {
   const seasonId = await createSeason({ date: "2026-08-09" });
-  const insert = (command: string) => db.query(`INSERT INTO season_command_idempotency_records
+  const insert = (command: string) => db.query(`INSERT INTO business_command_idempotency_records
     (id, user_id, business_id, command, key, payload_fingerprint, season_id, result, expires_at)
     VALUES ($1, $2, $3, $4, 'same-key', 'fingerprint', $5, '{}'::jsonb, now() + interval '1 day')`,
   [randomUUID(), userId, businessId, command, seasonId]);
   await insert("CREATE");
   await rejectsSql(() => insert("CREATE"), "23505");
   await insert("ACTIVATE");
-  await rejectsSql(() => db.query(`INSERT INTO season_command_idempotency_records
+  await rejectsSql(() => db.query(`INSERT INTO business_command_idempotency_records
     (id, user_id, business_id, command, key, payload_fingerprint, season_id, result, expires_at)
     VALUES ($1, $2, $3, 'CREATE', 'wrong-scope', 'fingerprint', $4, '{}'::jsonb, now() + interval '1 day')`,
   [randomUUID(), userId, otherBusinessId, seasonId]), "23503");
@@ -250,12 +250,7 @@ test("activation snapshot validates parent source and same-field boundary while 
       VALUES ($1, $2, 'Unrelated field', ST_SetSRID(ST_MakePoint(29,41),4326))`, [foreignFieldId, otherBusinessId]);
     await db.query(`INSERT INTO field_boundary_versions (id, field_id, version, geometry)
       VALUES ($1, $2, 1, ST_GeomFromText('POLYGON((29 41,29.01 41,29.01 41.01,29 41.01,29 41))',4326))`, [foreignBoundaryId, foreignFieldId]);
-    try {
-      await rejectsSql(() => insert("MANUAL", null, foreignBoundaryId), "23514");
-    } finally {
-      await db.query("DELETE FROM field_boundary_versions WHERE id = $1", [foreignBoundaryId]);
-      await db.query("DELETE FROM fields WHERE id = $1", [foreignFieldId]);
-    }
+    await rejectsSql(() => insert("MANUAL", null, foreignBoundaryId), "23514");
     await insert("MANUAL");
     await rejectsSql(() => db.query("UPDATE season_context_snapshots SET crop_snapshot = '{\"changed\":true}' WHERE season_id = $1", [seasonId]), "23514");
     // Check DELETE itself: update immutability alone cannot protect delete/reinsert.

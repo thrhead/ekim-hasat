@@ -43,7 +43,11 @@ function idempotencyExpiry(now: Date): Date {
   return new Date(now.getTime() + hours * 3600000);
 }
 
-const activationInclude = { ...seasonSetupInclude, plan: { include: { tasks: { orderBy: { id: "asc" as const } }, templateVersion: true } } } satisfies Prisma.SeasonInclude;
+const activationInclude = {
+  ...seasonSetupInclude,
+  field: { select: { currentBoundaryVersionId: true, currentRegionContextVersion: true } },
+  plan: { include: { tasks: { orderBy: { id: "asc" as const } }, templateVersion: true } },
+} satisfies Prisma.SeasonInclude;
 type ActivationRow = Prisma.SeasonGetPayload<{ include: typeof activationInclude }>;
 function planSource(season: ActivationRow): PlanSource {
   const plan = season.plan;
@@ -69,6 +73,46 @@ function cropSnapshot(season: ActivationRow) {
   throw new Error("Season crop integrity failure");
 }
 
+function snapshotSuggestion(input: Readonly<{
+  state: string;
+  code: string | null;
+  label: string | null;
+  sourceId: string | null;
+  confidence: number | null;
+  dataVersion: string | null;
+  resolvedAt: Date | null;
+}>, name: string): ActivationSnapshot["regionContext"]["administrativeLocation"] {
+  if (input.state !== "RESOLVED") return {
+    state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null,
+  };
+  if (!input.code || !input.label || !input.sourceId || input.confidence === null || !input.dataVersion || !input.resolvedAt) {
+    throw new Error(`Field ${name} region context is incomplete`);
+  }
+  return { state: "RESOLVED", code: input.code, label: input.label, sourceId: input.sourceId,
+    confidence: input.confidence, dataVersion: input.dataVersion, resolvedAt: input.resolvedAt.toISOString() };
+}
+
+function snapshotRegionContext(field: ActivationRow["field"]): ActivationSnapshot["regionContext"] {
+  const region = field.currentRegionContextVersion;
+  if (!region) return {
+    administrativeLocation: snapshotSuggestion({ state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null }, "administrative"),
+    agriculturalRegion: snapshotSuggestion({ state: "UNRESOLVED", code: null, label: null, sourceId: null, confidence: null, dataVersion: null, resolvedAt: null }, "agricultural"),
+    agriculturalRegionOverride: null,
+  };
+  const override = region.overrideCode && region.overrideLabel
+    ? { state: "RESOLVED" as const, code: region.overrideCode, label: region.overrideLabel }
+    : null;
+  return {
+    administrativeLocation: snapshotSuggestion({ state: region.administrativeState, code: region.administrativeCode,
+      label: region.administrativeLabel, sourceId: region.administrativeSourceId, confidence: region.administrativeConfidence,
+      dataVersion: region.administrativeDataVersion, resolvedAt: region.administrativeResolvedAt }, "administrative"),
+    agriculturalRegion: snapshotSuggestion({ state: region.agriculturalState, code: region.agriculturalCode,
+      label: region.agriculturalLabel, sourceId: region.agriculturalSourceId, confidence: region.agriculturalConfidence,
+      dataVersion: region.agriculturalDataVersion, resolvedAt: region.agriculturalResolvedAt }, "agricultural"),
+    agriculturalRegionOverride: override,
+  };
+}
+
 export class SeasonActivationRepository {
   private readonly membershipScope: MembershipScopeService;
   constructor(private readonly prisma: PrismaClient, private readonly now: () => Date = () => new Date()) {
@@ -91,7 +135,7 @@ export class SeasonActivationRepository {
           WHERE id = ${seasonId}::uuid AND business_id = ${scope.businessId}::uuid FOR UPDATE`;
         if (locked.length !== 1) throw new NotFoundException();
 
-        const retained = await tx.seasonCommandIdempotencyRecord.findUnique({ where: {
+        const retained = await tx.businessCommandIdempotencyRecord.findUnique({ where: {
           userId_businessId_command_key: { userId: scope.userId, businessId: scope.businessId, command: "ACTIVATE", key },
         } });
         if (retained) {
@@ -124,27 +168,25 @@ export class SeasonActivationRepository {
         const taskSnapshot = season.plan.tasks.map((task) => ({ id: task.id, seasonPlanId: task.seasonPlanId, title: task.title,
           description: task.description, plannedLocalDate: validateLocalDate(task.plannedLocalDate.toISOString().slice(0, 10)),
           sourceTemplateTaskKey: task.sourceTemplateTaskKey, version: task.version }));
-        const snapshot: ActivationSnapshot = { seasonId, fieldBoundaryVersionId: null, regionContext: null,
+        const snapshot: ActivationSnapshot = { seasonId, fieldBoundaryVersionId: season.field.currentBoundaryVersionId,
+          regionContext: snapshotRegionContext(season.field),
           crop: cropSnapshot(season), actualPlantingDate: validateLocalDate(season.actualPlantingDate.toISOString().slice(0, 10)),
           businessTimezone: timezone, activatedAt: activatedAt.toISOString(), approvedTasks: taskSnapshot, ...source };
-        const boundary = await tx.fieldBoundaryVersion.findFirst({ where: { fieldId: season.fieldId }, orderBy: [{ version: "desc" }, { id: "asc" }], select: { id: true } });
-        const finalSnapshot = { ...snapshot, fieldBoundaryVersionId: boundary?.id ?? null };
-
         const updated = await tx.season.updateMany({ where: { id: season.id, businessId: scope.businessId, status: "DRAFT", version: expectedVersion },
           data: { status: "ACTIVE", activatedAt, version: { increment: 1 } } });
         if (updated.count !== 1) throw new SeasonCommandError(409, "STALE_VERSION");
         await tx.seasonPlan.update({ where: { id: season.plan.id }, data: { status: "APPROVED" } });
         await tx.seasonContextSnapshot.create({ data: {
-          seasonId, fieldBoundaryVersionId: finalSnapshot.fieldBoundaryVersionId,
-          regionContext: Prisma.DbNull,
-          cropSnapshot: { ...finalSnapshot.crop, templateProvenance: finalSnapshot.templateProvenance,
-            approvedTasks: finalSnapshot.approvedTasks } as unknown as Prisma.InputJsonValue,
+          seasonId, fieldBoundaryVersionId: snapshot.fieldBoundaryVersionId,
+          regionContext: snapshot.regionContext as unknown as Prisma.InputJsonValue,
+          cropSnapshot: { ...snapshot.crop, templateProvenance: snapshot.templateProvenance,
+            approvedTasks: snapshot.approvedTasks } as unknown as Prisma.InputJsonValue,
           source: source.source, templateVersionId: source.templateProvenance?.templateVersionId ?? null,
           activatedAt, businessTimezone: timezone, activatedLocalDate: dateScalar(activatedLocalDate),
         } });
         const row = await tx.season.findUniqueOrThrow({ where: { id: seasonId }, include: seasonSetupInclude });
         const response = seasonRecordToResponse(row);
-        await tx.seasonCommandIdempotencyRecord.create({ data: {
+        await tx.businessCommandIdempotencyRecord.create({ data: {
           userId: scope.userId, businessId: scope.businessId, command: "ACTIVATE", key, payloadFingerprint: commandFingerprint,
           seasonId, result: response as unknown as Prisma.InputJsonValue, createdAt: activatedAt, expiresAt: idempotencyExpiry(activatedAt),
         } });

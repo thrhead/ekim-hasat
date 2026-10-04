@@ -57,7 +57,8 @@ test("active MEMBER gets authorized field options with usable, unsupported and e
   assert.equal(options.crops.find((crop) => crop.id === cropId)?.manualPlanAllowed, false);
   assert.equal(options.crops.find((crop) => crop.id === unsupportedCropId)?.templateAvailability, "NOT_APPLICABLE");
   assert.equal(options.crops.find((crop) => crop.id === emptyCropId)?.templateAvailability, "EMPTY_TASK_DEFINITIONS");
-  assert.equal(diagnostics.length, 1);
+  assert.ok(diagnostics.some((diagnostic) => JSON.stringify(diagnostic).includes(emptyTemplateId)),
+    "the fixture's empty template still emits its quality diagnostic alongside retained database fixtures");
 });
 
 test("draft recovery preserves crop/template binding and copied task calendar dates", async () => {

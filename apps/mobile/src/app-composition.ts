@@ -10,13 +10,14 @@ import { createSeasonSetupFlow } from "./features/seasons/season-setup-screen";
 import { readSeason } from "./features/seasons/season-setup-screen";
 import { createTaskCompletionCommandStore, type TaskCompletionCommandStore } from "./features/tasks/task-completion-command-store";
 import { createTaskCompletionCoordinator } from "./features/tasks/task-completion";
+import type { FieldDetail } from "./features/fields/fields-client";
 
 type FirstFieldSummary = components["schemas"]["FirstFieldSummary"];
 type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -25,7 +26,16 @@ export type ProductionAppState = Readonly<{
   seasonDraft: SeasonComponents["schemas"]["SeasonDraft"] | null;
   historyFieldId: string | null;
   historySeasonId: string | null;
+  editingField?: FieldDetail | null;
 }>;
+
+export const APP_PRIMARY_NAVIGATION = [
+  { id: "today", label: "Bugün" },
+  { id: "calendar", label: "Takvim" },
+  { id: "fields", label: "Tarlalar" },
+  { id: "create", label: "+" },
+  { id: "more", label: "Daha Fazla" },
+] as const;
 
 /** Owns production auth-to-onboarding routing while leaving credentials in T051. */
 export function createAppComposition(
@@ -53,6 +63,7 @@ export function createAppComposition(
     seasonDraft: null,
     historyFieldId: null,
     historySeasonId: null,
+    editingField: null,
   };
   let disposed = false;
   let statusRevision = 0;
@@ -190,6 +201,10 @@ export function createAppComposition(
       publish({ ...state, entry: "season-review", seasonDraft: draft });
     },
     showToday() { publish({ ...state, entry: "today", seasonDraft: null, historyFieldId: null, historySeasonId: null }); },
+    showFields() { publish({ ...state, entry: "fields-list", seasonDraft: null, historyFieldId: null, historySeasonId: null, editingField: null }); },
+    openField(fieldId: string) { publish({ ...state, entry: "field-detail", fieldId, editingField: null, seasonDraft: null }); },
+    startFieldCreate() { publish({ ...state, entry: "field-create", editingField: null, seasonDraft: null }); },
+    editField(field: FieldDetail) { publish({ ...state, entry: "field-edit", fieldId: field.id, editingField: field, seasonDraft: null }); },
     showHistory(fieldId: string, seasonId?: string) {
       publish({ ...state, entry: "history", historyFieldId: fieldId, historySeasonId: seasonId ?? null, seasonDraft: null });
     },

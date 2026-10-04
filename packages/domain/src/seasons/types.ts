@@ -52,7 +52,11 @@ export type SeasonPlan = PlanSource & Readonly<{
 export type ActivationSnapshot = PlanSource & Readonly<{
   seasonId: string;
   fieldBoundaryVersionId: string | null;
-  regionContext: string | null;
+  regionContext: Readonly<{
+    administrativeLocation: Readonly<{ state: "UNRESOLVED"; code: null; label: null; sourceId: null; confidence: null; dataVersion: null; resolvedAt: null } | { state: "RESOLVED"; code: string; label: string; sourceId: string; confidence: number; dataVersion: string; resolvedAt: string }>;
+    agriculturalRegion: Readonly<{ state: "UNRESOLVED"; code: null; label: null; sourceId: null; confidence: null; dataVersion: null; resolvedAt: null } | { state: "RESOLVED"; code: string; label: string; sourceId: string; confidence: number; dataVersion: string; resolvedAt: string }>;
+    agriculturalRegionOverride: Readonly<{ state: "RESOLVED"; code: string; label: string }> | null;
+  }>;
   crop: CropReference;
   actualPlantingDate: LocalDate;
   businessTimezone: string;

@@ -270,7 +270,7 @@ export type SeasonWhereInput = {
   customCrop?: Prisma.XOR<Prisma.CustomCropNullableScalarRelationFilter, Prisma.CustomCropWhereInput> | null
   plan?: Prisma.XOR<Prisma.SeasonPlanNullableScalarRelationFilter, Prisma.SeasonPlanWhereInput> | null
   snapshot?: Prisma.XOR<Prisma.SeasonContextSnapshotNullableScalarRelationFilter, Prisma.SeasonContextSnapshotWhereInput> | null
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordListRelationFilter
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
 }
 
@@ -292,7 +292,7 @@ export type SeasonOrderByWithRelationInput = {
   customCrop?: Prisma.CustomCropOrderByWithRelationInput
   plan?: Prisma.SeasonPlanOrderByWithRelationInput
   snapshot?: Prisma.SeasonContextSnapshotOrderByWithRelationInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordOrderByRelationAggregateInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordOrderByRelationAggregateInput
   taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
 }
 
@@ -319,7 +319,7 @@ export type SeasonWhereUniqueInput = Prisma.AtLeast<{
   customCrop?: Prisma.XOR<Prisma.CustomCropNullableScalarRelationFilter, Prisma.CustomCropWhereInput> | null
   plan?: Prisma.XOR<Prisma.SeasonPlanNullableScalarRelationFilter, Prisma.SeasonPlanWhereInput> | null
   snapshot?: Prisma.XOR<Prisma.SeasonContextSnapshotNullableScalarRelationFilter, Prisma.SeasonContextSnapshotWhereInput> | null
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordListRelationFilter
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
 }, "id" | "id_businessId" | "id_businessId_fieldId">
 
@@ -372,7 +372,7 @@ export type SeasonCreateInput = {
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -390,7 +390,7 @@ export type SeasonUncheckedCreateInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -407,7 +407,7 @@ export type SeasonUpdateInput = {
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -425,7 +425,7 @@ export type SeasonUncheckedUpdateInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -540,6 +540,11 @@ export type SeasonSumOrderByAggregateInput = {
 export type SeasonScalarRelationFilter = {
   is?: Prisma.SeasonWhereInput
   isNot?: Prisma.SeasonWhereInput
+}
+
+export type SeasonNullableScalarRelationFilter = {
+  is?: Prisma.SeasonWhereInput | null
+  isNot?: Prisma.SeasonWhereInput | null
 }
 
 export type SeasonCreateNestedManyWithoutBusinessInput = {
@@ -744,10 +749,12 @@ export type SeasonCreateNestedOneWithoutCommandRecordsInput = {
   connect?: Prisma.SeasonWhereUniqueInput
 }
 
-export type SeasonUpdateOneRequiredWithoutCommandRecordsNestedInput = {
+export type SeasonUpdateOneWithoutCommandRecordsNestedInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutCommandRecordsInput, Prisma.SeasonUncheckedCreateWithoutCommandRecordsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutCommandRecordsInput
   upsert?: Prisma.SeasonUpsertWithoutCommandRecordsInput
+  disconnect?: Prisma.SeasonWhereInput | boolean
+  delete?: Prisma.SeasonWhereInput | boolean
   connect?: Prisma.SeasonWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutCommandRecordsInput, Prisma.SeasonUpdateWithoutCommandRecordsInput>, Prisma.SeasonUncheckedUpdateWithoutCommandRecordsInput>
 }
@@ -764,7 +771,7 @@ export type SeasonCreateWithoutBusinessInput = {
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -781,7 +788,7 @@ export type SeasonUncheckedCreateWithoutBusinessInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -840,7 +847,7 @@ export type SeasonCreateWithoutFieldInput = {
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -856,7 +863,7 @@ export type SeasonUncheckedCreateWithoutFieldInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -898,7 +905,7 @@ export type SeasonCreateWithoutCropDefinitionVersionInput = {
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -914,7 +921,7 @@ export type SeasonUncheckedCreateWithoutCropDefinitionVersionInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -956,7 +963,7 @@ export type SeasonCreateWithoutCustomCropInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -972,7 +979,7 @@ export type SeasonUncheckedCreateWithoutCustomCropInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -1014,7 +1021,7 @@ export type SeasonCreateWithoutPlanInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionCreateNestedOneWithoutSeasonsInput
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -1031,7 +1038,7 @@ export type SeasonUncheckedCreateWithoutPlanInput = {
   createdAt?: Date | string
   activatedAt?: Date | string | null
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -1063,7 +1070,7 @@ export type SeasonUpdateWithoutPlanInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionUpdateOneWithoutSeasonsNestedInput
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1080,7 +1087,7 @@ export type SeasonUncheckedUpdateWithoutPlanInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1096,7 +1103,7 @@ export type SeasonCreateWithoutSnapshotInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionCreateNestedOneWithoutSeasonsInput
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
 }
 
@@ -1113,7 +1120,7 @@ export type SeasonUncheckedCreateWithoutSnapshotInput = {
   createdAt?: Date | string
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
 }
 
@@ -1145,7 +1152,7 @@ export type SeasonUpdateWithoutSnapshotInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionUpdateOneWithoutSeasonsNestedInput
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1162,7 +1169,7 @@ export type SeasonUncheckedUpdateWithoutSnapshotInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1179,7 +1186,7 @@ export type SeasonCreateWithoutTaskCompletionsInput = {
   customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
   plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTaskCompletionsInput = {
@@ -1196,7 +1203,7 @@ export type SeasonUncheckedCreateWithoutTaskCompletionsInput = {
   activatedAt?: Date | string | null
   plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTaskCompletionsInput = {
@@ -1228,7 +1235,7 @@ export type SeasonUpdateWithoutTaskCompletionsInput = {
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -1245,7 +1252,7 @@ export type SeasonUncheckedUpdateWithoutTaskCompletionsInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutCommandRecordsInput = {
@@ -1355,7 +1362,7 @@ export type SeasonUpdateWithoutBusinessInput = {
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1372,7 +1379,7 @@ export type SeasonUncheckedUpdateWithoutBusinessInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1401,7 +1408,7 @@ export type SeasonUpdateWithoutFieldInput = {
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1417,7 +1424,7 @@ export type SeasonUncheckedUpdateWithoutFieldInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1469,7 +1476,7 @@ export type SeasonUpdateWithoutCropDefinitionVersionInput = {
   customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1485,7 +1492,7 @@ export type SeasonUncheckedUpdateWithoutCropDefinitionVersionInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1525,7 +1532,7 @@ export type SeasonUpdateWithoutCustomCropInput = {
   cropDefinitionVersion?: Prisma.CropDefinitionVersionUpdateOneWithoutSeasonsNestedInput
   plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1541,7 +1548,7 @@ export type SeasonUncheckedUpdateWithoutCustomCropInput = {
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
-  commandRecords?: Prisma.SeasonCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -1586,7 +1593,7 @@ export type SeasonCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
  * SeasonCountOutputType without action
  */
 export type SeasonCountOutputTypeCountCommandRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.SeasonCommandIdempotencyRecordWhereInput
+  where?: Prisma.BusinessCommandIdempotencyRecordWhereInput
 }
 
 /**
@@ -1704,7 +1711,7 @@ export type $SeasonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     customCrop: Prisma.$CustomCropPayload<ExtArgs> | null
     plan: Prisma.$SeasonPlanPayload<ExtArgs> | null
     snapshot: Prisma.$SeasonContextSnapshotPayload<ExtArgs> | null
-    commandRecords: Prisma.$SeasonCommandIdempotencyRecordPayload<ExtArgs>[]
+    commandRecords: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>[]
     taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2119,7 +2126,7 @@ export interface Prisma__SeasonClient<T, Null = never, ExtArgs extends runtime.T
   customCrop<T extends Prisma.Season$customCropArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$customCropArgs<ExtArgs>>): Prisma.Prisma__CustomCropClient<runtime.Types.Result.GetResult<Prisma.$CustomCropPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   plan<T extends Prisma.Season$planArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$planArgs<ExtArgs>>): Prisma.Prisma__SeasonPlanClient<runtime.Types.Result.GetResult<Prisma.$SeasonPlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   snapshot<T extends Prisma.Season$snapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$snapshotArgs<ExtArgs>>): Prisma.Prisma__SeasonContextSnapshotClient<runtime.Types.Result.GetResult<Prisma.$SeasonContextSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  commandRecords<T extends Prisma.Season$commandRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$commandRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonCommandIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  commandRecords<T extends Prisma.Season$commandRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$commandRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskCompletions<T extends Prisma.Season$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2642,23 +2649,23 @@ export type Season$snapshotArgs<ExtArgs extends runtime.Types.Extensions.Interna
  */
 export type Season$commandRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the SeasonCommandIdempotencyRecord
+   * Select specific fields to fetch from the BusinessCommandIdempotencyRecord
    */
-  select?: Prisma.SeasonCommandIdempotencyRecordSelect<ExtArgs> | null
+  select?: Prisma.BusinessCommandIdempotencyRecordSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the SeasonCommandIdempotencyRecord
+   * Omit specific fields from the BusinessCommandIdempotencyRecord
    */
-  omit?: Prisma.SeasonCommandIdempotencyRecordOmit<ExtArgs> | null
+  omit?: Prisma.BusinessCommandIdempotencyRecordOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.SeasonCommandIdempotencyRecordInclude<ExtArgs> | null
-  where?: Prisma.SeasonCommandIdempotencyRecordWhereInput
-  orderBy?: Prisma.SeasonCommandIdempotencyRecordOrderByWithRelationInput | Prisma.SeasonCommandIdempotencyRecordOrderByWithRelationInput[]
-  cursor?: Prisma.SeasonCommandIdempotencyRecordWhereUniqueInput
+  include?: Prisma.BusinessCommandIdempotencyRecordInclude<ExtArgs> | null
+  where?: Prisma.BusinessCommandIdempotencyRecordWhereInput
+  orderBy?: Prisma.BusinessCommandIdempotencyRecordOrderByWithRelationInput | Prisma.BusinessCommandIdempotencyRecordOrderByWithRelationInput[]
+  cursor?: Prisma.BusinessCommandIdempotencyRecordWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.SeasonCommandIdempotencyRecordScalarFieldEnum | Prisma.SeasonCommandIdempotencyRecordScalarFieldEnum[]
+  distinct?: Prisma.BusinessCommandIdempotencyRecordScalarFieldEnum | Prisma.BusinessCommandIdempotencyRecordScalarFieldEnum[]
 }
 
 /**
