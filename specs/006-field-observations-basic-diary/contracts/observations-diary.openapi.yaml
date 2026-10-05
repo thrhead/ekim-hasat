@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Field Observation and Diary API
+  version: 1.0.0
+  description: Online observation creation and bounded Field/Season diary projection. Client paths and schema types are generated from this contract.
+servers:
+  - url: /v1
+security:
+  - BearerAuth: []
+tags:
+  - name: observations
+  - name: diary
+paths:
+  /fields/{fieldId}/observations:
+    post:
+      tags: [observations]
+      operationId: createFieldObservation
+      summary: Create an observation for an authorized field
+      description: Requires a committed online request. The API resolves Business and active Membership from authentication; no Business identifier is accepted. Repeating the same observationId and payload under the same currently authorized context replays the committed result. Changed payload reuse conflicts. A supplied seasonId must belong to this field and Business.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateObservationRequest' }
+      responses:
+        '201':
+          description: Observation accepted and committed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Observation' }
+        '200':
+          description: Exact retry replayed the previously committed observation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Observation' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Observation identity was reused with changed content
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /fields/{fieldId}/diary:
+    get:
+      tags: [diary]
+      operationId: getFieldDiary
+      summary: Read an authorized Field or Season diary page
+      description: Returns a unified projection of canonical accepted observations and existing accepted task completions. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations and completions and is validated against the authorized Field and Business. Results are ordered by occurredAt descending, kind ascending, then source ID descending. Cursor is opaque and scope-bound.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+        - name: seasonId
+          in: query
+          required: false
+          description: Limit entries to this Season belonging to the requested authorized Field.
+          schema: { type: string, format: uuid }
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque continuation token returned by the prior page.
+          schema: { type: string, minLength: 1, maxLength: 512 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Bounded page of diary entries in deterministic occurrence order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DiaryPage' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    CreateObservationRequest:
+      type: object
+      additionalProperties: false
+      required: [observationId, description, occurredAt]
+      properties:
+        observationId:
+          type: string
+          format: uuid
+          description: Stable client-generated identity for the observation and its exact retry.
+        seasonId:
+          type: string
+          format: uuid
+          description: Optional Season association; must belong to this Field and authorized Business.
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Non-whitespace Unicode text. The server trims surrounding whitespace before persistence and validates the effective length.
+        occurredAt:
+          type: string
+          format: date-time
+          description: Farmer-recorded absolute instant with explicit offset; future instants are rejected. Server acceptance time is separate.
+    Observation:
+      type: object
+      required: [id, fieldId, seasonId, description, occurredAt, businessTimezone]
+      properties:
+        id: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid, nullable: true }
+        description: { type: string, maxLength: 2000 }
+        occurredAt: { type: string, format: date-time, description: Original absolute occurrence instant. }
+        businessTimezone: { type: string, description: Resolved authorized Business timezone used for display. }
+    DiaryPage:
+      type: object
+      required: [items, businessTimezone, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/ObservationDiaryEntry'
+              - $ref: '#/components/schemas/TaskCompletionDiaryEntry'
+            discriminator:
+              propertyName: kind
+              mapping:
+                OBSERVATION: '#/components/schemas/ObservationDiaryEntry'
+                TASK_COMPLETION: '#/components/schemas/TaskCompletionDiaryEntry'
+        businessTimezone: { type: string }
+        nextCursor: { type: string, nullable: true, maxLength: 512 }
+    ObservationDiaryEntry:
+      type: object
+      required: [kind, id, fieldId, seasonId, description, occurredAt]
+      properties:
+        kind: { type: string, const: OBSERVATION }
+        id: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid, nullable: true }
+        description: { type: string, maxLength: 2000 }
+        occurredAt: { type: string, format: date-time }
+    TaskCompletionDiaryEntry:
+      type: object
+      description: Projection of an existing accepted SPEC-003 TaskCompletion; no duplicate diary record is persisted.
+      required: [kind, id, taskId, seasonId, fieldId, title, plannedLocalDate, occurredAt, sourceKind, templateVersionId]
+      properties:
+        kind: { type: string, const: TASK_COMPLETION }
+        id: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        occurredAt: { type: string, format: date-time }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
+        templateVersionId: { type: string, format: uuid, nullable: true }
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        requestId: { type: string }
+    responses:
+      InvalidRequest:
+        description: Invalid identifier, payload, timestamp, description, limit, or cursor.
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiError' }
+      Unauthorized:
+        description: Authentication required or invalid.
+      Forbidden:
+        description: No current authorized Business scope.
+      NotFound:
+        description: Field, Season, or observation is missing or outside the authorized scope.
+      Unexpected:
+        description: Unexpected server error.
