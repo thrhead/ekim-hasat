@@ -34,4 +34,4 @@
 - Incomplete items need resolution before `$speckit-clarify` or `$speckit-plan`.
 - Offline observation creation is resolved as out of scope for SPEC-006; SPEC-003's completion-specific offline behavior remains unchanged.
 - Observation categories are excluded because the PRD does not define an approved taxonomy.
-- FR-003's maximum description length is resolved at 2,000 characters.
+- FR-003's limit is 1..2000 Unicode code points after trimming leading/trailing Unicode whitespace; UTF-8 bytes and UTF-16 code units are not the measure.

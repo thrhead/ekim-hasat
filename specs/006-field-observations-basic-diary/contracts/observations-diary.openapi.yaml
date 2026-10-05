@@ -16,7 +16,7 @@ paths:
       tags: [observations]
       operationId: createFieldObservation
       summary: Create an observation for an authorized field
-      description: Requires a committed online request. The API resolves Business and active Membership from authentication; no Business identifier is accepted. Repeating the same observationId and payload under the same currently authorized context replays the committed result. Changed payload reuse conflicts. A supplied seasonId must belong to this field and Business.
+      description: Requires a committed online request. The API resolves Business and active Membership from authentication; no Business identifier is accepted. Before domain validation and persistence, the server trims leading/trailing Unicode whitespace and requires the canonical description to contain 1..2000 Unicode code points (not UTF-8 bytes or UTF-16 code units); it preserves internal whitespace/content and applies no unrelated Unicode normalization. Server validation is authoritative. Reusing observationId with the same canonical payload, actor, and currently authorized Field/Season context converges on one row: the successful insert returns 201 and an exact replay, including a concurrent losing request after the row exists, returns 200 with that row. Changed canonical payload, actor, or authorized context returns structured 409. A supplied seasonId must belong to this field and Business.
       parameters:
         - $ref: '#/components/parameters/FieldId'
       requestBody:
@@ -40,7 +40,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: Observation identity was reused with changed content
+          description: Observation identity exists with changed canonical payload, actor, or authorized context
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
@@ -51,7 +51,7 @@ paths:
       tags: [diary]
       operationId: getFieldDiary
       summary: Read an authorized Field or Season diary page
-      description: Returns a unified projection of canonical accepted observations and existing accepted task completions. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations and completions and is validated against the authorized Field and Business. Results are ordered by occurredAt descending, kind ascending, then source ID descending. Cursor is opaque and scope-bound.
+      description: Returns a unified projection of canonical accepted observations and existing accepted task completions. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations and completions and is validated against the authorized Field and Business. Deterministic keyset order is occurredAt DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
       parameters:
         - $ref: '#/components/parameters/FieldId'
         - name: seasonId
@@ -95,7 +95,7 @@ components:
     CreateObservationRequest:
       type: object
       additionalProperties: false
-      required: [observationId, description, occurredAt]
+      required: [observationId, description, occurredAtLocal, occurredAt]
       properties:
         observationId:
           type: string
@@ -107,13 +107,14 @@ components:
           description: Optional Season association; must belong to this Field and authorized Business.
         description:
           type: string
-          minLength: 1
-          maxLength: 2000
-          description: Non-whitespace Unicode text. The server trims surrounding whitespace before persistence and validates the effective length.
+          description: Raw submitted text. The server trims leading/trailing Unicode whitespace before validating and persisting; canonical description must contain 1..2000 Unicode code points, not UTF-8 bytes or UTF-16 code units. No unrelated Unicode normalization or internal whitespace/content modification is performed. Do not apply maxLength to the untrimmed raw string; server validation is authoritative and mobile may mirror it for UX.
+        occurredAtLocal:
+          type: string
+          description: Farmer-entered local date/time without an offset, serialized as YYYY-MM-DDTHH:mm with optional seconds/fraction. The API interprets this value in the authorized Business timezone, or Europe/Istanbul if not configured; device timezone is never authoritative. Nonexistent or ambiguous local values return structured 400 INVALID_REQUEST.
         occurredAt:
           type: string
           format: date-time
-          description: Farmer-recorded absolute instant with explicit offset; future instants are rejected. Server acceptance time is separate.
+          description: Offset-aware RFC 3339 absolute instant corresponding to occurredAtLocal. The API verifies the local value has exactly one valid mapping and that it matches this instant; future instants are rejected. Server acceptance time is separate.
     Observation:
       type: object
       required: [id, fieldId, seasonId, description, occurredAt, businessTimezone]
@@ -168,22 +169,40 @@ components:
         templateVersionId: { type: string, format: uuid, nullable: true }
     ApiError:
       type: object
-      required: [code, message]
+      required: [error]
       properties:
-        code: { type: string }
-        message: { type: string }
-        requestId: { type: string }
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
     responses:
       InvalidRequest:
-        description: Invalid identifier, payload, timestamp, description, limit, or cursor.
+        description: Invalid identifier, payload, canonical description, timestamp, local-time mapping (including DST gaps/folds), limit, or cursor. Returns the shared structured `INVALID_REQUEST` ApiError.
         content:
           application/json:
             schema: { $ref: '#/components/schemas/ApiError' }
       Unauthorized:
         description: Authentication required or invalid.
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiError' }
       Forbidden:
-        description: No current authorized Business scope.
+        description: No current authorized Business scope. Does not disclose whether a requested Field, Season, or observation exists outside that scope.
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiError' }
       NotFound:
-        description: Field, Season, or observation is missing or outside the authorized scope.
+        description: Field, Season, or observation is absent from the authorized scope; absent and cross-Business resources have the same response.
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiError' }
       Unexpected:
-        description: Unexpected server error.
+        description: Unexpected server error. Returns only the safe generic UNEXPECTED presentation and requestId; internal details are not exposed.
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiError' }
