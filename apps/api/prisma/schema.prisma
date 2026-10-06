@@ -20,6 +20,7 @@ model ApplicationUser {
   idempotencyRecords IdempotencyRecord[]
   commandRecords     BusinessCommandIdempotencyRecord[]
   taskCompletions    TaskCompletion[]                   @relation("CompletionActorUser")
+  observations       FieldObservation[]                 @relation("ObservationActorUser")
 
   @@unique([authProvider, authSubject])
   @@index([defaultBusinessId])
@@ -38,6 +39,7 @@ model Business {
   customCrops      CustomCrop[]
   seasons          Season[]
   weatherSnapshots WeatherSnapshot[]
+  observations     FieldObservation[]
 
   @@map("businesses")
 }
@@ -49,9 +51,10 @@ model Membership {
   role       String
   status     String
 
-  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  user            ApplicationUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business        Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user            ApplicationUser    @relation(fields: [userId], references: [id], onDelete: Cascade)
   taskCompletions TaskCompletion[]
+  observations    FieldObservation[] @relation("ObservationActorMembership")
 
   @@unique([businessId, userId])
   @@unique([id, businessId, userId])
@@ -79,6 +82,7 @@ model Field {
   commandRecords              BusinessCommandIdempotencyRecord[]
   seasons                     Season[]
   taskCompletions             TaskCompletion[]
+  observations                FieldObservation[]
   weatherSnapshot             WeatherSnapshot?
   weatherRefreshState         WeatherRefreshState?
 
@@ -304,6 +308,7 @@ model Season {
   snapshot              SeasonContextSnapshot?
   commandRecords        BusinessCommandIdempotencyRecord[]
   taskCompletions       TaskCompletion[]
+  observations          FieldObservation[]
 
   // Partial unique indexes for CENTRAL and CUSTOM logical identities are migration-owned.
   @@unique([id, businessId])
@@ -398,6 +403,30 @@ model TaskCompletion {
   @@index([seasonId, occurredAt(sort: Desc), id(sort: Desc)])
   @@index([businessId])
   @@map("task_completions")
+}
+
+model FieldObservation {
+  id                 String   @db.Uuid
+  businessId         String   @map("business_id") @db.Uuid
+  fieldId            String   @map("field_id") @db.Uuid
+  seasonId           String?  @map("season_id") @db.Uuid
+  actorUserId        String   @map("actor_user_id") @db.Uuid
+  actorMembershipId  String   @map("actor_membership_id") @db.Uuid
+  description        String
+  occurredAt         DateTime @map("occurred_at") @db.Timestamptz(6)
+  acceptedAt         DateTime @map("accepted_at") @db.Timestamptz(6)
+  payloadFingerprint String   @map("payload_fingerprint")
+
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  field           Field           @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  season          Season?         @relation(fields: [seasonId, businessId, fieldId], references: [id, businessId, fieldId], onDelete: Restrict)
+  actorUser       ApplicationUser @relation("ObservationActorUser", fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorMembership Membership      @relation("ObservationActorMembership", fields: [actorMembershipId, businessId, actorUserId], references: [id, businessId, userId], onDelete: Restrict)
+
+  @@id([businessId, id])
+  @@index([businessId, fieldId, occurredAt(sort: Desc), id(sort: Desc)], map: "field_observations_field_diary_idx")
+  @@index([businessId, seasonId, occurredAt(sort: Desc), id(sort: Desc)], map: "field_observations_season_diary_idx")
+  @@map("field_observations")
 }
 
 model BusinessCommandIdempotencyRecord {

@@ -129,6 +129,19 @@ describe("Fields list and detail screens", () => {
     expect(get.mock.calls[0]?.[1].params.path.fieldId).toBe(field.id);
   });
 
+  test("Field detail exposes observation creation and both Field and active Season diary entries", async () => {
+    const get = jest.fn().mockResolvedValue({ response: { ok: true }, data: detail, error: undefined });
+    const onCreateObservation = jest.fn(), onOpenDiary = jest.fn();
+    let root: ReturnType<typeof create>;
+    await act(async () => { root = create(<FieldDetailScreen client={{ GET: get } as never} fieldId={field.id} onCreateObservation={onCreateObservation} onOpenDiary={onOpenDiary} />); });
+    await act(async () => { await callProp(root!.root.findByProps({ accessibilityLabel: "Gözlem ekle" }), "onPress"); });
+    await act(async () => { await callProp(root!.root.findByProps({ accessibilityLabel: "Tarla günlüğünü aç" }), "onPress"); });
+    await act(async () => { await callProp(root!.root.findByProps({ accessibilityLabel: "Sezon günlüğünü aç" }), "onPress"); });
+    expect(onCreateObservation.mock.calls[0]).toEqual(["field-1"]);
+    expect(onOpenDiary).toHaveBeenNthCalledWith(1, "field-1");
+    expect(onOpenDiary).toHaveBeenNthCalledWith(2, "field-1", "season-1");
+  });
+
   test("denied detail access has a retry action without exposing private record details", async () => {
     const get = jest.fn().mockResolvedValueOnce({ response: { ok: false, status: 403 }, error: { message: "private Business details" } })
       .mockResolvedValueOnce({ response: { ok: true }, data: { ...detail, activeSeason: null }, error: undefined });

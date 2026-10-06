@@ -416,6 +416,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
+  FieldObservation: 'FieldObservation',
   BusinessCommandIdempotencyRecord: 'BusinessCommandIdempotencyRecord'
 } as const
 
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "fieldObservation" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1794,6 +1795,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FieldObservation: {
+      payload: Prisma.$FieldObservationPayload<ExtArgs>
+      fields: Prisma.FieldObservationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FieldObservationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FieldObservationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        findFirst: {
+          args: Prisma.FieldObservationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FieldObservationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        findMany: {
+          args: Prisma.FieldObservationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>[]
+        }
+        create: {
+          args: Prisma.FieldObservationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        createMany: {
+          args: Prisma.FieldObservationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FieldObservationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>[]
+        }
+        delete: {
+          args: Prisma.FieldObservationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        update: {
+          args: Prisma.FieldObservationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        deleteMany: {
+          args: Prisma.FieldObservationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FieldObservationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FieldObservationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>[]
+        }
+        upsert: {
+          args: Prisma.FieldObservationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FieldObservationPayload>
+        }
+        aggregate: {
+          args: Prisma.FieldObservationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFieldObservation>
+        }
+        groupBy: {
+          args: Prisma.FieldObservationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FieldObservationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FieldObservationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FieldObservationCountAggregateOutputType> | number
+        }
+      }
+    }
     BusinessCommandIdempotencyRecord: {
       payload: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>
       fields: Prisma.BusinessCommandIdempotencyRecordFieldRefs
@@ -2175,6 +2250,22 @@ export const TaskCompletionScalarFieldEnum = {
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
+export const FieldObservationScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  description: 'description',
+  occurredAt: 'occurredAt',
+  acceptedAt: 'acceptedAt',
+  payloadFingerprint: 'payloadFingerprint'
+} as const
+
+export type FieldObservationScalarFieldEnum = (typeof FieldObservationScalarFieldEnum)[keyof typeof FieldObservationScalarFieldEnum]
+
+
 export const BusinessCommandIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2506,6 +2597,7 @@ export type GlobalOmitConfig = {
   plannedTask?: Prisma.PlannedTaskOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
+  fieldObservation?: Prisma.FieldObservationOmit
   businessCommandIdempotencyRecord?: Prisma.BusinessCommandIdempotencyRecordOmit
 }
 

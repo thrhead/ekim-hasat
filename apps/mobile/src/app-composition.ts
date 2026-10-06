@@ -17,7 +17,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -26,6 +26,9 @@ export type ProductionAppState = Readonly<{
   seasonDraft: SeasonComponents["schemas"]["SeasonDraft"] | null;
   historyFieldId: string | null;
   historySeasonId: string | null;
+  observationSeasonId: string | null;
+  diaryFieldId: string | null;
+  diarySeasonId: string | null;
   editingField?: FieldDetail | null;
 }>;
 
@@ -63,6 +66,9 @@ export function createAppComposition(
     seasonDraft: null,
     historyFieldId: null,
     historySeasonId: null,
+    observationSeasonId: null,
+    diaryFieldId: null,
+    diarySeasonId: null,
     editingField: null,
   };
   let disposed = false;
@@ -157,10 +163,10 @@ export function createAppComposition(
     }
     statusRevision += 1;
     if (auth.status === "authenticated" && client) {
-      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null });
+      publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null, observationSeasonId: null, diaryFieldId: null, diarySeasonId: null });
       resolveStatus(client);
     } else {
-      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null });
+      publish({ auth, entry: "loading", client: null, accountId: null, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null, observationSeasonId: null, diaryFieldId: null, diarySeasonId: null });
     }
   }
 
@@ -203,6 +209,12 @@ export function createAppComposition(
     showToday() { publish({ ...state, entry: "today", seasonDraft: null, historyFieldId: null, historySeasonId: null }); },
     showFields() { publish({ ...state, entry: "fields-list", seasonDraft: null, historyFieldId: null, historySeasonId: null, editingField: null }); },
     openField(fieldId: string) { publish({ ...state, entry: "field-detail", fieldId, editingField: null, seasonDraft: null }); },
+    showObservationCreate(fieldId: string, seasonId?: string) {
+      publish({ ...state, entry: "observation-create", fieldId, observationSeasonId: seasonId ?? null, seasonDraft: null });
+    },
+    showFieldDiary(fieldId: string, seasonId?: string) {
+      publish({ ...state, entry: "field-diary", diaryFieldId: fieldId, diarySeasonId: seasonId ?? null, seasonDraft: null });
+    },
     startFieldCreate() { publish({ ...state, entry: "field-create", editingField: null, seasonDraft: null }); },
     editField(field: FieldDetail) { publish({ ...state, entry: "field-edit", fieldId: field.id, editingField: field, seasonDraft: null }); },
     showHistory(fieldId: string, seasonId?: string) {

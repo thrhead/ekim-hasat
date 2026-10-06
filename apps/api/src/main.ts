@@ -24,6 +24,9 @@ import { TodayRepository } from "./seasons/today.repository.js";
 import { TaskCompletionRepository } from "./tasks/task-completion.repository.js";
 import { TaskCompletionService } from "./tasks/task-completion.service.js";
 import { createTaskCompletionModule } from "./tasks/task-completion.controller.js";
+import { ObservationCreateRepository } from "./observations/observation.repository.js";
+import { ObservationDiaryRepository } from "./observations/observation-diary.repository.js";
+import { createObservationModule } from "./observations/observation.controller.js";
 import { createTodayModule } from "./seasons/today.controller.js";
 import { createWeatherModule } from "./weather/weather.module.js";
 import { FieldsReadRepository } from "./fields/fields-read.repository.js";
@@ -73,6 +76,8 @@ async function bootstrap(): Promise<void> {
   const todayRepository = new TodayRepository(prisma);
   const taskCompletionRepository = new TaskCompletionRepository(prisma);
   const taskCompletionService = new TaskCompletionService(taskCompletionRepository);
+  const observationCreateRepository = new ObservationCreateRepository(prisma);
+  const observationDiaryRepository = new ObservationDiaryRepository(prisma, taskCompletionRepository);
   const verify = (token: string) => authenticator.verify(token);
   const regionResolver = new UnavailableRegionResolver();
   const fieldsReadService = new FieldsReadService(new MembershipScopeService(prisma), new FieldsReadRepository(prisma));
@@ -114,6 +119,11 @@ async function bootstrap(): Promise<void> {
     complete: (identity, taskId, version, input) => taskCompletionService.complete(identity, taskId, version, input),
     readHistory: (identity, fieldId, filters) => taskCompletionService.readHistory(identity, fieldId, filters),
   });
+  const observationModule = createObservationModule({
+    verify,
+    create: (identity, fieldId, request) => observationCreateRepository.create(identity, fieldId, request),
+    readDiary: (identity, fieldId, filters) => observationDiaryRepository.read(identity, fieldId, filters),
+  });
   const weatherModule = createWeatherModule({
     verify,
     prisma,
@@ -130,7 +140,7 @@ async function bootstrap(): Promise<void> {
   });
   const regionsModule = createRegionsModule({ prisma, resolver: regionResolver });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, weatherModule, fieldsModule, regionsModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, observationModule, weatherModule, fieldsModule, regionsModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

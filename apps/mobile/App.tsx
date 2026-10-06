@@ -11,6 +11,8 @@ import { APP_PRIMARY_NAVIGATION } from "./src/app-composition";
 import { FieldsScreen, FieldDetailScreen } from "./src/features/fields/fields-screen";
 import { FieldCreateScreen } from "./src/features/fields/field-create-screen";
 import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
+import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
+import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -24,6 +26,9 @@ export default function App() {
     seasonDraft: null,
     historyFieldId: null,
     historySeasonId: null,
+    observationSeasonId: null,
+    diaryFieldId: null,
+    diarySeasonId: null,
     editingField: null,
   });
   const compositionRef = useRef<ReturnType<typeof createAppComposition> | null>(null);
@@ -56,6 +61,9 @@ export default function App() {
   if (state.entry === "loading" || !state.client) {
     return <OnboardingEntryView state="loading" />;
   }
+
+  const observationContextRoute = renderObservationContextRoute(state, compositionRef.current);
+  if (observationContextRoute) return <View style={styles.appScreen}>{observationContextRoute}</View>;
 
   if (state.entry === "first-field-onboarding") {
     if (!state.accountId) return <OnboardingEntryView state="loading" />;
@@ -107,7 +115,9 @@ export default function App() {
     <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
   </View>;
   if (state.client && state.entry === "field-detail" && state.fieldId) return <View style={styles.appScreen}>
-    <FieldDetailScreen client={state.client} fieldId={state.fieldId} onBack={() => compositionRef.current?.showFields()} onEdit={(field) => compositionRef.current?.editField(field)} />
+    <FieldDetailScreen client={state.client} fieldId={state.fieldId} onBack={() => compositionRef.current?.showFields()} onEdit={(field) => compositionRef.current?.editField(field)}
+      onCreateObservation={(fieldId, seasonId) => compositionRef.current?.showObservationCreate(fieldId, seasonId)}
+      onOpenDiary={(fieldId, seasonId) => compositionRef.current?.showFieldDiary(fieldId, seasonId)} />
     <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
   </View>;
   if (state.client && state.entry === "field-create") return <View style={styles.appScreen}>
@@ -126,6 +136,21 @@ export default function App() {
     if (item === "fields") compositionRef.current?.showFields();
     if (item === "create") compositionRef.current?.startFieldCreate();
   }
+}
+
+/** The production App renders the contextual observation and diary screens through this route seam. */
+export function renderObservationContextRoute(state: ProductionAppState, composition: ReturnType<typeof createAppComposition> | null) {
+  if (state.entry === "observation-create" && state.client && state.fieldId) return <ObservationCreateScreen
+    key={`${state.accountId ?? ""}:${state.fieldId}:${state.observationSeasonId ?? "field"}`}
+    client={state.client} fieldId={state.fieldId} seasonId={state.observationSeasonId ?? undefined}
+    onBack={() => composition?.openField(state.fieldId!)}
+    onCreated={() => composition?.openField(state.fieldId!)} />;
+  if (state.entry === "field-diary" && state.client && state.diaryFieldId) return <FieldDiaryScreen
+    key={`${state.accountId ?? ""}:${state.diaryFieldId}:${state.diarySeasonId ?? "field"}`}
+    client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
+    onBack={() => composition?.openField(state.diaryFieldId!)}
+    onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)} />;
+  return null;
 }
 
 function PrimaryNavigation({ entry, onNavigate }: { entry: string; onNavigate: (item: typeof APP_PRIMARY_NAVIGATION[number]["id"]) => void }) {

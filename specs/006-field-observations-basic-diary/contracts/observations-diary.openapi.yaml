@@ -16,7 +16,8 @@ paths:
       tags: [observations]
       operationId: createFieldObservation
       summary: Create an observation for an authorized field
-      description: Requires a committed online request. The API resolves Business and active Membership from authentication; no Business identifier is accepted. Before domain validation and persistence, the server trims leading/trailing Unicode whitespace and requires the canonical description to contain 1..2000 Unicode code points (not UTF-8 bytes or UTF-16 code units); it preserves internal whitespace/content and applies no unrelated Unicode normalization. Server validation is authoritative. Reusing observationId with the same canonical payload, actor, and currently authorized Field/Season context converges on one row: the successful insert returns 201 and an exact replay, including a concurrent losing request after the row exists, returns 200 with that row. Changed canonical payload, actor, or authorized context returns structured 409. A supplied seasonId must belong to this field and Business.
+      description: >-
+        Requires a committed online request. The API resolves Business and active Membership from authentication; no Business identifier is accepted. Before domain validation and persistence, the server trims leading/trailing Unicode whitespace and requires the canonical description to contain 1..2000 Unicode code points (not UTF-8 bytes or UTF-16 code units); it preserves internal whitespace/content and applies no unrelated Unicode normalization. Server validation is authoritative. Reusing observationId with the same canonical payload, actor, and currently authorized Field/Season context converges on one row: the successful insert returns 201 and an exact replay, including a concurrent losing request after the row exists, returns 200 with that row. Changed canonical payload, actor, or authorized context returns structured 409. A supplied seasonId must belong to this field and Business.
       parameters:
         - $ref: '#/components/parameters/FieldId'
       requestBody:
@@ -180,29 +181,29 @@ components:
               enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
             message: { type: string }
             requestId: { type: string }
-    responses:
-      InvalidRequest:
-        description: Invalid identifier, payload, canonical description, timestamp, local-time mapping (including DST gaps/folds), limit, or cursor. Returns the shared structured `INVALID_REQUEST` ApiError.
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ApiError' }
-      Unauthorized:
-        description: Authentication required or invalid.
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ApiError' }
-      Forbidden:
-        description: No current authorized Business scope. Does not disclose whether a requested Field, Season, or observation exists outside that scope.
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ApiError' }
-      NotFound:
-        description: Field, Season, or observation is absent from the authorized scope; absent and cross-Business resources have the same response.
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ApiError' }
-      Unexpected:
-        description: Unexpected server error. Returns only the safe generic UNEXPECTED presentation and requestId; internal details are not exposed.
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/ApiError' }
+  responses:
+    InvalidRequest:
+      description: Invalid identifier, payload, canonical description, timestamp, local-time mapping (including DST gaps/folds), limit, or cursor. Returns the shared structured `INVALID_REQUEST` ApiError.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Authentication required or invalid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: No current authorized Business scope. Does not disclose whether a requested Field, Season, or observation exists outside that scope.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Field, Season, or observation is absent from the authorized scope; absent and cross-Business resources have the same response.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unexpected:
+      description: Unexpected server error. Returns only the safe generic UNEXPECTED presentation and requestId; internal details are not exposed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }

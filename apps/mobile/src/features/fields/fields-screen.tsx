@@ -113,7 +113,7 @@ function formattedLocalDate(date: string): string {
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(parsed);
 }
 
-export function FieldDetailScreen({ client, fieldId, onBack, onEdit }: { client: ApiClient; fieldId: string; onBack?: () => void; onEdit?: (field: FieldDetail) => void }) {
+export function FieldDetailScreen({ client, fieldId, onBack, onEdit, onCreateObservation, onOpenDiary }: { client: ApiClient; fieldId: string; onBack?: () => void; onEdit?: (field: FieldDetail) => void; onCreateObservation?: (fieldId: string, seasonId?: string) => void; onOpenDiary?: (fieldId: string, seasonId?: string) => void }) {
   const [field, setField] = useState<FieldDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FieldReadError | null>(null);
@@ -149,6 +149,8 @@ export function FieldDetailScreen({ client, fieldId, onBack, onEdit }: { client:
     {!loading && !error && field && <View>
       <Text>{field.name}</Text>
       {onEdit && <Pressable accessibilityRole="button" accessibilityLabel="Tarla bilgilerini düzenle" onPress={() => onEdit(field)}><Text>Düzenle</Text></Pressable>}
+      {onCreateObservation && <Pressable accessibilityRole="button" accessibilityLabel="Gözlem ekle" onPress={() => onCreateObservation(field.id)}><Text>Gözlem ekle</Text></Pressable>}
+      {onOpenDiary && <Pressable accessibilityRole="button" accessibilityLabel="Tarla günlüğünü aç" onPress={() => onOpenDiary(field.id)}><Text>Günlüğü aç</Text></Pressable>}
       {field.representativePoint && <Text>Tarla konumu: {field.representativePoint.coordinates[1].toFixed(5)}, {field.representativePoint.coordinates[0].toFixed(5)}</Text>}
       <Text>{formatCurrentBoundary(field.boundary)}</Text>
       <FieldRegionContextView context={field.regionContext} />
@@ -156,6 +158,7 @@ export function FieldDetailScreen({ client, fieldId, onBack, onEdit }: { client:
         <Text accessibilityRole="header">Aktif sezon</Text>
         {field.activeSeason.cropLabel && <Text>{field.activeSeason.cropLabel}</Text>}
         {field.activeSeason.plantingDate && <Text>Ekim tarihi: {formattedLocalDate(field.activeSeason.plantingDate)}</Text>}
+        {onOpenDiary && <Pressable accessibilityRole="button" accessibilityLabel="Sezon günlüğünü aç" onPress={() => onOpenDiary(field.id, field.activeSeason!.id)}><Text>Sezon günlüğü</Text></Pressable>}
       </View>}
     </View>}
   </ScrollView>;

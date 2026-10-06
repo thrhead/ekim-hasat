@@ -15,6 +15,7 @@ export type TaskCompletionPublic = Readonly<{
 export type TaskCompletionOutcome = Readonly<{ kind: "accepted" | "replayed"; completion: TaskCompletionPublic }>;
 export type TaskCompletionHistoryFilters = Readonly<{ seasonId?: string; cursor?: string; limit?: number }>;
 export type TaskCompletionHistoryPage = Readonly<{ items: readonly TaskCompletionPublic[]; businessTimezone: string; nextCursor: string | null }>;
+export type TaskCompletionDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION"; id: string }>;
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 const instantPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i;
@@ -149,6 +150,37 @@ export class TaskCompletionRepository {
       items, businessTimezone: timezone,
       nextCursor: hasNext && last ? encodeHistoryCursor({ fieldId, seasonId: seasonId ?? null, occurredAt: last.occurredAt.toISOString(), id: last.id }) : null,
     };
+  }
+
+  /** Bounded canonical completion candidates for the mixed Field diary. */
+  async readDiaryCandidates(identity: VerifiedSubject, fieldId: string, seasonId: string | undefined,
+    after: TaskCompletionDiaryAfter | null, take: number): Promise<readonly Omit<TaskCompletionPublic, "businessTimezone">[]> {
+    if (!uuidPattern.test(fieldId) || (seasonId !== undefined && !uuidPattern.test(seasonId))
+      || !Number.isSafeInteger(take) || take < 1 || take > 101) throw new TaskCompletionError("INVALID_REQUEST");
+    const scope = await this.membershipScope.resolveDefaultBusinessScope(identity);
+    if (!scope) throw new BusinessScopeForbiddenError();
+    const field = await this.prisma.field.findFirst({ where: { id: fieldId, businessId: scope.businessId,
+      business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, select: { id: true } });
+    if (!field) throw new NotFoundException();
+    if (seasonId && !await this.prisma.season.findFirst({ where: { id: seasonId, fieldId, businessId: scope.businessId }, select: { id: true } })) throw new NotFoundException();
+    const boundary = after ? new Date(after.occurredAt) : undefined;
+    if (after && (!Number.isFinite(boundary!.getTime()) || !uuidPattern.test(after.id))) throw new TaskCompletionError("INVALID_REQUEST");
+    const afterFilter = !after ? {} : { OR: [
+      { occurredAt: { lt: boundary } },
+      ...(after.kind === "OBSERVATION" ? [{ occurredAt: boundary }] : [{ occurredAt: boundary, id: { lt: after.id } }]),
+    ] };
+    const rows = await this.prisma.taskCompletion.findMany({
+      where: { fieldId, businessId: scope.businessId, ...(seasonId ? { seasonId } : {}),
+        field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } },
+        ...afterFilter },
+      orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take,
+      select: { id: true, plannedTaskId: true, seasonId: true, fieldId: true, occurredAt: true,
+        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } },
+    });
+    return rows.map((row) => ({ id: row.id, taskId: row.plannedTaskId, seasonId: row.seasonId, fieldId: row.fieldId,
+      title: row.taskTitleSnapshot, plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10),
+      occurredAt: row.occurredAt.toISOString(), sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE",
+      templateVersionId: row.seasonPlan.templateVersionId }));
   }
 
   private async recoverUniqueConflict(identity: VerifiedSubject, scope: { userId: string; businessId: string; membershipId: string }, taskId: string,
