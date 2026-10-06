@@ -51,6 +51,10 @@
     "./tasks/completion": {
       "types": "./dist/tasks/completion.d.ts",
       "import": "./dist/tasks/completion.js"
+    },
+    "./observations/field-observation": {
+      "types": "./dist/observations/field-observation.d.ts",
+      "import": "./dist/observations/field-observation.js"
     }
   },
   "scripts": {

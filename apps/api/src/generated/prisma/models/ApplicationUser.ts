@@ -188,6 +188,7 @@ export type ApplicationUserWhereInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  observations?: Prisma.FieldObservationListRelationFilter
 }
 
 export type ApplicationUserOrderByWithRelationInput = {
@@ -202,6 +203,7 @@ export type ApplicationUserOrderByWithRelationInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordOrderByRelationAggregateInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordOrderByRelationAggregateInput
   taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
+  observations?: Prisma.FieldObservationOrderByRelationAggregateInput
 }
 
 export type ApplicationUserWhereUniqueInput = Prisma.AtLeast<{
@@ -220,6 +222,7 @@ export type ApplicationUserWhereUniqueInput = Prisma.AtLeast<{
   idempotencyRecords?: Prisma.IdempotencyRecordListRelationFilter
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordListRelationFilter
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  observations?: Prisma.FieldObservationListRelationFilter
 }, "id" | "authProvider_authSubject">
 
 export type ApplicationUserOrderByWithAggregationInput = {
@@ -255,6 +258,7 @@ export type ApplicationUserCreateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateInput = {
@@ -268,6 +272,7 @@ export type ApplicationUserUncheckedCreateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUpdateInput = {
@@ -281,6 +286,7 @@ export type ApplicationUserUpdateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateInput = {
@@ -294,6 +300,7 @@ export type ApplicationUserUncheckedUpdateInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateManyInput = {
@@ -473,6 +480,20 @@ export type ApplicationUserUpdateOneRequiredWithoutTaskCompletionsNestedInput = 
   update?: Prisma.XOR<Prisma.XOR<Prisma.ApplicationUserUpdateToOneWithWhereWithoutTaskCompletionsInput, Prisma.ApplicationUserUpdateWithoutTaskCompletionsInput>, Prisma.ApplicationUserUncheckedUpdateWithoutTaskCompletionsInput>
 }
 
+export type ApplicationUserCreateNestedOneWithoutObservationsInput = {
+  create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutObservationsInput, Prisma.ApplicationUserUncheckedCreateWithoutObservationsInput>
+  connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutObservationsInput
+  connect?: Prisma.ApplicationUserWhereUniqueInput
+}
+
+export type ApplicationUserUpdateOneRequiredWithoutObservationsNestedInput = {
+  create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutObservationsInput, Prisma.ApplicationUserUncheckedCreateWithoutObservationsInput>
+  connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutObservationsInput
+  upsert?: Prisma.ApplicationUserUpsertWithoutObservationsInput
+  connect?: Prisma.ApplicationUserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ApplicationUserUpdateToOneWithWhereWithoutObservationsInput, Prisma.ApplicationUserUpdateWithoutObservationsInput>, Prisma.ApplicationUserUncheckedUpdateWithoutObservationsInput>
+}
+
 export type ApplicationUserCreateNestedOneWithoutCommandRecordsInput = {
   create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutCommandRecordsInput, Prisma.ApplicationUserUncheckedCreateWithoutCommandRecordsInput>
   connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutCommandRecordsInput
@@ -497,6 +518,7 @@ export type ApplicationUserCreateWithoutDefaultBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutDefaultBusinessInput = {
@@ -509,6 +531,7 @@ export type ApplicationUserUncheckedCreateWithoutDefaultBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutDefaultBusinessInput = {
@@ -558,6 +581,7 @@ export type ApplicationUserCreateWithoutMembershipsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutMembershipsInput = {
@@ -570,6 +594,7 @@ export type ApplicationUserUncheckedCreateWithoutMembershipsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutMembershipsInput = {
@@ -598,6 +623,7 @@ export type ApplicationUserUpdateWithoutMembershipsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutMembershipsInput = {
@@ -610,6 +636,7 @@ export type ApplicationUserUncheckedUpdateWithoutMembershipsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutCompletionsInput = {
@@ -622,6 +649,7 @@ export type ApplicationUserCreateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutCompletionsInput = {
@@ -634,6 +662,7 @@ export type ApplicationUserUncheckedCreateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutCompletionsInput = {
@@ -662,6 +691,7 @@ export type ApplicationUserUpdateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutCompletionsInput = {
@@ -674,6 +704,7 @@ export type ApplicationUserUncheckedUpdateWithoutCompletionsInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutIdempotencyRecordsInput = {
@@ -686,6 +717,7 @@ export type ApplicationUserCreateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutIdempotencyRecordsInput = {
@@ -698,6 +730,7 @@ export type ApplicationUserUncheckedCreateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutIdempotencyRecordsInput = {
@@ -726,6 +759,7 @@ export type ApplicationUserUpdateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutIdempotencyRecordsInput = {
@@ -738,6 +772,7 @@ export type ApplicationUserUncheckedUpdateWithoutIdempotencyRecordsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutTaskCompletionsInput = {
@@ -750,6 +785,7 @@ export type ApplicationUserCreateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutUserInput
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutTaskCompletionsInput = {
@@ -762,6 +798,7 @@ export type ApplicationUserUncheckedCreateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutUserInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutTaskCompletionsInput = {
@@ -790,6 +827,7 @@ export type ApplicationUserUpdateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutUserNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -802,6 +840,75 @@ export type ApplicationUserUncheckedUpdateWithoutTaskCompletionsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutUserNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
+}
+
+export type ApplicationUserCreateWithoutObservationsInput = {
+  id?: string
+  authProvider: string
+  authSubject: string
+  createdAt?: Date | string
+  defaultBusiness?: Prisma.BusinessCreateNestedOneWithoutDefaultUsersInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutUserInput
+  idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+}
+
+export type ApplicationUserUncheckedCreateWithoutObservationsInput = {
+  id?: string
+  authProvider: string
+  authSubject: string
+  defaultBusinessId?: string | null
+  createdAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutUserInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+}
+
+export type ApplicationUserCreateOrConnectWithoutObservationsInput = {
+  where: Prisma.ApplicationUserWhereUniqueInput
+  create: Prisma.XOR<Prisma.ApplicationUserCreateWithoutObservationsInput, Prisma.ApplicationUserUncheckedCreateWithoutObservationsInput>
+}
+
+export type ApplicationUserUpsertWithoutObservationsInput = {
+  update: Prisma.XOR<Prisma.ApplicationUserUpdateWithoutObservationsInput, Prisma.ApplicationUserUncheckedUpdateWithoutObservationsInput>
+  create: Prisma.XOR<Prisma.ApplicationUserCreateWithoutObservationsInput, Prisma.ApplicationUserUncheckedCreateWithoutObservationsInput>
+  where?: Prisma.ApplicationUserWhereInput
+}
+
+export type ApplicationUserUpdateToOneWithWhereWithoutObservationsInput = {
+  where?: Prisma.ApplicationUserWhereInput
+  data: Prisma.XOR<Prisma.ApplicationUserUpdateWithoutObservationsInput, Prisma.ApplicationUserUncheckedUpdateWithoutObservationsInput>
+}
+
+export type ApplicationUserUpdateWithoutObservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  authSubject?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultBusiness?: Prisma.BusinessUpdateOneWithoutDefaultUsersNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutUserNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+}
+
+export type ApplicationUserUncheckedUpdateWithoutObservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  authSubject?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultBusinessId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutUserNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutCommandRecordsInput = {
@@ -814,6 +921,7 @@ export type ApplicationUserCreateWithoutCommandRecordsInput = {
   completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutUserInput
   idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutCommandRecordsInput = {
@@ -826,6 +934,7 @@ export type ApplicationUserUncheckedCreateWithoutCommandRecordsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutUserInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutCommandRecordsInput = {
@@ -854,6 +963,7 @@ export type ApplicationUserUpdateWithoutCommandRecordsInput = {
   completions?: Prisma.OnboardingCompletionUpdateManyWithoutUserNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutCommandRecordsInput = {
@@ -866,6 +976,7 @@ export type ApplicationUserUncheckedUpdateWithoutCommandRecordsInput = {
   completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutUserNestedInput
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateManyDefaultBusinessInput = {
@@ -885,6 +996,7 @@ export type ApplicationUserUpdateWithoutDefaultBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutDefaultBusinessInput = {
@@ -897,6 +1009,7 @@ export type ApplicationUserUncheckedUpdateWithoutDefaultBusinessInput = {
   idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessInput = {
@@ -917,6 +1030,7 @@ export type ApplicationUserCountOutputType = {
   idempotencyRecords: number
   commandRecords: number
   taskCompletions: number
+  observations: number
 }
 
 export type ApplicationUserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -925,6 +1039,7 @@ export type ApplicationUserCountOutputTypeSelect<ExtArgs extends runtime.Types.E
   idempotencyRecords?: boolean | ApplicationUserCountOutputTypeCountIdempotencyRecordsArgs
   commandRecords?: boolean | ApplicationUserCountOutputTypeCountCommandRecordsArgs
   taskCompletions?: boolean | ApplicationUserCountOutputTypeCountTaskCompletionsArgs
+  observations?: boolean | ApplicationUserCountOutputTypeCountObservationsArgs
 }
 
 /**
@@ -972,6 +1087,13 @@ export type ApplicationUserCountOutputTypeCountTaskCompletionsArgs<ExtArgs exten
   where?: Prisma.TaskCompletionWhereInput
 }
 
+/**
+ * ApplicationUserCountOutputType without action
+ */
+export type ApplicationUserCountOutputTypeCountObservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FieldObservationWhereInput
+}
+
 
 export type ApplicationUserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -985,6 +1107,7 @@ export type ApplicationUserSelect<ExtArgs extends runtime.Types.Extensions.Inter
   idempotencyRecords?: boolean | Prisma.ApplicationUser$idempotencyRecordsArgs<ExtArgs>
   commandRecords?: boolean | Prisma.ApplicationUser$commandRecordsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.ApplicationUser$taskCompletionsArgs<ExtArgs>
+  observations?: boolean | Prisma.ApplicationUser$observationsArgs<ExtArgs>
   _count?: boolean | Prisma.ApplicationUserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["applicationUser"]>
 
@@ -1022,6 +1145,7 @@ export type ApplicationUserInclude<ExtArgs extends runtime.Types.Extensions.Inte
   idempotencyRecords?: boolean | Prisma.ApplicationUser$idempotencyRecordsArgs<ExtArgs>
   commandRecords?: boolean | Prisma.ApplicationUser$commandRecordsArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.ApplicationUser$taskCompletionsArgs<ExtArgs>
+  observations?: boolean | Prisma.ApplicationUser$observationsArgs<ExtArgs>
   _count?: boolean | Prisma.ApplicationUserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ApplicationUserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1040,6 +1164,7 @@ export type $ApplicationUserPayload<ExtArgs extends runtime.Types.Extensions.Int
     idempotencyRecords: Prisma.$IdempotencyRecordPayload<ExtArgs>[]
     commandRecords: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>[]
     taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
+    observations: Prisma.$FieldObservationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1447,6 +1572,7 @@ export interface Prisma__ApplicationUserClient<T, Null = never, ExtArgs extends 
   idempotencyRecords<T extends Prisma.ApplicationUser$idempotencyRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$idempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   commandRecords<T extends Prisma.ApplicationUser$commandRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$commandRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskCompletions<T extends Prisma.ApplicationUser$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  observations<T extends Prisma.ApplicationUser$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2018,6 +2144,30 @@ export type ApplicationUser$taskCompletionsArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.TaskCompletionScalarFieldEnum | Prisma.TaskCompletionScalarFieldEnum[]
+}
+
+/**
+ * ApplicationUser.observations
+ */
+export type ApplicationUser$observationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldObservation
+   */
+  select?: Prisma.FieldObservationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FieldObservation
+   */
+  omit?: Prisma.FieldObservationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FieldObservationInclude<ExtArgs> | null
+  where?: Prisma.FieldObservationWhereInput
+  orderBy?: Prisma.FieldObservationOrderByWithRelationInput | Prisma.FieldObservationOrderByWithRelationInput[]
+  cursor?: Prisma.FieldObservationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FieldObservationScalarFieldEnum | Prisma.FieldObservationScalarFieldEnum[]
 }
 
 /**

@@ -185,6 +185,7 @@ export type MembershipWhereInput = {
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   user?: Prisma.XOR<Prisma.ApplicationUserScalarRelationFilter, Prisma.ApplicationUserWhereInput>
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  observations?: Prisma.FieldObservationListRelationFilter
 }
 
 export type MembershipOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type MembershipOrderByWithRelationInput = {
   business?: Prisma.BusinessOrderByWithRelationInput
   user?: Prisma.ApplicationUserOrderByWithRelationInput
   taskCompletions?: Prisma.TaskCompletionOrderByRelationAggregateInput
+  observations?: Prisma.FieldObservationOrderByRelationAggregateInput
 }
 
 export type MembershipWhereUniqueInput = Prisma.AtLeast<{
@@ -212,6 +214,7 @@ export type MembershipWhereUniqueInput = Prisma.AtLeast<{
   business?: Prisma.XOR<Prisma.BusinessScalarRelationFilter, Prisma.BusinessWhereInput>
   user?: Prisma.XOR<Prisma.ApplicationUserScalarRelationFilter, Prisma.ApplicationUserWhereInput>
   taskCompletions?: Prisma.TaskCompletionListRelationFilter
+  observations?: Prisma.FieldObservationListRelationFilter
 }, "id" | "businessId_userId" | "id_businessId_userId">
 
 export type MembershipOrderByWithAggregationInput = {
@@ -243,6 +246,7 @@ export type MembershipCreateInput = {
   business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
   user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateInput = {
@@ -252,6 +256,7 @@ export type MembershipUncheckedCreateInput = {
   role: string
   status: string
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUpdateInput = {
@@ -261,6 +266,7 @@ export type MembershipUpdateInput = {
   business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
   user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateInput = {
@@ -270,6 +276,7 @@ export type MembershipUncheckedUpdateInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateManyInput = {
@@ -442,12 +449,27 @@ export type MembershipUpdateOneRequiredWithoutTaskCompletionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MembershipUpdateToOneWithWhereWithoutTaskCompletionsInput, Prisma.MembershipUpdateWithoutTaskCompletionsInput>, Prisma.MembershipUncheckedUpdateWithoutTaskCompletionsInput>
 }
 
+export type MembershipCreateNestedOneWithoutObservationsInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutObservationsInput, Prisma.MembershipUncheckedCreateWithoutObservationsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutObservationsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+}
+
+export type MembershipUpdateOneRequiredWithoutObservationsNestedInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutObservationsInput, Prisma.MembershipUncheckedCreateWithoutObservationsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutObservationsInput
+  upsert?: Prisma.MembershipUpsertWithoutObservationsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MembershipUpdateToOneWithWhereWithoutObservationsInput, Prisma.MembershipUpdateWithoutObservationsInput>, Prisma.MembershipUncheckedUpdateWithoutObservationsInput>
+}
+
 export type MembershipCreateWithoutUserInput = {
   id?: string
   role: string
   status: string
   business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutUserInput = {
@@ -456,6 +478,7 @@ export type MembershipUncheckedCreateWithoutUserInput = {
   role: string
   status: string
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutUserInput = {
@@ -501,6 +524,7 @@ export type MembershipCreateWithoutBusinessInput = {
   status: string
   user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
   taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutBusinessInput = {
@@ -509,6 +533,7 @@ export type MembershipUncheckedCreateWithoutBusinessInput = {
   role: string
   status: string
   taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutBusinessInput = {
@@ -543,6 +568,7 @@ export type MembershipCreateWithoutTaskCompletionsInput = {
   status: string
   business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
   user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutTaskCompletionsInput = {
@@ -551,6 +577,7 @@ export type MembershipUncheckedCreateWithoutTaskCompletionsInput = {
   userId: string
   role: string
   status: string
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutTaskCompletionsInput = {
@@ -575,6 +602,7 @@ export type MembershipUpdateWithoutTaskCompletionsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
   user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -583,6 +611,59 @@ export type MembershipUncheckedUpdateWithoutTaskCompletionsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
+}
+
+export type MembershipCreateWithoutObservationsInput = {
+  id?: string
+  role: string
+  status: string
+  business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
+  user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
+}
+
+export type MembershipUncheckedCreateWithoutObservationsInput = {
+  id?: string
+  businessId: string
+  userId: string
+  role: string
+  status: string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
+}
+
+export type MembershipCreateOrConnectWithoutObservationsInput = {
+  where: Prisma.MembershipWhereUniqueInput
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutObservationsInput, Prisma.MembershipUncheckedCreateWithoutObservationsInput>
+}
+
+export type MembershipUpsertWithoutObservationsInput = {
+  update: Prisma.XOR<Prisma.MembershipUpdateWithoutObservationsInput, Prisma.MembershipUncheckedUpdateWithoutObservationsInput>
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutObservationsInput, Prisma.MembershipUncheckedCreateWithoutObservationsInput>
+  where?: Prisma.MembershipWhereInput
+}
+
+export type MembershipUpdateToOneWithWhereWithoutObservationsInput = {
+  where?: Prisma.MembershipWhereInput
+  data: Prisma.XOR<Prisma.MembershipUpdateWithoutObservationsInput, Prisma.MembershipUncheckedUpdateWithoutObservationsInput>
+}
+
+export type MembershipUpdateWithoutObservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
+  user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
+}
+
+export type MembershipUncheckedUpdateWithoutObservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateManyUserInput = {
@@ -598,6 +679,7 @@ export type MembershipUpdateWithoutUserInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutUserInput = {
@@ -606,6 +688,7 @@ export type MembershipUncheckedUpdateWithoutUserInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutUserInput = {
@@ -628,6 +711,7 @@ export type MembershipUpdateWithoutBusinessInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
   taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutBusinessInput = {
@@ -636,6 +720,7 @@ export type MembershipUncheckedUpdateWithoutBusinessInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutBusinessInput = {
@@ -652,10 +737,12 @@ export type MembershipUncheckedUpdateManyWithoutBusinessInput = {
 
 export type MembershipCountOutputType = {
   taskCompletions: number
+  observations: number
 }
 
 export type MembershipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   taskCompletions?: boolean | MembershipCountOutputTypeCountTaskCompletionsArgs
+  observations?: boolean | MembershipCountOutputTypeCountObservationsArgs
 }
 
 /**
@@ -675,6 +762,13 @@ export type MembershipCountOutputTypeCountTaskCompletionsArgs<ExtArgs extends ru
   where?: Prisma.TaskCompletionWhereInput
 }
 
+/**
+ * MembershipCountOutputType without action
+ */
+export type MembershipCountOutputTypeCountObservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FieldObservationWhereInput
+}
+
 
 export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -685,6 +779,7 @@ export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ApplicationUserDefaultArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Membership$taskCompletionsArgs<ExtArgs>
+  observations?: boolean | Prisma.Membership$observationsArgs<ExtArgs>
   _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["membership"]>
 
@@ -721,6 +816,7 @@ export type MembershipInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   business?: boolean | Prisma.BusinessDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ApplicationUserDefaultArgs<ExtArgs>
   taskCompletions?: boolean | Prisma.Membership$taskCompletionsArgs<ExtArgs>
+  observations?: boolean | Prisma.Membership$observationsArgs<ExtArgs>
   _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MembershipIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -738,6 +834,7 @@ export type $MembershipPayload<ExtArgs extends runtime.Types.Extensions.Internal
     business: Prisma.$BusinessPayload<ExtArgs>
     user: Prisma.$ApplicationUserPayload<ExtArgs>
     taskCompletions: Prisma.$TaskCompletionPayload<ExtArgs>[]
+    observations: Prisma.$FieldObservationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1142,6 +1239,7 @@ export interface Prisma__MembershipClient<T, Null = never, ExtArgs extends runti
   business<T extends Prisma.BusinessDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BusinessDefaultArgs<ExtArgs>>): Prisma.Prisma__BusinessClient<runtime.Types.Result.GetResult<Prisma.$BusinessPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.ApplicationUserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUserDefaultArgs<ExtArgs>>): Prisma.Prisma__ApplicationUserClient<runtime.Types.Result.GetResult<Prisma.$ApplicationUserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   taskCompletions<T extends Prisma.Membership$taskCompletionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$taskCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  observations<T extends Prisma.Membership$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1598,6 +1696,30 @@ export type Membership$taskCompletionsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.TaskCompletionScalarFieldEnum | Prisma.TaskCompletionScalarFieldEnum[]
+}
+
+/**
+ * Membership.observations
+ */
+export type Membership$observationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FieldObservation
+   */
+  select?: Prisma.FieldObservationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FieldObservation
+   */
+  omit?: Prisma.FieldObservationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FieldObservationInclude<ExtArgs> | null
+  where?: Prisma.FieldObservationWhereInput
+  orderBy?: Prisma.FieldObservationOrderByWithRelationInput | Prisma.FieldObservationOrderByWithRelationInput[]
+  cursor?: Prisma.FieldObservationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FieldObservationScalarFieldEnum | Prisma.FieldObservationScalarFieldEnum[]
 }
 
 /**

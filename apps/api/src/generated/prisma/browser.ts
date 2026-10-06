@@ -113,6 +113,11 @@ export type SeasonContextSnapshot = Prisma.SeasonContextSnapshotModel
  */
 export type TaskCompletion = Prisma.TaskCompletionModel
 /**
+ * Model FieldObservation
+ *
+ */
+export type FieldObservation = Prisma.FieldObservationModel
+/**
  * Model BusinessCommandIdempotencyRecord
  *
  */
