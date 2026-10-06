@@ -445,6 +445,20 @@ When uncertain, do not guess around an architectural or product contradiction.
 
 Surface the decision that is required with the smallest set of options necessary to continue.
 
+## 28. Impeccable Design Workflow
+
+Impeccable is the approved design/UX guidance tool for farmer-facing mobile and future web surfaces. Use it when a task materially creates or changes farmer-facing UI for UX/UI shaping, visual hierarchy, layout and typography, accessibility-oriented review, responsive/adaptive design, design critique, design-system extraction, UI polish, and hardening.
+
+Impeccable provides design guidance only. It must not redefine product scope, override `docs/PRD.md`, architecture decisions, ADRs, or active feature specifications, or invent unsupported product behavior. Business rules remain in domain/server modules, not UI components. The existing Ekim Hasat source-of-truth hierarchy remains authoritative for product-feature work.
+
+`PRODUCT.md` is a helper artifact that gives Impeccable durable product/design context. It is not the authoritative Ekim Hasat PRD. If it conflicts with an explicitly approved product decision, `docs/PRD.md`, `docs/ARCHITECTURE.md`, an ADR, or the active feature specification, that existing source-of-truth hierarchy wins. `/impeccable init` must not silently redefine established product requirements or create a competing source of product truth.
+
+Use Impeccable when work materially creates or changes farmer-facing UI. It is not required for backend-only, migration-only, infrastructure-only, or unrelated non-UI work. For UI work, integrate its shape/craft and critique/audit/polish guidance into the existing process:
+
+> Next-Spec Discovery → Spec Kit → Graft → Superpowers / TDD → Impeccable shape/craft where applicable → Impeccable critique/audit/polish → whole-feature review → speckit-converge
+
+This supplements the approved workflow; it does not replace Spec Kit, Graft, or Superpowers.
+
 <!-- graft:start -->
 ## Graft — repo context graph
 
