@@ -15,9 +15,10 @@ Use **Supabase Auth** as the initial authentication provider behind the authenti
 ## Consequences
 
 - Provider changes remain isolated behind the auth adapter.
+- SPEC-001 V1 mobile sign-in and account creation use email and password through Supabase Auth; other authentication methods remain separate product decisions.
 - The application maps verified provider subjects to stable application User records.
 - Business permissions and tenant scope are resolved by the application API, not inferred from provider identity claims alone.
-- Identity verification policy and exact sign-in methods remain separate product/operational decisions.
+- Other identity verification policies and authentication methods remain separate product/operational decisions.
 
 ## Alternatives considered
 

@@ -1,6 +1,6 @@
 # SPEC-001 Authentication Production Defect Repair
 
-**Status:** In-chat design approved; written design awaiting user review
+**Status:** Approved
 **Date:** 2026-10-07
 **Scope:** Repair the missing farmer-accessible V1 authentication journey in SPEC-001
 **Implementation status:** Not started
@@ -204,4 +204,4 @@ This repair does not add password reset/forgot password, magic-link sign-in, pho
 
 ## 21. Design-to-implementation lifecycle
 
-This is the approved design artifact only. After the user reviews and approves this written document, a separate Superpowers writing-plans step may create the implementation plan. That plan must specify strict TDD. Implementation, Impeccable shape/craft, critique/audit/polish, whole-repair review, and SPEC-001 convergence remain later work; this document alone does not authorize them.
+The user approved this written design on 2026-10-07. The separate implementation plan has been reviewed and approved; implementation follows that plan with strict TDD, Impeccable shape/craft, critique/audit/polish, whole-repair review, and SPEC-001 convergence. This status correction records approval and does not change the design decisions.
