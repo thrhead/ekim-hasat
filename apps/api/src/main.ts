@@ -39,6 +39,9 @@ import { FieldUpdateRepository } from "./fields/fields-update.repository.js";
 import { FieldUpdateService } from "./fields/fields-update.service.js";
 import { createRegionsModule } from "./regions/regions.module.js";
 import { UnavailableRegionResolver } from "./regions/unavailable-region-resolver.js";
+import { createCalendarModule } from "./calendar/calendar.module.js";
+import { CalendarReadRepository } from "./calendar/calendar-read.repository.js";
+import { CalendarPagesService } from "./calendar/calendar-pages.service.js";
 import {
   configureApiObservability,
   createOnboardingCompletionModule,
@@ -139,8 +142,17 @@ async function bootstrap(): Promise<void> {
     update: { verify, updateField: async (identity, fieldId, version, body) => (await fieldsUpdateService.update(identity, fieldId, version, body)).field },
   });
   const regionsModule = createRegionsModule({ prisma, resolver: regionResolver });
+  const calendarMembershipScope = new MembershipScopeService(prisma);
+  const calendarReadRepository = new CalendarReadRepository(prisma, calendarMembershipScope);
+  const calendarPagesService = new CalendarPagesService(prisma, calendarMembershipScope);
+  const calendarModule = createCalendarModule({
+    verify,
+    membershipScope: calendarMembershipScope,
+    createRead: (identity, request) => calendarReadRepository.createRead(identity, request),
+    readPage: (identity, request) => calendarPagesService.read(identity, request),
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, observationModule, weatherModule, fieldsModule, regionsModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, observationModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

@@ -71,6 +71,9 @@ export const ModelName = {
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
   FieldObservation: 'FieldObservation',
+  CalendarReadSnapshot: 'CalendarReadSnapshot',
+  CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
+  CalendarReadCursor: 'CalendarReadCursor',
   BusinessCommandIdempotencyRecord: 'BusinessCommandIdempotencyRecord'
 } as const
 
@@ -372,6 +375,62 @@ export const FieldObservationScalarFieldEnum = {
 } as const
 
 export type FieldObservationScalarFieldEnum = (typeof FieldObservationScalarFieldEnum)[keyof typeof FieldObservationScalarFieldEnum]
+
+
+export const CalendarReadSnapshotScalarFieldEnum = {
+  readId: 'readId',
+  userId: 'userId',
+  membershipId: 'membershipId',
+  businessId: 'businessId',
+  fieldScopeKind: 'fieldScopeKind',
+  fieldId: 'fieldId',
+  includedFieldIds: 'includedFieldIds',
+  selectedDate: 'selectedDate',
+  businessTimezone: 'businessTimezone',
+  businessLocalToday: 'businessLocalToday',
+  monthStart: 'monthStart',
+  monthEnd: 'monthEnd',
+  queryVersion: 'queryVersion',
+  monthIndicators: 'monthIndicators',
+  asOf: 'asOf',
+  expiresAt: 'expiresAt',
+  state: 'state'
+} as const
+
+export type CalendarReadSnapshotScalarFieldEnum = (typeof CalendarReadSnapshotScalarFieldEnum)[keyof typeof CalendarReadSnapshotScalarFieldEnum]
+
+
+export const CalendarReadSnapshotTaskScalarFieldEnum = {
+  id: 'id',
+  readId: 'readId',
+  group: 'group',
+  taskId: 'taskId',
+  title: 'title',
+  description: 'description',
+  plannedLocalDate: 'plannedLocalDate',
+  taskVersion: 'taskVersion',
+  fieldId: 'fieldId',
+  fieldName: 'fieldName',
+  seasonId: 'seasonId',
+  seasonContext: 'seasonContext',
+  planContext: 'planContext',
+  overdue: 'overdue'
+} as const
+
+export type CalendarReadSnapshotTaskScalarFieldEnum = (typeof CalendarReadSnapshotTaskScalarFieldEnum)[keyof typeof CalendarReadSnapshotTaskScalarFieldEnum]
+
+
+export const CalendarReadCursorScalarFieldEnum = {
+  id: 'id',
+  readId: 'readId',
+  group: 'group',
+  token: 'token',
+  lastPlannedLocalDate: 'lastPlannedLocalDate',
+  lastTaskId: 'lastTaskId',
+  createdAt: 'createdAt'
+} as const
+
+export type CalendarReadCursorScalarFieldEnum = (typeof CalendarReadCursorScalarFieldEnum)[keyof typeof CalendarReadCursorScalarFieldEnum]
 
 
 export const BusinessCommandIdempotencyRecordScalarFieldEnum = {

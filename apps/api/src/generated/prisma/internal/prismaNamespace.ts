@@ -417,6 +417,9 @@ export const ModelName = {
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
   FieldObservation: 'FieldObservation',
+  CalendarReadSnapshot: 'CalendarReadSnapshot',
+  CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
+  CalendarReadCursor: 'CalendarReadCursor',
   BusinessCommandIdempotencyRecord: 'BusinessCommandIdempotencyRecord'
 } as const
 
@@ -433,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "fieldObservation" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1869,6 +1872,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CalendarReadSnapshot: {
+      payload: Prisma.$CalendarReadSnapshotPayload<ExtArgs>
+      fields: Prisma.CalendarReadSnapshotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CalendarReadSnapshotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CalendarReadSnapshotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        findFirst: {
+          args: Prisma.CalendarReadSnapshotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CalendarReadSnapshotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        findMany: {
+          args: Prisma.CalendarReadSnapshotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>[]
+        }
+        create: {
+          args: Prisma.CalendarReadSnapshotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        createMany: {
+          args: Prisma.CalendarReadSnapshotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CalendarReadSnapshotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>[]
+        }
+        delete: {
+          args: Prisma.CalendarReadSnapshotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        update: {
+          args: Prisma.CalendarReadSnapshotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        deleteMany: {
+          args: Prisma.CalendarReadSnapshotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CalendarReadSnapshotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CalendarReadSnapshotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>[]
+        }
+        upsert: {
+          args: Prisma.CalendarReadSnapshotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotPayload>
+        }
+        aggregate: {
+          args: Prisma.CalendarReadSnapshotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCalendarReadSnapshot>
+        }
+        groupBy: {
+          args: Prisma.CalendarReadSnapshotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadSnapshotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CalendarReadSnapshotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadSnapshotCountAggregateOutputType> | number
+        }
+      }
+    }
+    CalendarReadSnapshotTask: {
+      payload: Prisma.$CalendarReadSnapshotTaskPayload<ExtArgs>
+      fields: Prisma.CalendarReadSnapshotTaskFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CalendarReadSnapshotTaskFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CalendarReadSnapshotTaskFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        findFirst: {
+          args: Prisma.CalendarReadSnapshotTaskFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CalendarReadSnapshotTaskFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        findMany: {
+          args: Prisma.CalendarReadSnapshotTaskFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>[]
+        }
+        create: {
+          args: Prisma.CalendarReadSnapshotTaskCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        createMany: {
+          args: Prisma.CalendarReadSnapshotTaskCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CalendarReadSnapshotTaskCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>[]
+        }
+        delete: {
+          args: Prisma.CalendarReadSnapshotTaskDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        update: {
+          args: Prisma.CalendarReadSnapshotTaskUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        deleteMany: {
+          args: Prisma.CalendarReadSnapshotTaskDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CalendarReadSnapshotTaskUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CalendarReadSnapshotTaskUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>[]
+        }
+        upsert: {
+          args: Prisma.CalendarReadSnapshotTaskUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadSnapshotTaskPayload>
+        }
+        aggregate: {
+          args: Prisma.CalendarReadSnapshotTaskAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCalendarReadSnapshotTask>
+        }
+        groupBy: {
+          args: Prisma.CalendarReadSnapshotTaskGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadSnapshotTaskGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CalendarReadSnapshotTaskCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadSnapshotTaskCountAggregateOutputType> | number
+        }
+      }
+    }
+    CalendarReadCursor: {
+      payload: Prisma.$CalendarReadCursorPayload<ExtArgs>
+      fields: Prisma.CalendarReadCursorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CalendarReadCursorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CalendarReadCursorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        findFirst: {
+          args: Prisma.CalendarReadCursorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CalendarReadCursorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        findMany: {
+          args: Prisma.CalendarReadCursorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>[]
+        }
+        create: {
+          args: Prisma.CalendarReadCursorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        createMany: {
+          args: Prisma.CalendarReadCursorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CalendarReadCursorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>[]
+        }
+        delete: {
+          args: Prisma.CalendarReadCursorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        update: {
+          args: Prisma.CalendarReadCursorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        deleteMany: {
+          args: Prisma.CalendarReadCursorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CalendarReadCursorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CalendarReadCursorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>[]
+        }
+        upsert: {
+          args: Prisma.CalendarReadCursorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CalendarReadCursorPayload>
+        }
+        aggregate: {
+          args: Prisma.CalendarReadCursorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCalendarReadCursor>
+        }
+        groupBy: {
+          args: Prisma.CalendarReadCursorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadCursorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CalendarReadCursorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CalendarReadCursorCountAggregateOutputType> | number
+        }
+      }
+    }
     BusinessCommandIdempotencyRecord: {
       payload: Prisma.$BusinessCommandIdempotencyRecordPayload<ExtArgs>
       fields: Prisma.BusinessCommandIdempotencyRecordFieldRefs
@@ -2266,6 +2491,62 @@ export const FieldObservationScalarFieldEnum = {
 export type FieldObservationScalarFieldEnum = (typeof FieldObservationScalarFieldEnum)[keyof typeof FieldObservationScalarFieldEnum]
 
 
+export const CalendarReadSnapshotScalarFieldEnum = {
+  readId: 'readId',
+  userId: 'userId',
+  membershipId: 'membershipId',
+  businessId: 'businessId',
+  fieldScopeKind: 'fieldScopeKind',
+  fieldId: 'fieldId',
+  includedFieldIds: 'includedFieldIds',
+  selectedDate: 'selectedDate',
+  businessTimezone: 'businessTimezone',
+  businessLocalToday: 'businessLocalToday',
+  monthStart: 'monthStart',
+  monthEnd: 'monthEnd',
+  queryVersion: 'queryVersion',
+  monthIndicators: 'monthIndicators',
+  asOf: 'asOf',
+  expiresAt: 'expiresAt',
+  state: 'state'
+} as const
+
+export type CalendarReadSnapshotScalarFieldEnum = (typeof CalendarReadSnapshotScalarFieldEnum)[keyof typeof CalendarReadSnapshotScalarFieldEnum]
+
+
+export const CalendarReadSnapshotTaskScalarFieldEnum = {
+  id: 'id',
+  readId: 'readId',
+  group: 'group',
+  taskId: 'taskId',
+  title: 'title',
+  description: 'description',
+  plannedLocalDate: 'plannedLocalDate',
+  taskVersion: 'taskVersion',
+  fieldId: 'fieldId',
+  fieldName: 'fieldName',
+  seasonId: 'seasonId',
+  seasonContext: 'seasonContext',
+  planContext: 'planContext',
+  overdue: 'overdue'
+} as const
+
+export type CalendarReadSnapshotTaskScalarFieldEnum = (typeof CalendarReadSnapshotTaskScalarFieldEnum)[keyof typeof CalendarReadSnapshotTaskScalarFieldEnum]
+
+
+export const CalendarReadCursorScalarFieldEnum = {
+  id: 'id',
+  readId: 'readId',
+  group: 'group',
+  token: 'token',
+  lastPlannedLocalDate: 'lastPlannedLocalDate',
+  lastTaskId: 'lastTaskId',
+  createdAt: 'createdAt'
+} as const
+
+export type CalendarReadCursorScalarFieldEnum = (typeof CalendarReadCursorScalarFieldEnum)[keyof typeof CalendarReadCursorScalarFieldEnum]
+
+
 export const BusinessCommandIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -2598,6 +2879,9 @@ export type GlobalOmitConfig = {
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
   fieldObservation?: Prisma.FieldObservationOmit
+  calendarReadSnapshot?: Prisma.CalendarReadSnapshotOmit
+  calendarReadSnapshotTask?: Prisma.CalendarReadSnapshotTaskOmit
+  calendarReadCursor?: Prisma.CalendarReadCursorOmit
   businessCommandIdempotencyRecord?: Prisma.BusinessCommandIdempotencyRecordOmit
 }
 

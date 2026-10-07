@@ -17,7 +17,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -207,6 +207,7 @@ export function createAppComposition(
       publish({ ...state, entry: "season-review", seasonDraft: draft });
     },
     showToday() { publish({ ...state, entry: "today", seasonDraft: null, historyFieldId: null, historySeasonId: null }); },
+    showCalendar() { publish({ ...state, entry: "calendar", seasonDraft: null, historyFieldId: null, historySeasonId: null }); },
     showFields() { publish({ ...state, entry: "fields-list", seasonDraft: null, historyFieldId: null, historySeasonId: null, editingField: null }); },
     openField(fieldId: string) { publish({ ...state, entry: "field-detail", fieldId, editingField: null, seasonDraft: null }); },
     showObservationCreate(fieldId: string, seasonId?: string) {

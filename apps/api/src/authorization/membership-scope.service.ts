@@ -2,7 +2,7 @@ import {
   type VerifiedSubject,
 } from "@ekim-hasat/domain/identity/auth-provider";
 import { ForbiddenException } from "@nestjs/common";
-import type { PrismaClient } from "../generated/prisma/client.js";
+import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
 
 export type AuthorizedBusinessScope = Readonly<{
   userId: string;
@@ -29,9 +29,9 @@ export class MembershipScopeService {
 
   async resolveDefaultBusinessScope(
     identity: VerifiedSubject,
+    transactionClient?: Prisma.TransactionClient,
   ): Promise<AuthorizedBusinessScope | null> {
-    return this.prisma.$transaction(
-      async (tx) => {
+    const resolve = async (tx: Prisma.TransactionClient): Promise<AuthorizedBusinessScope | null> => {
         const user = await tx.applicationUser.findUnique({
           where: {
             authProvider_authSubject: {
@@ -71,8 +71,9 @@ export class MembershipScopeService {
           membershipId: membership.id,
           role: membership.role,
         });
-      },
-      { isolationLevel: "RepeatableRead" },
-    );
+    };
+
+    if (transactionClient) return resolve(transactionClient);
+    return this.prisma.$transaction(resolve, { isolationLevel: "RepeatableRead" });
   }
 }

@@ -46,9 +46,10 @@ describe("production Tarlalar navigation", () => {
     app.dispose();
   });
 
-  it("does not add a Calendar route or change the existing Today and History route meanings", () => {
+  it("adds Calendar without changing the existing Today and History route meanings", () => {
     const app = setup();
-    expect("showCalendar" in app).toBe(false);
+    app.showCalendar();
+    expect(app.getState().entry).toBe("calendar");
     app.showToday();
     expect(app.getState().entry).toBe("today");
     app.showHistory("field-2");
