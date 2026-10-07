@@ -47,6 +47,8 @@ function setup(
       sessionListener = listener;
       return () => { sessionListener = undefined; };
     },
+    signIn: async () => ({ ok: true, value: undefined }),
+    signUp: async () => ({ ok: true, value: "confirmation-required" }),
     signOut: async () => { sessionListener?.(null); },
   };
   const controller = createMobileAuthController(auth, {

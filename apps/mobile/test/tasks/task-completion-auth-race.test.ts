@@ -24,6 +24,8 @@ function authPort(initial: AuthSession | null) {
       listener = next;
       return () => { listener = null; };
     },
+    signIn: async () => ({ ok: true, value: undefined }),
+    signUp: async () => ({ ok: true, value: "confirmation-required" }),
     signOut: async () => {
       current = null;
       listener?.(null);
