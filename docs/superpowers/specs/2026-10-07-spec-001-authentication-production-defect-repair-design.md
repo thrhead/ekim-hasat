@@ -3,7 +3,7 @@
 **Status:** Approved
 **Date:** 2026-10-07
 **Scope:** Repair the missing farmer-accessible V1 authentication journey in SPEC-001
-**Implementation status:** Not started
+**Implementation status:** Repair tasks T052–T055 implemented; real Supabase/device runtime acceptance remains pending as of 2026-10-07.
 
 ## 1. Defect statement and evidence
 

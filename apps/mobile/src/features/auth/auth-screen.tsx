@@ -108,7 +108,7 @@ export function AuthScreen({ onSignIn, onSignUp }: Props) {
         {confirmationRequired ? (
           <View>
             <Text accessibilityRole="text" accessibilityLiveRegion="polite" allowFontScaling style={styles.status}>
-              Hesabınız oluşturuldu. E-posta adresinizi doğrulayın, ardından giriş yapın.
+              E-postanızı kontrol edin. Gerekliyse doğrulama adımlarını tamamlayıp giriş yapın.
             </Text>
             <Pressable
               accessibilityRole="button"

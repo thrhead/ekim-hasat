@@ -4,7 +4,25 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput,
 import { AuthScreen } from "../../../src/features/auth/auth-screen";
 import type { AuthOperationResult, SignupOutcome } from "../../../src/auth/auth-port";
 
-type TestNode = { props: Record<string, any>; type: unknown };
+type TestNodeProps = Record<string, unknown> & {
+  accessibilityLabel?: string;
+  accessibilityRole?: string;
+  accessibilityLiveRegion?: string;
+  accessibilityState?: { disabled?: boolean; busy?: boolean };
+  allowFontScaling?: boolean;
+  autoCapitalize?: string;
+  disabled?: boolean;
+  keyboardShouldPersistTaps?: string;
+  keyboardType?: string;
+  onChangeText?: (value: string) => void;
+  onPress?: () => void;
+  onSubmitEditing?: () => void;
+  returnKeyType?: string;
+  style?: unknown;
+  value?: string;
+  children?: React.ReactNode;
+};
+type TestNode = { props: TestNodeProps; type: unknown };
 type TestRenderer = { root: {
   findAll(predicate: (node: TestNode) => boolean): TestNode[];
   findAllByType(type: unknown): TestNode[];
@@ -35,11 +53,11 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 function press(renderer: TestRenderer, label: string) {
-  act(() => findByLabel(renderer, label).props.onPress());
+  act(() => findByLabel(renderer, label).props.onPress?.());
 }
 
 function change(renderer: TestRenderer, label: string, value: string) {
-  act(() => findByLabel(renderer, label).props.onChangeText(value));
+  act(() => findByLabel(renderer, label).props.onChangeText?.(value));
 }
 
 const succeeded = { ok: true as const, value: undefined } satisfies AuthOperationResult<void>;
@@ -65,13 +83,13 @@ describe("signed-out authentication screen", () => {
     const onSignIn = jest.fn(async () => succeeded);
     let renderer!: TestRenderer;
     act(() => { renderer = create(<AuthScreen onSignIn={onSignIn} onSignUp={jest.fn(async () => confirmationRequired)} />) as unknown as TestRenderer; });
-    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(onSignIn).not.toHaveBeenCalled();
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children).toBe("E-posta adresinizi ve şifrenizi girin.");
 
     change(renderer, "E-posta adresi", "not-an-email");
     change(renderer, "Şifre", "password");
-    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(onSignIn).not.toHaveBeenCalled();
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children).toBe("Geçerli bir e-posta adresi girin.");
   });
@@ -84,11 +102,11 @@ describe("signed-out authentication screen", () => {
     change(renderer, "E-posta adresi", "  farmer@example.test  ");
     change(renderer, "Şifre", " pass with edges ");
 
-    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(onSignIn).toHaveBeenCalledTimes(1);
     expect(onSignIn).toHaveBeenCalledWith("farmer@example.test", " pass with edges ");
     expect(findByLabel(renderer, "Giriş yap").props.disabled).toBe(true);
-    expect(findByLabel(renderer, "Giriş yap").props.accessibilityState.busy).toBe(true);
+    expect(findByLabel(renderer, "Giriş yap").props.accessibilityState?.busy).toBe(true);
     expect(findNode(renderer, (node) => node.props.accessibilityLabel === "Kimlik doğrulama sürüyor" && node.props.accessibilityRole === "progressbar")).toBeDefined();
     await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(onSignIn).toHaveBeenCalledTimes(1);
@@ -102,7 +120,7 @@ describe("signed-out authentication screen", () => {
     act(() => { renderer = create(<AuthScreen onSignIn={onSignIn} onSignUp={jest.fn(async () => confirmationRequired)} />) as unknown as TestRenderer; });
     change(renderer, "E-posta adresi", "farmer@example.test");
     change(renderer, "Şifre", "wrong");
-    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children).toBe("E-posta veya şifre hatalı. Bilgilerinizi kontrol edip yeniden deneyin.");
     expect(findByLabel(renderer, "E-posta adresi").props.value).toBe("farmer@example.test");
     expect(findByLabel(renderer, "Şifre").props.value).toBe("");
@@ -114,14 +132,14 @@ describe("signed-out authentication screen", () => {
     act(() => { renderer = create(<AuthScreen onSignIn={onSignIn} onSignUp={jest.fn(async () => confirmationRequired)} />) as unknown as TestRenderer; });
     change(renderer, "E-posta adresi", "farmer@example.test");
     change(renderer, "Şifre", "secret");
-    await act(async () => { findByLabel(renderer, "Şifre").props.onSubmitEditing(); });
+    await act(async () => { findByLabel(renderer, "Şifre").props.onSubmitEditing?.(); });
 
     expect(onSignIn).toHaveBeenCalledTimes(1);
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children)
       .toBe("Şu anda giriş yapılamıyor. Bağlantınızı kontrol edip yeniden deneyin.");
     const email = findByLabel(renderer, "E-posta adresi");
     expect(typeof email.props.onSubmitEditing).toBe("function");
-    await act(async () => { email.props.onSubmitEditing(); });
+    await act(async () => { email.props.onSubmitEditing?.(); });
     expect(onSignIn).toHaveBeenCalledTimes(1);
   });
 
@@ -146,9 +164,9 @@ describe("signed-out authentication screen", () => {
     expect(renderer.root.findAllByType(Text).some((node) => node.props.children === "Hesap oluştur")).toBe(true);
     change(renderer, "E-posta adresi", "new@example.test");
     change(renderer, "Şifre", "long-password");
-    await act(async () => { findByLabel(renderer, "Hesap oluştur").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Hesap oluştur").props.onPress?.(); });
     expect(onSignUp).toHaveBeenCalledWith("new@example.test", "long-password");
-    expect(findNode(renderer, (node) => node.props.accessibilityLiveRegion === "polite").props.children).toBe("Hesabınız oluşturuldu. E-posta adresinizi doğrulayın, ardından giriş yapın.");
+    expect(findNode(renderer, (node) => node.props.accessibilityLiveRegion === "polite").props.children).toBe("E-postanızı kontrol edin. Gerekliyse doğrulama adımlarını tamamlayıp giriş yapın.");
     press(renderer, "Giriş yap");
     expect(renderer.root.findAllByType(TextInput).some((node) => node.props.value === "")).toBe(true);
     expect(renderer.root.findAllByType(Text).some((node) => node.props.children === "Giriş yap")).toBe(true);
@@ -162,7 +180,7 @@ describe("signed-out authentication screen", () => {
     press(renderer, "Hesap oluştur");
     change(renderer, "E-posta adresi", "existing@example.test");
     change(renderer, "Şifre", "password");
-    await act(async () => { findByLabel(renderer, "Hesap oluştur").props.onPress(); });
+    await act(async () => { findByLabel(renderer, "Hesap oluştur").props.onPress?.(); });
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children).toBe("Hesap oluşturulamadı. Bilgilerinizi kontrol edip yeniden deneyin.");
 
     const email = findByLabel(renderer, "E-posta adresi");
@@ -173,7 +191,7 @@ describe("signed-out authentication screen", () => {
       expect(text.props.allowFontScaling).not.toBe(false);
     }
     for (const control of [...renderer.root.findAllByType(TextInput), ...renderer.root.findAllByType(Pressable)]) {
-      expect(control.props.style?.minHeight ?? control.props.style?.[0]?.minHeight).toBeGreaterThanOrEqual(48);
+      expect(flattenStyle(control.props.style).minHeight).toBeGreaterThanOrEqual(48);
     }
     const scroll = renderer.root.findByType(ScrollView);
     expect(scroll.props.keyboardShouldPersistTaps).toBe("handled");
