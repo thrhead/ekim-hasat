@@ -1,6 +1,6 @@
 import React from "react";
 import { act, create } from "react-test-renderer";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { AuthScreen } from "../../../src/features/auth/auth-screen";
 import type { AuthOperationResult, SignupOutcome } from "../../../src/auth/auth-port";
 
@@ -17,6 +17,21 @@ function findByLabel(renderer: TestRenderer, label: string): TestNode {
 
 function findNode(renderer: TestRenderer, predicate: (node: TestNode) => boolean): TestNode {
   return renderer.root.findAll(predicate)[0]!;
+}
+
+function flattenStyle(style: unknown): Record<string, unknown> {
+  if (Array.isArray(style)) return Object.assign({}, ...style.map(flattenStyle));
+  return typeof style === "object" && style !== null ? style as Record<string, unknown> : {};
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const luminance = (hex: string) => {
+    const channels = hex.replace("#", "").match(/.{2}/g)!.map((channel) => parseInt(channel, 16) / 255);
+    const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * linear[0]! + 0.7152 * linear[1]! + 0.0722 * linear[2]!;
+  };
+  const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+  return (values[0]! + 0.05) / (values[1]! + 0.05);
 }
 
 function press(renderer: TestRenderer, label: string) {
@@ -73,6 +88,7 @@ describe("signed-out authentication screen", () => {
     expect(onSignIn).toHaveBeenCalledTimes(1);
     expect(onSignIn).toHaveBeenCalledWith("farmer@example.test", " pass with edges ");
     expect(findByLabel(renderer, "Giriş yap").props.disabled).toBe(true);
+    expect(findByLabel(renderer, "Giriş yap").props.accessibilityState.busy).toBe(true);
     expect(findNode(renderer, (node) => node.props.accessibilityLabel === "Kimlik doğrulama sürüyor" && node.props.accessibilityRole === "progressbar")).toBeDefined();
     await act(async () => { findByLabel(renderer, "Giriş yap").props.onPress?.(); });
     expect(onSignIn).toHaveBeenCalledTimes(1);
@@ -90,6 +106,36 @@ describe("signed-out authentication screen", () => {
     expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children).toBe("E-posta veya şifre hatalı. Bilgilerinizi kontrol edip yeniden deneyin.");
     expect(findByLabel(renderer, "E-posta adresi").props.value).toBe("farmer@example.test");
     expect(findByLabel(renderer, "Şifre").props.value).toBe("");
+  });
+
+  it("shows a generic unavailable message and keeps keyboard progression native", async () => {
+    const onSignIn = jest.fn(async () => ({ ok: false as const, error: "UNAVAILABLE" as const }));
+    let renderer!: TestRenderer;
+    act(() => { renderer = create(<AuthScreen onSignIn={onSignIn} onSignUp={jest.fn(async () => confirmationRequired)} />) as unknown as TestRenderer; });
+    change(renderer, "E-posta adresi", "farmer@example.test");
+    change(renderer, "Şifre", "secret");
+    await act(async () => { findByLabel(renderer, "Şifre").props.onSubmitEditing(); });
+
+    expect(onSignIn).toHaveBeenCalledTimes(1);
+    expect(findNode(renderer, (node) => node.props.accessibilityRole === "alert").props.children)
+      .toBe("Şu anda giriş yapılamıyor. Bağlantınızı kontrol edip yeniden deneyin.");
+    const email = findByLabel(renderer, "E-posta adresi");
+    expect(typeof email.props.onSubmitEditing).toBe("function");
+    await act(async () => { email.props.onSubmitEditing(); });
+    expect(onSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the form above the Android keyboard", () => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(Platform, "OS");
+    Object.defineProperty(Platform, "OS", { configurable: true, value: "android" });
+    try {
+      let renderer!: TestRenderer;
+      act(() => { renderer = create(<AuthScreen onSignIn={jest.fn(async () => succeeded)} onSignUp={jest.fn(async () => confirmationRequired)} />) as unknown as TestRenderer; });
+      expect(renderer.root.findByType(KeyboardAvoidingView).props.behavior).toBe("height");
+    } finally {
+      if (originalPlatform) Object.defineProperty(Platform, "OS", originalPlatform);
+      else delete (Platform as unknown as { OS?: string }).OS;
+    }
   });
 
   it("supports account creation, confirmation-required, and return to sign-in", async () => {
@@ -123,12 +169,22 @@ describe("signed-out authentication screen", () => {
     const password = findByLabel(renderer, "Şifre");
     expect(email.props.returnKeyType).toBe("next");
     expect(password.props.returnKeyType).toBe("go");
+    for (const text of [...renderer.root.findAllByType(Text), ...renderer.root.findAllByType(TextInput)]) {
+      expect(text.props.allowFontScaling).not.toBe(false);
+    }
     for (const control of [...renderer.root.findAllByType(TextInput), ...renderer.root.findAllByType(Pressable)]) {
-      expect(control.props.allowFontScaling).not.toBe(false);
       expect(control.props.style?.minHeight ?? control.props.style?.[0]?.minHeight).toBeGreaterThanOrEqual(48);
     }
     const scroll = renderer.root.findByType(ScrollView);
     expect(scroll.props.keyboardShouldPersistTaps).toBe("handled");
     expect(renderer.root.findAllByType(View).some((node) => node.props.accessibilityLiveRegion === "polite")).toBe(true);
+
+    const colors = renderer.root.findAllByType(Text)
+      .map((node) => flattenStyle(node.props.style).color)
+      .filter((color): color is string => typeof color === "string");
+    for (const color of colors) {
+      const background = color.toLowerCase() === "#ffffff" ? "#245b35" : "#ffffff";
+      expect(contrastRatio(color, background)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

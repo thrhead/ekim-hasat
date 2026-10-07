@@ -2,7 +2,7 @@ jest.mock("@react-native-async-storage/async-storage", () => (
   jest.requireActual("@react-native-async-storage/async-storage/jest/async-storage-mock")
 ));
 
-import { createMobileAuthController, type AuthSession, type MobileAuthPort } from "../src/auth/auth-port";
+import { createMobileAuthController, type AuthOperationResult, type AuthSession, type MobileAuthPort, type SignupOutcome } from "../src/auth/auth-port";
 import { createAppComposition } from "../src/app-composition";
 import { navigatePrimaryDestination } from "../App";
 import { createOnboardingDraftLifecycle } from "../src/features/onboarding/onboarding-draft.lifecycle";
@@ -41,14 +41,16 @@ function setup(
   const purgedAccounts: string[] = [];
   let sessionListener: ((session: AuthSession | null) => void) | undefined;
   let restore: (session: AuthSession | null) => void = () => {};
+  const signIn = jest.fn(async () => ({ ok: true as const, value: undefined }));
+  const signUp = jest.fn<Promise<AuthOperationResult<SignupOutcome>>, [string, string]>(async () => ({ ok: true, value: "confirmation-required" }));
   const auth: MobileAuthPort = {
     restoreSession: () => new Promise((resolve) => { restore = resolve; }),
     onSessionChange: (listener) => {
       sessionListener = listener;
       return () => { sessionListener = undefined; };
     },
-    signIn: async () => ({ ok: true, value: undefined }),
-    signUp: async () => ({ ok: true, value: "confirmation-required" }),
+    signIn,
+    signUp,
     signOut: async () => { sessionListener?.(null); },
   };
   const controller = createMobileAuthController(auth, {
@@ -62,6 +64,8 @@ function setup(
   return {
     app,
     controller,
+    signIn,
+    signUp,
     fetchMock,
     authenticate: (accountId = "account-1") => sessionListener?.({ accountId, accessToken: "session-token" }),
     finishRestore: (session: AuthSession | null = null) => restore(session),
@@ -105,13 +109,50 @@ describe("production app composition", () => {
     expect(app.getState().entry).toBe("loading");
   });
 
-  it("keeps signed-out users on the existing shell without sign-in UI", async () => {
-    const { app, finishRestore, fetchMock } = setup();
+  it("forwards authentication operations without treating operation results as auth state", async () => {
+    const { app, finishRestore, fetchMock, signIn, signUp } = setup();
     finishRestore(null);
     await settle();
+
+    await expect(app.signIn("farmer@example.test", "password-value")).resolves.toEqual({ ok: true, value: undefined });
+    signUp.mockResolvedValue({ ok: true, value: "session-issued" });
+    await expect(app.signUp("new@example.test", "password-value")).resolves.toEqual({ ok: true, value: "session-issued" });
+    expect(signIn).toHaveBeenCalledWith("farmer@example.test", "password-value");
+    expect(signUp).toHaveBeenCalledWith("new@example.test", "password-value");
     expect(app.getState().auth.status).toBe("signed-out");
     expect(app.getState().client).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps a confirmation-required signup signed out without making an API request", async () => {
+    const { app, finishRestore, fetchMock } = setup();
+    finishRestore(null);
+    await settle();
+
+    await expect(app.signUp("new@example.test", "password-value"))
+      .resolves.toEqual({ ok: true, value: "confirmation-required" });
+    expect(app.getState().auth.status).toBe("signed-out");
+    expect(app.getState().client).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("only starts onboarding status after the session observer publishes a signup session", async () => {
+    const fetchMock = jest.fn<Promise<Response>, [input: RequestInfo | URL, init?: RequestInit]>()
+      .mockResolvedValue(response({ firstFieldOnboardingNeeded: true }));
+    const { app, finishRestore, signUp, authenticate } = setup(fetchMock);
+    finishRestore(null);
+    await settle();
+    signUp.mockResolvedValue({ ok: true, value: "session-issued" });
+
+    await app.signUp("new@example.test", "password-value");
+    expect(app.getState().auth.status).toBe("signed-out");
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    authenticate();
+    await settle();
+    expect(app.getState().auth).toEqual({ status: "authenticated", accountId: "account-1" });
+    expect(app.getState().entry).toBe("first-field-onboarding");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("routes an authenticated new farmer to the first-field screen entry", async () => {

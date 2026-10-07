@@ -98,7 +98,7 @@ export function AuthScreen({ onSignIn, onSignUp }: Props) {
   const submitLabel = mode === "sign-in" ? "Giriş yap" : "Hesap oluştur";
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.headingBlock}>
           <Text accessibilityRole="header" allowFontScaling style={styles.title}>{confirmationRequired ? "E-postanızı doğrulayın" : submitLabel}</Text>
