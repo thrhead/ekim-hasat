@@ -4,6 +4,7 @@ jest.mock("@react-native-async-storage/async-storage", () => (
 
 import { createMobileAuthController, type AuthSession, type MobileAuthPort } from "../src/auth/auth-port";
 import { createAppComposition } from "../src/app-composition";
+import { navigatePrimaryDestination } from "../App";
 import { createOnboardingDraftLifecycle } from "../src/features/onboarding/onboarding-draft.lifecycle";
 import { createSeasonCreateCommandStore, type SeasonCreateCommand, type SeasonCreateCommandStorage, type SeasonCreateResult } from "../src/features/seasons/season-create-command-store";
 import { createTaskCompletionCommandStore, type TaskCompletionCommand, type TaskCompletionCommandStorage, type TodaySnapshot } from "../src/features/tasks/task-completion-command-store";
@@ -76,6 +77,12 @@ async function settle() {
 }
 
 describe("production app composition", () => {
+  it("routes the app shell's Takvim navigation action into Calendar route state", () => {
+    const { app } = setup();
+    navigatePrimaryDestination(app, "calendar");
+    expect(app.getState().entry).toBe("calendar");
+  });
+
   it("routes an activated season into the read-only Today surface", () => {
     const { app } = setup();
     app.showToday();

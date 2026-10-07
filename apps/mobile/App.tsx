@@ -13,6 +13,7 @@ import { FieldCreateScreen } from "./src/features/fields/field-create-screen";
 import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
+import { CalendarScreen } from "./src/features/calendar/calendar-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -103,6 +104,10 @@ export default function App() {
       onOpenHistory={(fieldId, seasonId) => compositionRef.current?.showHistory(fieldId, seasonId)} />
     <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
   </View>;
+  if (state.entry === "calendar" && state.client && state.accountId) return <View style={styles.appScreen}>
+    <CalendarScreen key={state.accountId} client={state.client} accountId={state.accountId} />
+    <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
+  </View>;
   if (state.entry === "history" && state.client && state.accountId && state.historyFieldId) return <View style={styles.appScreen}>
     <TaskCompletionHistoryScreen
       key={`${state.auth.status === "authenticated" ? state.auth.accountId : ""}:${state.historyFieldId}:${state.historySeasonId ?? "all"}`}
@@ -132,10 +137,18 @@ export default function App() {
   return <AppShell />;
 
   function navigate(item: typeof APP_PRIMARY_NAVIGATION[number]["id"]) {
-    if (item === "today") compositionRef.current?.showToday();
-    if (item === "fields") compositionRef.current?.showFields();
-    if (item === "create") compositionRef.current?.startFieldCreate();
+    if (compositionRef.current) navigatePrimaryDestination(compositionRef.current, item);
   }
+}
+
+export function navigatePrimaryDestination(
+  composition: Pick<ReturnType<typeof createAppComposition>, "showToday" | "showCalendar" | "showFields" | "startFieldCreate">,
+  item: typeof APP_PRIMARY_NAVIGATION[number]["id"],
+) {
+  if (item === "today") composition.showToday();
+  if (item === "calendar") composition.showCalendar();
+  if (item === "fields") composition.showFields();
+  if (item === "create") composition.startFieldCreate();
 }
 
 /** The production App renders the contextual observation and diary screens through this route seam. */
@@ -156,8 +169,8 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
 function PrimaryNavigation({ entry, onNavigate }: { entry: string; onNavigate: (item: typeof APP_PRIMARY_NAVIGATION[number]["id"]) => void }) {
   return <View accessibilityLabel="Navigazione principale" style={styles.navigation}>
     {APP_PRIMARY_NAVIGATION.map((item) => {
-      const disabled = item.id === "calendar" || item.id === "more";
-      const selected = (item.id === "today" && entry === "today") || (item.id === "fields" && entry.startsWith("field"));
+      const disabled = item.id === "more";
+      const selected = (item.id === "today" && entry === "today") || (item.id === "calendar" && entry === "calendar") || (item.id === "fields" && entry.startsWith("field"));
       return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={item.label} accessibilityState={{ selected, disabled }} disabled={disabled} onPress={() => onNavigate(item.id)} style={styles.navigationItem}>
         <Text style={selected ? styles.navigationSelected : styles.navigationLabel}>{item.label}</Text>
       </Pressable>;

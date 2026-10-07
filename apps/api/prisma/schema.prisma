@@ -429,6 +429,68 @@ model FieldObservation {
   @@map("field_observations")
 }
 
+model CalendarReadSnapshot {
+  readId             String                     @id @default(uuid()) @map("read_id") @db.Uuid
+  userId             String                     @map("user_id") @db.Uuid
+  membershipId       String                     @map("membership_id") @db.Uuid
+  businessId         String                     @map("business_id") @db.Uuid
+  fieldScopeKind     String                     @map("field_scope_kind")
+  fieldId            String?                    @map("field_id") @db.Uuid
+  includedFieldIds   Json                       @map("included_field_ids")
+  selectedDate       DateTime                   @map("selected_date") @db.Date
+  businessTimezone   String                     @map("business_timezone")
+  businessLocalToday DateTime                   @map("business_local_today") @db.Date
+  monthStart         DateTime                   @map("month_start") @db.Date
+  monthEnd           DateTime                   @map("month_end") @db.Date
+  queryVersion       String                     @map("query_version")
+  monthIndicators    Json                       @map("month_indicators")
+  asOf               DateTime                   @map("as_of") @db.Timestamptz(6)
+  expiresAt          DateTime                   @map("expires_at") @db.Timestamptz(6)
+  state              String                     @default("READY")
+  taskProjections    CalendarReadSnapshotTask[]
+  cursors            CalendarReadCursor[]
+
+  @@index([expiresAt])
+  @@map("calendar_read_snapshots")
+}
+
+model CalendarReadSnapshotTask {
+  id               String               @id @default(uuid()) @db.Uuid
+  readId           String               @map("read_id") @db.Uuid
+  group            String               @map("result_group")
+  taskId           String               @map("task_id") @db.Uuid
+  title            String
+  description      String?
+  plannedLocalDate DateTime             @map("planned_local_date") @db.Date
+  taskVersion      Int?                 @map("task_version")
+  fieldId          String               @map("field_id") @db.Uuid
+  fieldName        String               @map("field_name")
+  seasonId         String               @map("season_id") @db.Uuid
+  seasonContext    Json                 @map("season_context")
+  planContext      Json                 @map("plan_context")
+  overdue          Boolean
+  snapshot         CalendarReadSnapshot @relation(fields: [readId], references: [readId], onDelete: Cascade)
+
+  @@unique([readId, group, taskId])
+  @@index([readId, group, plannedLocalDate, taskId])
+  @@map("calendar_read_snapshot_tasks")
+}
+
+model CalendarReadCursor {
+  id                   String               @id @default(uuid()) @db.Uuid
+  readId               String               @map("read_id") @db.Uuid
+  group                String               @map("result_group")
+  token                String               @unique
+  lastPlannedLocalDate DateTime             @map("last_planned_local_date") @db.Date
+  lastTaskId           String               @map("last_task_id") @db.Uuid
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  snapshot             CalendarReadSnapshot @relation(fields: [readId], references: [readId], onDelete: Cascade)
+
+  @@unique([readId, group, lastPlannedLocalDate, lastTaskId])
+  @@index([readId, group])
+  @@map("calendar_read_cursors")
+}
+
 model BusinessCommandIdempotencyRecord {
   id                 String   @id @default(uuid()) @db.Uuid
   userId             String   @map("user_id") @db.Uuid

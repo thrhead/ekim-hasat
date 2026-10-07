@@ -118,6 +118,21 @@ export type TaskCompletion = Prisma.TaskCompletionModel
  */
 export type FieldObservation = Prisma.FieldObservationModel
 /**
+ * Model CalendarReadSnapshot
+ *
+ */
+export type CalendarReadSnapshot = Prisma.CalendarReadSnapshotModel
+/**
+ * Model CalendarReadSnapshotTask
+ *
+ */
+export type CalendarReadSnapshotTask = Prisma.CalendarReadSnapshotTaskModel
+/**
+ * Model CalendarReadCursor
+ *
+ */
+export type CalendarReadCursor = Prisma.CalendarReadCursorModel
+/**
  * Model BusinessCommandIdempotencyRecord
  *
  */

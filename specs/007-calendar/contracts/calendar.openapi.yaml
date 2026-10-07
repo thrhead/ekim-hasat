@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: Calendar read contract (SPEC-007)
+  version: 1.0.0
+  description: >-
+    Planning contract for a Calendar-specific immutable read snapshot. Creating
+    a projection does not mutate farming-domain state. Auth and current Business
+    membership remain required for snapshot creation and every continuation.
+      Task projections include unfinished work from ACTIVE seasons with APPROVED
+      plans and no accepted completion. Overdue and selected-date groups are
+      disjoint; month indicators use original planned dates. Task rows cover only
+      the exact selected date and the complete overdue group. Month indicators
+      do not imply task-row coverage for other dates in that month.
+paths:
+  /v1/calendar/reads:
+    post:
+      operationId: createCalendarRead
+      summary: Create one coherent, short-lived Calendar read
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selectedDate:
+                  type: string
+                  format: date
+                  description: >-
+                    Optional explicit Business-local ISO date (YYYY-MM-DD).
+                    When omitted, the server derives current Business-local
+                    today from its clock after resolving current Membership,
+                    authorized Business, and Business timezone. If no Business
+                    timezone is configured, the server uses the existing
+                    Europe/Istanbul fallback. Device timezone is never
+                    authoritative.
+                fieldId:
+                  type: string
+                  format: uuid
+                  description: Optional Field narrowing; validated within server-resolved authorized Business scope.
+      responses:
+        '201':
+          description: >-
+            One immutable point-in-time read. When selectedDate is omitted, the
+            server resolves it to current Business-local today. The resolved
+            selectedDate is returned explicitly. Month indicators and first
+            pages come from the same PostgreSQL repeatable-read transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarRead'
+        '400': { description: Invalid selected date or Field ID. }
+        '401': { description: Authentication required; saved fallback is prohibited. }
+        '403': { description: Explicit access denial; saved fallback is prohibited. }
+        '404': { description: Field is absent from the authorized Business scope. }
+  /v1/calendar/reads/{readId}/pages:
+    get:
+      operationId: readCalendarPage
+      summary: Continue a task group from the same immutable Calendar read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: readId
+          in: path
+          required: true
+          description: Server-generated opaque lookup ID; never a bearer credential.
+          schema: { type: string, format: uuid }
+        - name: group
+          in: query
+          required: true
+          schema: { type: string, enum: [selectedDateTasks, overdueTasks] }
+        - name: cursor
+          in: query
+          required: true
+          description: Random server-issued continuation token recorded for this read and group; unissued and cross-group tokens are rejected.
+          schema: { type: string }
+      responses:
+        '200':
+          description: Immutable page from the specified read identity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarTaskPage'
+        '400': { description: Invalid or unissued cursor/group. No page data is returned. }
+        '401': { description: Authentication required; saved fallback is prohibited. }
+        '403': { description: Current membership or Field authorization is denied; saved fallback is prohibited. }
+        '404': { description: Read ID is unknown or does not belong to the authenticated scope. }
+        '410': { description: Read snapshot expired or invalidated; discard staged pages and create a new read. }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CalendarRead:
+      type: object
+      required:
+        - readId
+        - asOf
+        - expiresAt
+        - businessId
+        - businessTimezone
+        - businessLocalToday
+        - selectedDate
+        - monthStart
+        - monthEnd
+        - fieldScope
+        - activeSeasonExists
+        - hasAnyUnfinishedWork
+        - monthIndicators
+        - monthIndicatorsComplete
+        - selectedDateTasksPage
+        - overdueTasksPage
+      properties:
+        readId: { type: string, format: uuid }
+        asOf: { type: string, format: date-time, description: UTC statement-start time for the first statement establishing the PostgreSQL MVCC snapshot; Business-local today and an omitted selectedDate are derived from it. }
+        expiresAt: { type: string, format: date-time, description: Continuation expires 15 minutes after read creation; an already complete local saved view remains usable under SPEC-007 offline rules. }
+        businessId: { type: string, format: uuid, description: Server-resolved Business identity for saved-data partitioning only; never an authorization input. }
+        businessTimezone: { type: string, description: "Server-resolved Business timezone, using the existing Europe/Istanbul fallback when none is configured." }
+        businessLocalToday: { type: string, format: date }
+        selectedDate: { type: string, format: date, description: Resolved selected date; equals the validated supplied date or Business-local today when omitted. }
+        monthStart: { type: string, format: date }
+        monthEnd: { type: string, format: date }
+        fieldScope: { $ref: '#/components/schemas/FieldScope' }
+        activeSeasonExists: { type: boolean }
+        hasAnyUnfinishedWork: { type: boolean, description: Fact scoped to this Business and Field selection. }
+        monthIndicatorsComplete: { type: boolean, const: true }
+        monthIndicators:
+          type: array
+          maxItems: 31
+          minItems: 28
+          description: One complete presence entry for every Business-local date in this month; this is not task-row coverage for dates other than selectedDate.
+          items:
+            type: object
+            required: [date, hasWork]
+            properties:
+              date: { type: string, format: date }
+              hasWork: { type: boolean }
+              taskCount: { type: integer, minimum: 0, description: Optional exact count; presence semantics are required. }
+        selectedDateTasksPage: { $ref: '#/components/schemas/CalendarTaskPageFirst' }
+        overdueTasksPage: { $ref: '#/components/schemas/CalendarTaskPageFirst' }
+    CalendarTaskPageFirst:
+      type: object
+      required: [readId, readScope, group, items, complete]
+      properties:
+        readId: { type: string, format: uuid }
+        readScope: { $ref: '#/components/schemas/CalendarReadScope' }
+        group: { type: string, enum: [selectedDateTasks, overdueTasks] }
+        items:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/CalendarTask' }
+        complete: { type: boolean, description: True only when this group has no later page in this immutable read. Selected-date tasks exclude overdue rows, including when selectedDate is in the past. }
+        nextCursor: { type: string, description: Random server-issued continuation token for this read/group; absent when complete. }
+    CalendarTaskPage:
+      allOf:
+        - $ref: '#/components/schemas/CalendarTaskPageFirst'
+        - type: object
+          required: [requestedCursor]
+          properties:
+            requestedCursor: { type: string, description: Echo of the cursor consumed by this response, for client chain validation. }
+    CalendarReadScope:
+      type: object
+      required: [businessId, asOf, businessTimezone, businessLocalToday, selectedDate, monthStart, monthEnd, fieldScope]
+      properties:
+        businessId: { type: string, format: uuid, description: Server-resolved scope identity, not authority. }
+        asOf: { type: string, format: date-time, description: UTC statement-start time for the first statement establishing the PostgreSQL MVCC snapshot. }
+        businessTimezone: { type: string, description: "Server-resolved Business timezone, using the existing Europe/Istanbul fallback when none is configured." }
+        businessLocalToday: { type: string, format: date }
+        selectedDate: { type: string, format: date, description: Resolved date bound to this Calendar read identity. }
+        monthStart: { type: string, format: date }
+        monthEnd: { type: string, format: date }
+        fieldScope: { $ref: '#/components/schemas/FieldScope' }
+    FieldScope:
+      type: object
+      required: [mode, includedFieldIds]
+      properties:
+        mode: { type: string, enum: [allAuthorized, oneField] }
+        fieldId: { type: string, format: uuid }
+        includedFieldIds:
+          type: array
+          items: { type: string, format: uuid }
+          description: Exact Fields in this read; presence never grants current access.
+    CalendarTask:
+      type: object
+      required: [taskId, title, plannedLocalDate, fieldId, fieldName, seasonId, overdue]
+      properties:
+        taskId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        fieldId: { type: string, format: uuid }
+        fieldName: { type: string }
+        seasonId: { type: string, format: uuid }
+        seasonContext: { type: string }
+        planContext: { type: string }
+        taskVersion: { type: integer, minimum: 0 }
+        overdue: { type: boolean, description: Derived as of this read's Business-local today; never changes plannedLocalDate. }
