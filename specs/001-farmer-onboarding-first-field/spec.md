@@ -24,6 +24,7 @@ A new farmer signs in and can begin the first-use flow without being asked to cr
 2. **Given** a newly authenticated farmer completes first-field onboarding, **When** the onboarding command succeeds, **Then** the server has atomically ensured the application user, default business, OWNER membership, and first field without exposing business setup as a farmer-visible step.
 3. **Given** a returning farmer with an existing default business and fields, **When** they sign in, **Then** the system does not create a duplicate default business or restart first-field onboarding.
 4. **Given** the onboarding flow needs to decide whether first-field onboarding is needed, **When** it reads onboarding status, **Then** the response exposes only the minimal completion state required for that decision and does not list fields.
+5. **Given** a signed-out farmer creates an account with email and password, **When** Supabase returns a session, **Then** the existing auth observer drives the authenticated onboarding flow; **When** signup returns no session, **Then** the farmer sees an email-confirmation-required state, remains signed out, and can return to email/password sign-in.
 
 ---
 
@@ -110,6 +111,7 @@ A farmer can understand and recover when sign-in, onboarding completion, field s
 - **FR-026**: Mobile onboarding MUST provide assistive-technology and screen-reader labels, scalable text, sufficient contrast, and platform-appropriate minimum touch targets.
 - **FR-027**: The authenticated ApplicationUser MAY have a server-owned `defaultBusinessId` context pointer. The pointer selects context only and MUST NOT authorize access; an active Membership is required before it is used. If no pointer exists, onboarding MUST create a new default Business, the user's OWNER Membership, and set the pointer atomically with first-field completion; it MUST NOT infer or adopt an existing membership/business. If the pointer is invalid or lacks an active Membership, onboarding MUST fail safely without selecting another business.
 - **FR-028**: Completed first-field onboarding MUST be represented by a durable record scoped to authenticated user and default business and referencing the created Field. Repeated/concurrent completion MUST converge on that record and Field. While an Idempotency-Key record is retained, same-key/different-payload reuse MUST return 409. After key expiry, existing domain completion takes precedence: return its first-field summary with 200 and perform no new mutation.
+- **FR-029**: V1 mobile sign-in and account creation MUST use Supabase Auth with email and password through the existing adapter. A signup response with a session MUST continue through the existing auth observer and authenticated flow; a response without a session MUST leave the farmer signed out and show an email-confirmation-required state with a return-to-sign-in action. Operation results MUST NOT become a second authenticated-state authority.
 
 ### Validation Rules
 
@@ -146,7 +148,7 @@ A farmer can understand and recover when sign-in, onboarding completion, field s
 
 ### Failure States and Recovery
 
-- Sign-in failure: keep the farmer in the authentication flow with a clear retry/recovery action; do not create a business context before authentication.
+- Sign-in or account-creation failure: keep the farmer in the authentication flow with safe, recoverable feedback that does not disclose whether the email is registered; do not create a business context before authentication. A signup response without a session requires email confirmation and does not authenticate the farmer.
 - Onboarding command failure: explain that setup could not be completed and allow retry; do not expose business bootstrap as a separate farmer-visible step or proceed to a false success state.
 - Connectivity loss before command commit: explain that setup could not be completed yet, restore the durable draft on the same device and authenticated account, and allow retry. Do not mark the field as created until the transaction commits.
 - Draft recovery cannot be guaranteed after app uninstall, explicit app-data/storage deletion, device loss, local-storage corruption, or unavailable platform storage; allow re-entry and do not imply the draft was retained.
@@ -198,6 +200,7 @@ A farmer can understand and recover when sign-in, onboarding completion, field s
 - Q: What does `GET /v1/onboarding/status` return when the authenticated user's default business context is unusable? → A: Return HTTP 403 using the normal privacy-safe error schema, without revealing whether another business exists and without falling back to another Membership or selecting another business.
 - Q: What durable completion and idempotency behavior applies before and after key expiry? → A: Store completion by user plus default business, referencing the created Field. Concurrent/repeated commands converge on it. While an Idempotency-Key record is retained, different-payload reuse returns 409; after expiry, return the existing summary with 200 and make no mutation. Retention duration is operational configuration.
 - Q: What implementation-verifiable accessibility checks apply to mobile onboarding? → A: Controls expose screen-reader accessible names and roles, support system text scaling, meet platform-appropriate minimum touch targets and sufficient text/control contrast, and pass automated accessibility assertions plus manual VoiceOver/TalkBack smoke evaluation.
+- Q: Which V1 mobile authentication method and signup outcomes apply to SPEC-001? → A: Use the existing Supabase Auth adapter for email/password sign-in and account creation. Existing persisted-session restoration and `onAuthStateChange` remain authoritative. Signup with a returned session follows the authenticated flow; signup without a session remains signed out, presents email-confirmation-required, and offers return to sign-in. No additional auth method or account-management workflow is included.
 
 ## Success Criteria *(mandatory)*
 

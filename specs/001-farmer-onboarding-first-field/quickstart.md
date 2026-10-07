@@ -22,6 +22,14 @@ This guide defines validation scenarios for SPEC-001. The application, repositor
 
 ## Scenarios
 
+### 0. Fresh signed-out authentication (repair acceptance)
+
+1. Start a fresh mobile app install with no persisted Supabase session. Confirm the existing loading state remains visible until session restoration resolves, then confirm the default signed-out view offers **Giriş yap** and an action to switch to **Hesap oluştur**.
+2. With a real configured Supabase test account, submit email/password sign-in. Confirm the app enters authenticated routing only after the existing auth observer publishes the session, then confirm the existing onboarding-status request and first-field route for an account with no completed onboarding.
+3. Separately create a test account. If Supabase returns a session, confirm the same observer-driven route. If it returns no session, confirm the app remains signed out, shows email-confirmation-required, clears the password, and makes no onboarding-status request; confirm the address using the configured test inbox, return to the app, sign in with email/password, and then confirm the observer-driven route.
+4. Exercise invalid credentials and an unavailable auth service. Confirm safe recoverable feedback, retained email, no provider message/code/token/password exposure, and no business/onboarding request before authentication.
+5. Record whether signup returned a session or null, the app/device and platform actually used, and the exact runtime result. Do not use a fabricated session. If physical device/provider access or connectivity blocks a step, record it as unverified and name the blocker; Codespaces phone networking is an environment concern, not a product change.
+
 ### 1. New farmer completes onboarding
 
 1. Sign in as a user with no application User, default Business, Membership, or Field records.
@@ -120,13 +128,20 @@ The following matrix distinguishes automated component evidence from authored de
 
 | Quickstart scenario | Automated repository evidence | PostgreSQL/PostGIS evidence | Maestro or device evidence | Still open |
 |---|---|---|---|---|
-| 1. New farmer completes onboarding | Domain, API contract, and mobile tests cover command/status contracts, default name, and UI behavior in isolation. | Atomic creation and persistence of the application user, default Business, OWNER Membership, Field, completion, and idempotency result are covered. | T038 is authored, not run. On Windows, Supabase session restoration, status HTTP 200, and first-field routing were observed. | Full authenticated sign-in/status/save/routing journey and committed-field UI confirmation. |
+| 0. Fresh signed-out authentication | Five focused mobile auth/composition suites and the complete mobile suite pass; typecheck and lint pass (2026-10-07). These tests do not prove hosted Supabase behavior. | Not applicable. | Not run: `adb` and `maestro` are unavailable in this Codespaces worktree. | Real Supabase sign-in/signup outcome, observer-driven routing on a device, and physical Android/Expo execution. |
+| 1. New farmer completes onboarding | Domain, API contract, and mobile tests cover command/status contracts, default name, and UI behavior in isolation. | Atomic creation and persistence of the application user, default Business, OWNER Membership, Field, completion, and idempotency result are covered. | T038 is authored, not run. On Windows, Supabase session restoration, status HTTP 200, and first-field routing were observed before this signed-out auth repair. | Full authenticated sign-in/status/save/routing journey and committed-field UI confirmation. |
 | 2. Atomic rollback on failure | Domain/mobile tests cover command and retry behavior. | Injected persistence failure rolls back all completion writes. | T038 is authored, not run. | Farmer-visible recovery and no-false-save behavior against the authenticated API. |
 | 3. Idempotent retry and concurrency | Domain tests cover replay and conflict outcomes. | Concurrent convergence, lost-response replay, retained-key conflict, and post-retention existing-result behavior are covered. | T038 is authored, not run; its dropped-response and two-device scenarios have not been executed. | Authenticated HTTP/UI retry and concurrent-device evidence. |
 | 4. Connectivity and temporary draft | T037/mobile tests cover persistence, account scope, recovery, seven-day expiry/activity reset, lifecycle purges, and secret exclusion. | Not applicable. | T039 is authored, not run; it covers offline failure, same-device/account relaunch restore of name and visible selected geometry, and discard. | Device execution; successful-save purge, sign-out/account-switch purge, seven-day UI expiry, and force-termination/crash behavior are not proven by Maestro. |
 | 5. Business isolation and membership authority | API/domain contracts cover auth/error semantics, privacy-safe denial, and request shape. | Membership enforcement, inactive/missing membership denial, no fallback/adoption of unrelated Membership, and no unauthorized mutation are covered. | T040 is authored, not run; it exercises the generic status-denial UI with an operator-prepared isolated fixture. | Device execution; live HTTP response privacy and server-side non-fallback remain API evidence, not Maestro proof. |
 | 6. Geometry and default label | Domain tests cover Point/Polygon validation, point-only behavior, unverified boundary, and name normalization. | Geometry persistence and transaction behavior are covered against PostgreSQL/PostGIS. | T038 is authored, not run. | On-device map interaction and geometry correction; Android Maps key/native rebuild remain pending. |
 | 7. Accessibility and pilot evaluation | T035 automated accessibility assertions are included in the passing mobile tests. | Not applicable. | No manual accessibility or pilot evaluation has been reported. | VoiceOver/TalkBack checks and SC-001/SC-002 pilot evaluation; T036 remains open. |
+
+### SPEC-001 authentication repair runtime check (2026-10-07)
+
+Automated verification for the repair passed: `pnpm --filter @ekim-hasat/mobile test` (43 suites / 258 tests), `pnpm --filter @ekim-hasat/mobile typecheck`, and `pnpm --filter @ekim-hasat/mobile lint`. The focused auth/composition run passed five suites / 45 tests. These checks exercise the injected provider boundary, controller/composition behavior, and rendered mobile component; they do not establish a hosted Supabase or device journey.
+
+A real signed-out app run was attempted but could not start in this Codespaces worktree. The Supabase public URL and publishable key environment entries were present, while `EXPO_PUBLIC_API_BASE_URL` was unset, so the mobile public configuration was incomplete. Android tooling was unavailable (`adb` and `maestro` were not installed), so no Android device/emulator could be enumerated or used. No physical app, hosted sign-in/signup, confirmation email, onboarding-status request, or first-field route was executed for this repair. Those acceptance steps remain unverified; no session or provider result was fabricated. This is an environment/evidence blocker and does not change the auth product scope.
 
 ### Partial Windows runtime checkpoint
 

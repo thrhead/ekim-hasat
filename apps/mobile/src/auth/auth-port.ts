@@ -5,10 +5,18 @@ import {
 
 export type AuthSession = Readonly<{ accountId: string; accessToken: string }>;
 
+export type AuthOperationErrorCode = "INVALID_CREDENTIALS" | "UNAVAILABLE" | "UNKNOWN";
+export type AuthOperationResult<T> =
+  | Readonly<{ ok: true; value: T }>
+  | Readonly<{ ok: false; error: AuthOperationErrorCode }>;
+export type SignupOutcome = "session-issued" | "confirmation-required";
+
 /** Provider-neutral session boundary. Provider metadata never crosses this port. */
 export interface MobileAuthPort {
   restoreSession(): Promise<AuthSession | null>;
   onSessionChange(listener: (session: AuthSession | null) => void): () => void;
+  signIn(email: string, password: string): Promise<AuthOperationResult<void>>;
+  signUp(email: string, password: string): Promise<AuthOperationResult<SignupOutcome>>;
   signOut(): Promise<void>;
 }
 
@@ -23,6 +31,8 @@ export type MobileAuthController = Readonly<{
   getState(): MobileAuthState;
   subscribe(listener: (state: MobileAuthState) => void): () => void;
   start(): Promise<void>;
+  signIn(email: string, password: string): Promise<AuthOperationResult<void>>;
+  signUp(email: string, password: string): Promise<AuthOperationResult<SignupOutcome>>;
   signOut(): Promise<void>;
   getAuthenticatedApiClient(): ApiClient | null;
   getAuthenticatedApiSession(): AuthenticatedApiSession | null;
@@ -90,6 +100,8 @@ export function createMobileAuthController(
         if (eventRevision === revisionAtStart) updateSession(null);
       }
     },
+    signIn: (email, password) => auth.signIn(email, password),
+    signUp: (email, password) => auth.signUp(email, password),
     async signOut() {
       await auth.signOut();
       updateSession(null);

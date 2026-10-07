@@ -14,6 +14,7 @@ import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
 import { CalendarScreen } from "./src/features/calendar/calendar-screen";
+import { AuthScreen } from "./src/features/auth/auth-screen";
 
 export default function App() {
   const [state, setState] = useState<ProductionAppState>({
@@ -52,7 +53,13 @@ export default function App() {
   }
 
   if (state.auth.status === "signed-out") {
-    return <AppShell />;
+    return <>
+      <StatusBar barStyle="default" />
+      <AuthScreen
+        onSignIn={(email, password) => compositionRef.current!.signIn(email, password)}
+        onSignUp={(email, password) => compositionRef.current!.signUp(email, password)}
+      />
+    </>;
   }
 
   if (state.entry === "status-error") {

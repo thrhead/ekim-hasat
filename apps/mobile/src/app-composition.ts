@@ -183,6 +183,12 @@ export function createAppComposition(
       return taskCompletionCoordinator;
     },
     getState: () => state,
+    signIn(email: string, password: string) {
+      return controller.signIn(email, password);
+    },
+    signUp(email: string, password: string) {
+      return controller.signUp(email, password);
+    },
     subscribe(listener: (state: ProductionAppState) => void) {
       listeners.add(listener);
       listener(state);

@@ -7,6 +7,8 @@ import {
 function createAuthPort(initialSession: AuthSession | null = null) {
   let session = initialSession;
   let listener: ((next: AuthSession | null) => void) | null = null;
+  const signInResult = { ok: true as const, value: undefined };
+  const signUpResult = { ok: true as const, value: "confirmation-required" as const };
   const port: MobileAuthPort = {
     restoreSession: jest.fn(async () => session),
     onSessionChange: jest.fn((nextListener) => {
@@ -17,6 +19,8 @@ function createAuthPort(initialSession: AuthSession | null = null) {
       session = null;
       listener?.(null);
     }),
+    signIn: jest.fn(async () => signInResult),
+    signUp: jest.fn(async () => signUpResult),
   };
   return {
     port,
@@ -35,6 +39,35 @@ function response(body: unknown) {
 }
 
 describe("mobile authenticated session bootstrap", () => {
+  it("delegates sign-in credentials and leaves authentication to the session observer", async () => {
+    const port = createAuthPort();
+    const controller = createMobileAuthController(port.port, { apiBaseUrl: "https://api.example.test/v1" });
+    await controller.start();
+    const before = controller.getState();
+    const result = await controller.signIn("farmer@example.test", "correct horse battery staple");
+
+    expect(port.port.signIn).toHaveBeenCalledWith("farmer@example.test", "correct horse battery staple");
+    expect(result).toEqual({ ok: true, value: undefined });
+    expect(controller.getState()).toBe(before);
+    expect(controller.getState()).toEqual({ status: "signed-out" });
+
+    port.setSession({ accountId: "new-account", accessToken: "opaque-session-token" });
+    expect(controller.getState()).toEqual({ status: "authenticated", accountId: "new-account" });
+  });
+
+  it("delegates signup credentials and reports confirmation without creating authenticated state", async () => {
+    const port = createAuthPort();
+    const controller = createMobileAuthController(port.port, { apiBaseUrl: "https://api.example.test/v1" });
+    await controller.start();
+
+    const result = await controller.signUp("newfarmer@example.test", "a-long-password");
+
+    expect(port.port.signUp).toHaveBeenCalledWith("newfarmer@example.test", "a-long-password");
+    expect(result).toEqual({ ok: true, value: "confirmation-required" });
+    expect(controller.getState()).toEqual({ status: "signed-out" });
+    expect(controller.getAuthenticatedApiClient()).toBeNull();
+  });
+
   it("exposes loading until an existing persisted session is restored", async () => {
     let resolveRestore!: (session: AuthSession | null) => void;
     const port = createAuthPort();
