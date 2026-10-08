@@ -113,6 +113,11 @@ export type SeasonContextSnapshot = Prisma.SeasonContextSnapshotModel
  */
 export type TaskCompletion = Prisma.TaskCompletionModel
 /**
+ * Model TaskDateAdjustment
+ *
+ */
+export type TaskDateAdjustment = Prisma.TaskDateAdjustmentModel
+/**
  * Model FieldObservation
  *
  */

@@ -19,6 +19,10 @@
     "./generated/task-completions": {
       "types": "./dist/generated/task-completions-api.d.ts",
       "import": "./dist/generated/task-completions-api.js"
+    },
+    "./generated/task-date-adjustments": {
+      "types": "./dist/generated/task-date-adjustments-api.d.ts",
+      "import": "./dist/generated/task-date-adjustments-api.js"
     }
   },
   "scripts": {
