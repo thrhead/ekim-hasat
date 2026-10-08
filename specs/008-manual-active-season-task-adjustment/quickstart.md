@@ -20,6 +20,8 @@ This guide defines the validation path for implementation. It does not assert th
 7. **Fresh operational reads**: after acceptance, refresh Bugün and create a new Calendar `readId`; verify date grouping and month indicators follow the new canonical date. Existing Calendar read pages remain unchanged and an offline saved view remains explicitly stale/read-only with no adjustment action. A no-date-change rejection does not trigger a success-style refresh.
 8. **Mobile recovery**: start the same shared flow from Bugün and eligible Calendar task detail; verify online acceptance, loading/unavailable state, no false success, stale conflict reload, accessible status, and task-detail history.
 
+The shared mobile command/current-state read lives in `apps/mobile/src/features/tasks/task-date-adjustment.ts`; the accessible form and bounded history live in `task-date-adjustment-view.tsx` and `task-date-adjustment-history.tsx`. An uncertain command retains its identity only in memory for explicit exact retry and cannot be submitted offline. Today acceptance triggers a new `/today` request. Calendar acceptance starts a new read using the server-resolved selected date and current Field scope; previous read pages remain unchanged.
+
 ## Commands
 
 Run after implementation, not during planning:
@@ -30,6 +32,7 @@ pnpm --filter @ekim-hasat/api test:contract
 pnpm --filter @ekim-hasat/api-client test:contract
 pnpm --filter @ekim-hasat/api test:integration
 pnpm --filter @ekim-hasat/mobile test
+pnpm --filter @ekim-hasat/mobile exec jest --runInBand test/tasks/task-date-adjustment.test.tsx test/tasks/task-date-adjustment-history.test.tsx test/tasks/task-date-adjustment-view.test.tsx test/seasons/today-task-adjustment.test.tsx test/calendar/calendar-task-adjustment.test.tsx test/calendar/calendar-screen-task-adjustment.test.tsx
 pnpm typecheck
 pnpm lint
 git diff --check

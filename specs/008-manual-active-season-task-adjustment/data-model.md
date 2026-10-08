@@ -69,6 +69,8 @@ An exact response replay returns the original adjustment row, which may describe
 
 The task-scoped history read returns the current canonical planned date and task version alongside a bounded page of immutable adjustments ordered by `adjustedAt DESC, id DESC`. It is authorized against the current Membership and the task's current Business/Field/Season scope. Adjustment history remains separate from completion history and Diary. Actor identifiers remain retained in the authoritative record; farmer-facing projection should not invent an actor display name.
 
+Mobile follows the returned cursor for additional history pages and appends those immutable rows to the open detail. It keeps an uncertain adjustment's original ID, base version, and selected date only in ephemeral flow memory for explicit exact retry. This client state is not persisted and cannot be submitted while offline.
+
 ## Calendar snapshots
 
 `CalendarReadSnapshotTask` remains a read projection of one immutable `readId`/`asOf` result. Adjustment does not edit old projection rows or cursors. A new Calendar read reflects the updated task date and grouping. Existing saved views remain available only under SPEC-007's same-scope, complete-coverage, explicitly stale read-only fallback rules; they cannot submit adjustments.

@@ -1,6 +1,6 @@
 # Implementation Plan: Manual Active-Season Task Adjustment
 
-**Branch**: `main` (no feature branch created) | **Date**: 2026-10-07 | **Spec**: [spec.md](spec.md)
+**Branch**: `008-manual-active-season-task-adjustment` | **Date**: 2026-10-07 | **Spec**: [spec.md](spec.md)
 
 **Input**: Approved specification at `specs/008-manual-active-season-task-adjustment/spec.md`.
 
@@ -55,6 +55,8 @@ Add one online-only task-scoped command for a farmer to change the planned local
 6. **Calendar/Today refresh**: re-read Today from `/today`. After Calendar acceptance, close task detail and start a new Calendar read for the same requested date/Field scope, then replace the active in-memory view with the fresh coherent result. Never edit rows/pages under the prior `readId`. A saved Calendar fallback remains explicitly stale/read-only and cannot expose the adjustment action.
 7. **OpenAPI and mobile**: publish the command/history endpoints in the SPEC-008 OpenAPI contract and register the contract with the existing generator. Both Bugün and Calendar task details invoke one shared mobile adjustment flow and generated client operation.
 
+   Mobile keeps an uncertain command only in memory for an exact retry. It adds no SQLite table, completion outbox entry, or durable mutation queue. History pages follow the API's bounded cursor and append immutable rows to the open task detail.
+
 ## Planned API Surface
 
 Contract source: [task-date-adjustments.openapi.yaml](contracts/task-date-adjustments.openapi.yaml).
@@ -72,6 +74,7 @@ Contract source: [task-date-adjustments.openapi.yaml](contracts/task-date-adjust
 - Any stale adjustment returns 409, keeps canonical state unchanged, causes mobile to reload current task detail, and requires a new explicit farmer action. It never auto-resubmits the requested date.
 - Exact replay returns the original adjustment record, not an assertion that its date is still the latest. Mobile refreshes current canonical state after acceptance/replay.
 - Today is a live canonical read. Calendar's prior snapshot/readId/cursors remain immutable and coherent; a new readId sees the canonical new date and recomputed date grouping. Existing saved offline Calendar data remains marked possibly out of date and read-only.
+- Accepted Today changes call a new live `/today` read before showing refreshed tasks. Accepted Calendar changes close task detail and start a new read with the server-resolved selected date and selected Field scope where present; old reads and saved views remain unchanged.
 
 ## Migration and Rollback Considerations
 
@@ -133,6 +136,7 @@ apps/mobile/test/calendar/                         # Calendar action/fresh-read/
 - Calendar's existing task projection marks taskVersion optional in OpenAPI. The feature-scoped task-detail/history read supplies a required current version before adjustment, avoiding a change to the closed SPEC-007 contract.
 - An older Calendar `readId` remains an immutable historical view; only a fresh read is canonical after adjustment. If the network fails later, SPEC-007's saved view remains labeled possibly outdated and read-only.
 - Physical iPhone runtime validation remains separately deferred by the known repository Expo SDK 54 versus App Store Expo Go SDK 57 mismatch. This plan neither treats that evidence as passed nor proposes an SDK upgrade for it.
+- This recovery run stops before Impeccable under the explicit resume instruction; T020/T030 remain deferred for the Impeccable UI/UX gate.
 - No numeric latency target or retention duration is present in the approved sources; bounded history pagination and append-only retention are the selected defaults, with retention policy subject to platform policy rather than farmer-facing configuration.
 
 ## Complexity Tracking

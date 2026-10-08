@@ -18,6 +18,18 @@ const second: Page = {
 };
 
 describe("task date adjustment detail", () => {
+  test("disables the save action while the selected date is still canonical", async () => {
+    const GET = jest.fn().mockResolvedValue({ data: first, error: undefined, response: { ok: true, status: 200 } });
+    const flow = createTaskDateAdjustmentFlow({ client: { GET, POST: jest.fn() } as unknown as ApiClient });
+    let screen!: ReturnType<typeof create>;
+    await act(async () => { screen = create(createElement(TaskDateAdjustmentView, { taskId: "task-1", flow, onAccepted: jest.fn() })) as typeof screen; });
+    const open = screen.root.findAll((node) => node.props.accessibilityLabel === "Ertele / Yeniden planla")[0];
+    await act(async () => { (open!.props.onPress as () => void)(); });
+    const save = screen.root.findAll((node) => node.props.accessibilityLabel === "Tarih değişikliğini kaydet")[0];
+    expect(save?.props.disabled).toBe(true);
+    expect((save?.props.accessibilityState as { disabled?: boolean }).disabled).toBe(true);
+  });
+
   test("loads the next bounded history page and appends it to current task history", async () => {
     const GET = jest.fn()
       .mockResolvedValueOnce({ data: first, error: undefined, response: { ok: true, status: 200 } })
