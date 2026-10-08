@@ -1,9 +1,13 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import type { CalendarComponents } from "../../../../../packages/api-client/src/index";
+import { useMemo } from "react";
+import type { ApiClient, CalendarComponents } from "../../../../../packages/api-client/src/index";
+import { createTaskDateAdjustmentFlow } from "../tasks/task-date-adjustment";
+import { TaskDateAdjustmentView } from "../tasks/task-date-adjustment-view";
 
 type Task = CalendarComponents["schemas"]["CalendarTask"];
 
-export function CalendarTaskDetail({ task, onClose, saved = false }: Readonly<{ task: Task; onClose: () => void; saved?: boolean }>) {
+export function CalendarTaskDetail({ task, onClose, saved = false, client, onAccepted }: Readonly<{ task: Task; onClose: () => void; saved?: boolean; client: ApiClient; onAccepted: () => void | Promise<void> }>) {
+  const adjustmentFlow = useMemo(() => createTaskDateAdjustmentFlow({ client }), [client]);
   const season = parseContext(task.seasonContext);
   const plan = parseContext(task.planContext);
   const crop = stringAt(season, ["crop", "displayName"]) ?? stringAt(season, ["cropSnapshot", "displayName"]);
@@ -27,6 +31,8 @@ export function CalendarTaskDetail({ task, onClose, saved = false }: Readonly<{ 
         <DetailLine label="Bölge" value={region ?? "Bölge bilgisi mevcut değil"} />
         <DetailLine label="Plan" value={planSource === "MANUAL" ? "Manuel plan" : planSource === "VALIDATED_TEMPLATE" ? "Onaylı şablon planı" : "Plan bilgisi mevcut değil"} />
         <Text style={styles.context}>Bu görev takvimdeki planlanan tarihine göre gösterilir.</Text>
+        <TaskDateAdjustmentView taskId={task.taskId} flow={adjustmentFlow} disabled={saved}
+          label="Ertele veya yeniden planla" onAccepted={onAccepted} />
       </ScrollView>
     </View>
   </Modal>;

@@ -199,7 +199,13 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
       {pageError && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}>{pageError}</Text>}
       <CalendarMonthOverview monthStart={data.monthStart} indicators={data.monthIndicators} selectedDate={data.selectedDate} onSelectDate={selectDate} onChangeMonth={changeMonth} />
     </View>}
-    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} />}
+    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} client={client}
+      onAccepted={async () => {
+        const selectedDate = data?.selectedDate;
+        const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
+        setSelectedTask(null);
+        await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+      }} />}
   </ScrollView>;
 }
 

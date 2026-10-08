@@ -68,7 +68,7 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
     {!disabled && !openOnMount && <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => void open()} style={styles.open}>
       <Text style={styles.openText}>{label}</Text>
     </Pressable>}
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { setVisible(false); onClose?.(); }}>
       <View style={styles.backdrop}><ScrollView accessibilityViewIsModal style={styles.sheet} contentContainerStyle={styles.content}>
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>Görevi ertele / yeniden planla</Text>
