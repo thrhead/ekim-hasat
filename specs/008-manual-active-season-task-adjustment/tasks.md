@@ -183,7 +183,7 @@ Join: T005 (verify both foundation tracks)
 - Every new test task is explicitly RED-first; corresponding implementation tasks and focused GREEN checks follow.
 - All writable/destructive integration tests are restricted to `ekim_hasat_test`; never reset `ekim_hasat`.
 - No task upgrades Expo SDK or claims physical iPhone validation; physical runtime checks remain separately deferred.
-- T020 and T030 are intentionally deferred by the resume instruction to stop before Impeccable. They remain required at the subsequent Impeccable UI/UX gate.
+- T020 and T030 were completed in the Impeccable UI/UX gate at checkpoint `2636cd6` after focused mobile verification; no whole-feature review was started in that gate.
 - Full API unit and contract runners retain the previously reported Calendar baseline failures (`calendar-http.contract.spec.ts` and `calendar.openapi.contract.spec.ts`; 39/41 and 19/21 respectively). Each Calendar file passed individually in this run; the SPEC-008 API contract passed.
 - Out of scope: Skip, general ACTIVE-plan editing, task title/description editing, add/remove ACTIVE tasks, recurrence, weather-driven changes, notifications, generic offline sync/queues, Diary ownership, finance, harvest/sales, and team/advisor features.
 - Do not run `$speckit-analyze` as part of task generation; await user review before that phase.
