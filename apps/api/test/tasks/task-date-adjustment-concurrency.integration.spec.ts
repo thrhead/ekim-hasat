@@ -119,3 +119,25 @@ test("the ACTIVE-task guard still rejects non-date edits", async () => {
   assert.equal(after.plannedLocalDate.toISOString(), before.plannedLocalDate.toISOString());
   assert.equal(after.version, before.version);
 });
+
+test("the ACTIVE-task guard rejects date changes for completed tasks", async () => {
+  const completed = await prisma.plannedTask.findUniqueOrThrow({ where: { id: completeFirstTask } });
+  await assert.rejects(prisma.plannedTask.updateMany({ where: { id: completeFirstTask }, data: {
+    plannedLocalDate: new Date("2026-10-15T00:00:00Z"), version: { increment: 1 },
+  } }));
+  const after = await prisma.plannedTask.findUniqueOrThrow({ where: { id: completeFirstTask } });
+  assert.equal(after.plannedLocalDate.toISOString(), completed.plannedLocalDate.toISOString());
+  assert.equal(after.version, completed.version);
+});
+
+test("the ACTIVE-task guard rejects date changes while the plan is not approved", async () => {
+  const plan = await prisma.seasonPlan.findUniqueOrThrow({ where: { seasonId } });
+  await prisma.seasonPlan.update({ where: { id: plan.id }, data: { status: "DRAFT" } });
+  try {
+    await assert.rejects(prisma.plannedTask.updateMany({ where: { id: raceTask }, data: {
+      plannedLocalDate: new Date("2026-10-16T00:00:00Z"), version: { increment: 1 },
+    } }));
+  } finally {
+    await prisma.seasonPlan.update({ where: { id: plan.id }, data: { status: "APPROVED" } });
+  }
+});
