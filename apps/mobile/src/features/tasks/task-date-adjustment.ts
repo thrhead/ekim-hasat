@@ -78,8 +78,10 @@ export function createTaskDateAdjustmentFlow(options: Readonly<{
   }
 
   return {
-    async read(taskId: string): Promise<HistoryPage> {
-      const result = await options.client.GET("/tasks/{taskId}/date-adjustments", { params: { path: { taskId } } });
+    async read(taskId: string, cursor?: string): Promise<HistoryPage> {
+      const result = await options.client.GET("/tasks/{taskId}/date-adjustments", {
+        params: { path: { taskId }, query: { limit: 50, ...(cursor ? { cursor } : {}) } },
+      });
       if (!result.response.ok || result.error !== undefined || result.data === undefined) {
         throw new TaskDateAdjustmentError("Görev bilgisi yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.", responseCode(result.error) ?? "READ_FAILED");
       }

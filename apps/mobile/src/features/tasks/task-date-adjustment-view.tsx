@@ -24,6 +24,7 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
@@ -46,6 +47,18 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
       setPage(latest); setState(latest.task); setDate(latest.task.plannedLocalDate);
     } catch (failure) { setHistoryError(failure instanceof Error ? failure.message : "Görev bilgisi yüklenemedi."); }
     finally { setLoading(false); }
+  }
+
+  async function loadMore() {
+    const cursor = page?.nextCursor;
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true); setHistoryError(null);
+    try {
+      const next = await flow.read(taskId, cursor);
+      setPage((current) => current ? { ...next, items: [...current.items, ...next.items] } : next);
+    } catch (failure) {
+      setHistoryError(failure instanceof Error ? failure.message : "Geçmişin devamı yüklenemedi.");
+    } finally { setLoadingMore(false); }
   }
 
   async function save() {
@@ -91,7 +104,8 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
           </>}
         </>}
         <Text accessibilityRole="header" style={styles.historyTitle}>Tarih değişikliği geçmişi</Text>
-        <TaskDateAdjustmentHistory state={loading ? "loading" : historyError ? "error" : "ready"} page={page ?? undefined} error={historyError ?? undefined} onRetry={() => void reload()} />
+        <TaskDateAdjustmentHistory state={loading ? "loading" : historyError ? "error" : "ready"} page={page ?? undefined} error={historyError ?? undefined}
+          onRetry={() => void reload()} onLoadMore={() => void loadMore()} />
       </ScrollView></View>
     </Modal>
   </>;
