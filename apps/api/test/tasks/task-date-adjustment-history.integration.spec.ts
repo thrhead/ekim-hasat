@@ -12,6 +12,9 @@ assertDisposableDatabaseUrl(databaseUrl);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const run = randomUUID(), businessId = randomUUID(), fieldId = randomUUID(), userId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID(), taskId = randomUUID();
+const firstAdjustmentId = randomUUID(), secondAdjustmentId = randomUUID();
+const firstInternalId = `ffffffff-ffff-4fff-8fff-${run.slice(-12)}`;
+const secondInternalId = `00000000-0000-4000-8000-${run.slice(-12)}`;
 const identity = { provider: "adjustment-history-test", subject: run };
 const repository = new TaskDateAdjustmentRepository(prisma, () => new Date("2026-10-08T12:00:00.000Z"));
 
@@ -28,8 +31,12 @@ before(async () => {
     plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: templateId, sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: templateId } }, status: "DRAFT",
       tasks: { create: { id: taskId, title: "Inspect crop", plannedLocalDate: new Date("2026-09-29T00:00:00Z"), version: 1 } } } } } });
   await new SeasonActivationRepository(prisma).activate(identity, seasonId, 1, randomUUID());
-  await repository.adjust(identity, taskId, 1, { adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-10" });
-  await repository.adjust(identity, taskId, 2, { adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-11" });
+  await repository.adjust(identity, taskId, 1, { adjustmentId: firstAdjustmentId, newPlannedLocalDate: "2026-10-10" });
+  await repository.adjust(identity, taskId, 2, { adjustmentId: secondAdjustmentId, newPlannedLocalDate: "2026-10-11" });
+  await prisma.taskDateAdjustment.update({ where: { businessId_adjustmentId: { businessId, adjustmentId: firstAdjustmentId } }, data: { id: firstInternalId } });
+  await prisma.taskDateAdjustment.update({ where: { businessId_adjustmentId: { businessId, adjustmentId: secondAdjustmentId } }, data: { id: secondInternalId } });
+  const acceptedVersions = await prisma.taskDateAdjustment.findMany({ where: { plannedTaskId: taskId }, orderBy: { acceptedTaskVersion: "asc" }, select: { acceptedTaskVersion: true } });
+  assert.deepEqual(acceptedVersions.map(({ acceptedTaskVersion }) => acceptedTaskVersion), [2, 3]);
 });
 
 after(async () => { await prisma.$disconnect(); });
