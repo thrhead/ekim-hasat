@@ -31,9 +31,10 @@ describe("Today task date adjustment entry", () => {
   });
 
   test("shows accessible loading and adjustment conflict outcomes in Today", () => {
-    const loading = elements(TodayContent({ loading: false, error: null, data, onRetry: jest.fn(), adjustmentStates: { "task-1": "LOADING" } }));
+    const onAdjust = jest.fn();
+    const loading = elements(TodayContent({ loading: false, error: null, data, onRetry: jest.fn(), onAdjust, adjustmentStates: { "task-1": "LOADING" } }));
     expect(loading.some(({ type, props }) => type === Pressable && props.accessibilityState && (props.accessibilityState as { busy?: boolean }).busy)).toBe(true);
-    const conflict = elements(TodayContent({ loading: false, error: null, data, onRetry: jest.fn(), adjustmentStates: { "task-1": "CONFLICT" } }));
+    const conflict = elements(TodayContent({ loading: false, error: null, data, onRetry: jest.fn(), onAdjust, adjustmentStates: { "task-1": "CONFLICT" } }));
     expect(conflict.some(({ props }) => String(props.children).includes("Görev bilgisi değişti"))).toBe(true);
     expect(conflict.some(({ type, props }) => type === Pressable && props.accessibilityLabel === "Görev tarihini yeniden gözden geçir: Sulama kontrolü")).toBe(true);
   });

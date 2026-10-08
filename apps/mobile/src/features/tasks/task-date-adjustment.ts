@@ -1,5 +1,5 @@
 import type { ApiClient } from "../../api/onboarding-client";
-import type { TaskDateAdjustmentComponents } from "../../../../packages/api-client/src/index";
+import type { TaskDateAdjustmentComponents } from "../../../../../packages/api-client/src/index";
 
 type CurrentTask = TaskDateAdjustmentComponents["schemas"]["CurrentTaskAdjustmentState"];
 type Adjustment = TaskDateAdjustmentComponents["schemas"]["TaskDateAdjustment"];
@@ -54,6 +54,11 @@ export function createTaskDateAdjustmentFlow(options: Readonly<{
       return result.data as Adjustment;
     }
 
+    if (result.response.status >= 500) {
+      uncertain.set(command.taskId, command);
+      throw new TaskDateAdjustmentError("Sunucudan kesin yanıt alınamadı. Aynı tarih değişikliği güvenle tekrar denenebilir.", "SUBMISSION_UNCERTAIN");
+    }
+
     const code = responseCode(result.error) ?? "ADJUSTMENT_REJECTED";
     uncertain.delete(command.taskId);
     let current: HistoryPage | undefined;
@@ -73,6 +78,13 @@ export function createTaskDateAdjustmentFlow(options: Readonly<{
   }
 
   return {
+    async read(taskId: string): Promise<HistoryPage> {
+      const result = await options.client.GET("/tasks/{taskId}/date-adjustments", { params: { path: { taskId } } });
+      if (!result.response.ok || result.error !== undefined || result.data === undefined) {
+        throw new TaskDateAdjustmentError("Görev bilgisi yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.", responseCode(result.error) ?? "READ_FAILED");
+      }
+      return result.data as HistoryPage;
+    },
     hasUncertainSubmission(taskId: string): boolean { return uncertain.has(taskId); },
     async submit(taskId: string, task: CurrentTask, newPlannedLocalDate: string): Promise<Adjustment> {
       if (newPlannedLocalDate === task.plannedLocalDate) {

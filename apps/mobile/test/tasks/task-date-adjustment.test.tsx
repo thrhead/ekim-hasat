@@ -45,6 +45,21 @@ describe("online task date adjustment flow", () => {
     ]);
   });
 
+  test("retains retry identity after a server failure with an uncertain outcome", async () => {
+    const requests: unknown[] = [];
+    const POST = jest.fn(async (_path: string, request: unknown) => {
+      requests.push(request);
+      return requests.length === 1
+        ? { data: undefined, error: { error: { code: "UNEXPECTED" } }, response: { ok: false, status: 500 } }
+        : ok(accepted);
+    });
+    const flow = createTaskDateAdjustmentFlow({ client: { POST, GET: jest.fn() } as unknown as ApiClient, newAdjustmentId: () => "adjustment-1" });
+
+    await expect(flow.submit("task-1", current.task, "2026-10-14")).rejects.toMatchObject({ code: "SUBMISSION_UNCERTAIN" });
+    await expect(flow.retryUncertain("task-1")).resolves.toEqual(accepted);
+    expect(requests[1]).toEqual(requests[0]);
+  });
+
   test("does not report success before the server accepts the adjustment", async () => {
     let resolvePost!: (response: ReturnType<typeof ok<Accepted>>) => void;
     const POST = jest.fn(() => new Promise<ReturnType<typeof ok<Accepted>>>((resolve) => { resolvePost = resolve; }));

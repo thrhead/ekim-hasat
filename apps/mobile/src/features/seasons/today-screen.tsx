@@ -4,6 +4,8 @@ import type { ApiClient, SeasonOperations } from "../../api/onboarding-client";
 import { readTodayPlannedWork } from "./season-activation";
 import { belongsToBusinessToday, createTaskCompletionCommandStore, type TaskCompletionCommand, type TaskCompletionCommandStore, type TodaySnapshot } from "../tasks/task-completion-command-store";
 import { createTaskCompletionCoordinator } from "../tasks/task-completion";
+import { createTaskDateAdjustmentFlow } from "../tasks/task-date-adjustment";
+import { TaskDateAdjustmentView } from "../tasks/task-date-adjustment-view";
 import { readWeatherOverview, type WeatherOverviewPage } from "../weather/weather-client";
 import { WeatherCard, WeatherOverviewCards, type WeatherCardState } from "../weather/weather-card";
 import { WeatherAnnouncement, weatherAnnouncementMessage } from "../weather/weather-announcement";
@@ -28,6 +30,9 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     store,
     getAuthorizationSession: getAuthorizationSession ?? (() => null),
   }), [client, getAuthorizationSession, store, suppliedCoordinator]);
+  const adjustmentFlow = useMemo(() => createTaskDateAdjustmentFlow({ client }), [client]);
+  const [adjustmentTaskId, setAdjustmentTaskId] = useState<string | null>(null);
+  const [adjustmentStates, setAdjustmentStates] = useState<Record<string, "LOADING" | "CONFLICT">>({});
   const [data, setData] = useState<Today | null>(null);
   const [commandsLoaded, setCommandsLoaded] = useState(false);
   const [retryPendingOnOpen, setRetryPendingOnOpen] = useState(false);
@@ -189,18 +194,27 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
       : <WeatherCard state={weatherState} onRetry={() => void loadWeather()} />}
     <WeatherAnnouncement message={announcement} />
   </View>;
-  return <TodayContent loading={loading} error={error} data={data} onRetry={() => void load()} onBack={onBack} cached={cached} weather={weatherSection}
+  return <>
+  <TodayContent loading={loading} error={error} data={data} onRetry={() => void load()} onBack={onBack} cached={cached} weather={weatherSection}
     taskStates={Object.fromEntries(Object.keys(taskStates).map((taskId) => [taskId, savingTaskIds.has(taskId) ? "SAVING" : taskStates[taskId]])) as Record<string, TodayTaskState>}
     commands={completions}
     onComplete={(task) => void completeTask(task)} onRetryCompletion={(task) => void retryTask(task)}
-    onReviewConflict={(task) => void reviewConflict(task)} onOpenHistory={onOpenHistory} />;
+    onReviewConflict={(task) => void reviewConflict(task)} onOpenHistory={onOpenHistory}
+    onAdjust={(task) => { setAdjustmentStates((current) => ({ ...current, [task.id]: "LOADING" })); setAdjustmentTaskId(task.id); }}
+    adjustmentStates={adjustmentStates} />
+  {adjustmentTaskId && <TaskDateAdjustmentView taskId={adjustmentTaskId} flow={adjustmentFlow} openOnMount
+    label="Ertele veya yeniden planla"
+    onAccepted={async () => { setAdjustmentTaskId(null); setAdjustmentStates({}); await load(); }}
+    onClose={() => { setAdjustmentTaskId(null); setAdjustmentStates((current) => { const next = { ...current }; delete next[adjustmentTaskId]; return next; }); }}
+    onConflict={(failure) => { if (failure.code === "TASK_VERSION_CONFLICT") setAdjustmentStates((current) => ({ ...current, [adjustmentTaskId]: "CONFLICT" })); }} />}
+  </>;
 }
 
 export function mayUseCachedToday(snapshot: TodaySnapshot | null, failureStatus: number | undefined, now: Date): snapshot is TodaySnapshot {
   return Boolean(snapshot) && ![401, 403, 404].includes(failureStatus ?? 0) && belongsToBusinessToday(snapshot!, now);
 }
 
-export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, cached = false, weather }: {
+export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, onAdjust, adjustmentStates = {}, cached = false, weather }: {
   loading: boolean;
   error: string | null;
   data: Today | null;
@@ -211,6 +225,8 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
   onComplete?: (task: Task) => void;
   onRetryCompletion?: (task: Task) => void;
   onReviewConflict?: (task: Task) => void;
+  onAdjust?: (task: Task) => void;
+  adjustmentStates?: Record<string, "LOADING" | "CONFLICT">;
   onOpenHistory?: (fieldId: string, seasonId?: string) => void;
   cached?: boolean;
   weather?: ReactNode;
@@ -264,6 +280,16 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
         </Pressable> : null}
         {onOpenHistory ? <Pressable accessibilityRole="button" accessibilityLabel={`Geçmişi aç: ${task.title}`}
           onPress={() => onOpenHistory(task.fieldId, task.seasonId)} style={styles.button}><Text style={styles.buttonText}>Tamamlanan işleri gör</Text></Pressable> : null}
+        {!cached && onAdjust && task.taskVersion !== undefined && <>
+          {adjustmentStates[task.id] === "LOADING" && <Text accessibilityRole="progressbar" accessibilityLiveRegion="polite">Görev bilgisi yükleniyor…</Text>}
+          {adjustmentStates[task.id] === "CONFLICT" && <Text accessibilityLiveRegion="polite" style={styles.status}>Görev bilgisi değişti. Güncel tarihi kontrol edip yeniden karar verin.</Text>}
+          <Pressable accessibilityRole="button"
+            accessibilityLabel={adjustmentStates[task.id] === "CONFLICT" ? `Görev tarihini yeniden gözden geçir: ${task.title}` : `Ertele veya yeniden planla: ${task.title}`}
+            accessibilityState={{ busy: adjustmentStates[task.id] === "LOADING" }}
+            onPress={() => onAdjust(task)} style={styles.button}>
+            <Text style={styles.buttonText}>{adjustmentStates[task.id] === "CONFLICT" ? "Güncel tarihi gözden geçir" : "Ertele / Yeniden planla"}</Text>
+          </Pressable>
+        </>}
       </View>;
       })}
       {commands.filter((command) => command.state === "ACCEPTED" && !data.tasks.some((task) => task.id === command.taskId)).map((command) => <View key={command.completionId} style={styles.task}>
