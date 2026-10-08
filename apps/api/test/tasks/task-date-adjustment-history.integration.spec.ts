@@ -56,4 +56,9 @@ test("history returns current canonical state and bounded newest-first retained 
   assert.equal(older.items[0]?.previousPlannedLocalDate, "2026-09-29");
   assert.equal(older.items[0]?.newPlannedLocalDate, "2026-10-10");
   assert.equal(older.nextCursor, null);
+
+  const previouslyIssuedCursor = Buffer.from(JSON.stringify({ taskId, id: firstInternalId, adjustedAt: "2026-10-08T12:00:00.000Z" })).toString("base64url");
+  const legacyContinuation = await repository.readHistory(identity, taskId, { limit: 1, cursor: previouslyIssuedCursor });
+  assert.equal(legacyContinuation.items[0]?.previousPlannedLocalDate, "2026-10-10");
+  assert.equal(legacyContinuation.items[0]?.newPlannedLocalDate, "2026-10-11");
 });
