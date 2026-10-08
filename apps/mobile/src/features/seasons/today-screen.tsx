@@ -203,6 +203,7 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     onAdjust={(task) => { setAdjustmentStates((current) => ({ ...current, [task.id]: "LOADING" })); setAdjustmentTaskId(task.id); }}
     adjustmentStates={adjustmentStates} />
   {adjustmentTaskId && <TaskDateAdjustmentView taskId={adjustmentTaskId} flow={adjustmentFlow} openOnMount
+    taskTitle={data?.tasks.find((task) => task.id === adjustmentTaskId)?.title}
     label="Ertele veya yeniden planla"
     onAccepted={async () => { setAdjustmentTaskId(null); setAdjustmentStates({}); await load(); }}
     onClose={() => { setAdjustmentTaskId(null); setAdjustmentStates((current) => { const next = { ...current }; delete next[adjustmentTaskId]; return next; }); }}
@@ -261,7 +262,10 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
       </>}
     </View>)}
     {!loading && !error && data ? <>
-      {cached ? <Text accessibilityLiveRegion="polite" style={styles.body}>Çevrimdışı görünüm · sunucudan alınan iş tarihi</Text> : null}
+      {cached ? <>
+        <Text accessibilityLiveRegion="polite" style={styles.body}>Çevrimdışı görünüm · sunucudan alınan iş tarihi</Text>
+        <Text accessibilityLiveRegion="polite" style={styles.status}>Tarih değişikliği için internet bağlantısı gerekir.</Text>
+      </> : null}
       <Text accessibilityLabel={`İş tarihi ${data.localDate}`} style={styles.body}>İş tarihi: {data.localDate}</Text>
       {data.tasks.length === 0 ? <Text accessibilityLiveRegion="polite" style={styles.body}>Bugün için planlanmış iş yok.</Text> : data.tasks.map((task) => {
         const state = taskStates[task.id];

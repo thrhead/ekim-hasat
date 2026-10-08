@@ -24,6 +24,7 @@ export function CalendarTaskDetail({ task, onClose, saved = false, client, onAcc
           </Pressable>
         </View>
         {saved && <Text accessibilityRole="text" style={styles.saved}>Kaydedilmiş takvim bilgisi · Güncel olmayabilir</Text>}
+        {saved && <Text accessibilityRole="text" style={styles.saved}>Çevrimdışıyken tarih değiştirilemez.</Text>}
         {task.overdue && <Text accessibilityRole="text" style={styles.overdue}>Gecikmiş</Text>}
         <DetailLine label="Planlanan tarih" value={formatCalendarDate(task.plannedLocalDate)} />
         <DetailLine label="Tarla" value={task.fieldName} />
@@ -31,7 +32,7 @@ export function CalendarTaskDetail({ task, onClose, saved = false, client, onAcc
         <DetailLine label="Bölge" value={region ?? "Bölge bilgisi mevcut değil"} />
         <DetailLine label="Plan" value={planSource === "MANUAL" ? "Manuel plan" : planSource === "VALIDATED_TEMPLATE" ? "Onaylı şablon planı" : "Plan bilgisi mevcut değil"} />
         <Text style={styles.context}>Bu görev takvimdeki planlanan tarihine göre gösterilir.</Text>
-        <TaskDateAdjustmentView taskId={task.taskId} flow={adjustmentFlow} disabled={saved}
+        <TaskDateAdjustmentView taskId={task.taskId} taskTitle={task.title} flow={adjustmentFlow} disabled={saved}
           label="Ertele veya yeniden planla" onAccepted={onAccepted} />
       </ScrollView>
     </View>

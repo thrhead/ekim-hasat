@@ -8,8 +8,9 @@ type Current = TaskDateAdjustmentComponents["schemas"]["CurrentTaskAdjustmentSta
 type Page = TaskDateAdjustmentComponents["schemas"]["TaskDateAdjustmentHistoryPage"];
 type Flow = ReturnType<typeof createTaskDateAdjustmentFlow>;
 
-export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label = "Ertele / Yeniden planla", openOnMount = false, onAccepted, onClose, onConflict }: Readonly<{
+export function TaskDateAdjustmentView({ taskId, taskTitle, flow, disabled = false, label = "Ertele / Yeniden planla", openOnMount = false, onAccepted, onClose, onConflict }: Readonly<{
   taskId: string;
+  taskTitle?: string;
   flow: Flow;
   disabled?: boolean;
   label?: string;
@@ -85,16 +86,17 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
       <View style={styles.backdrop}><ScrollView accessibilityViewIsModal style={styles.sheet} contentContainerStyle={styles.content}>
         <View style={styles.heading}>
           <Text accessibilityRole="header" style={styles.title}>Görevi ertele / yeniden planla</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Tarih değişikliğini kapat" onPress={() => { setVisible(false); onClose?.(); }}><Text>Kapat</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Tarih değişikliğini kapat" onPress={() => { setVisible(false); onClose?.(); }} style={styles.close}><Text>Kapat</Text></Pressable>
         </View>
+        {taskTitle && <Text style={styles.taskTitle}>{taskTitle}</Text>}
         {loading && <Text accessibilityRole="progressbar" accessibilityLiveRegion="polite">Görev bilgisi yükleniyor…</Text>}
         {historyError && <Text accessibilityRole="alert">{historyError}</Text>}
         {state && <>
           {!state.adjustable && <Text accessibilityLiveRegion="polite">Bu görev için tarih değişikliği yapılamıyor.</Text>}
           {state.adjustable && <>
+            <Text accessibilityLabel={`Mevcut planlanan tarih: ${formatDate(state.plannedLocalDate)}`} style={styles.label}>Mevcut planlanan tarih: {formatDate(state.plannedLocalDate)}</Text>
             <Text style={styles.label}>Yeni planlanan tarih</Text>
             <TextInput accessibilityLabel="Yeni planlanan tarih" value={date} onChangeText={setDate} placeholder="YYYY-AA-GG" keyboardType="numbers-and-punctuation" style={styles.input} />
-            <Text accessibilityLabel={`Mevcut planlanan tarih ${state.plannedLocalDate}`} style={styles.label}>Mevcut tarih: {state.plannedLocalDate}</Text>
             {error && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive">{error}</Text>}
             <Pressable accessibilityRole="button" accessibilityLabel="Tarih değişikliğini kaydet"
               accessibilityState={{ disabled: saving || date === state.plannedLocalDate, busy: saving }}
@@ -105,7 +107,7 @@ export function TaskDateAdjustmentView({ taskId, flow, disabled = false, label =
         </>}
         <Text accessibilityRole="header" style={styles.historyTitle}>Tarih değişikliği geçmişi</Text>
         <TaskDateAdjustmentHistory state={loading ? "loading" : historyError ? "error" : "ready"} page={page ?? undefined} error={historyError ?? undefined}
-          onRetry={() => void reload()} onLoadMore={() => void loadMore()} />
+          loadingMore={loadingMore} onRetry={() => void reload()} onLoadMore={() => void loadMore()} />
       </ScrollView></View>
     </Modal>
   </>;
@@ -118,9 +120,16 @@ const styles = StyleSheet.create({
   sheet: { maxHeight: "90%", backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   content: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 36, gap: 12 },
   heading: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
+  close: { minHeight: 48, justifyContent: "center", paddingHorizontal: 10 },
   title: { flex: 1, color: "#17261c", fontSize: 23, fontWeight: "700" },
+  taskTitle: { color: "#526057", fontSize: 17, lineHeight: 24, fontWeight: "600" },
   label: { color: "#263a30", fontSize: 15 },
   input: { borderColor: "#52616b", borderRadius: 8, borderWidth: 1, minHeight: 48, paddingHorizontal: 12, fontSize: 17 },
   save: { borderRadius: 8, backgroundColor: "#d5eadb", justifyContent: "center", minHeight: 50, paddingHorizontal: 14 },
   historyTitle: { color: "#17261c", fontSize: 18, fontWeight: "600", marginTop: 10 },
 });
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+    .format(new Date(`${value}T00:00:00.000Z`));
+}

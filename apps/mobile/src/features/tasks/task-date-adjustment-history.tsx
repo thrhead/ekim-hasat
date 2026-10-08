@@ -3,10 +3,11 @@ import type { TaskDateAdjustmentComponents } from "../../../../../packages/api-c
 
 type Page = TaskDateAdjustmentComponents["schemas"]["TaskDateAdjustmentHistoryPage"];
 
-export function TaskDateAdjustmentHistory({ state, page, error, onRetry, onLoadMore }: Readonly<{
+export function TaskDateAdjustmentHistory({ state, page, error, loadingMore = false, onRetry, onLoadMore }: Readonly<{
   state: "loading" | "error" | "ready";
   page?: Page;
   error?: string;
+  loadingMore?: boolean;
   onRetry: () => void;
   onLoadMore?: () => void;
 }>) {
@@ -24,8 +25,9 @@ export function TaskDateAdjustmentHistory({ state, page, error, onRetry, onLoadM
       <Text>Yeni tarih · {formatDate(item.newPlannedLocalDate)}</Text>
       <Text>Değişiklik zamanı · {formatTimestamp(item.adjustedAt)}</Text>
     </View>)}
-    {page.nextCursor && onLoadMore && <Pressable accessibilityRole="button" accessibilityLabel="Daha fazla tarih değişikliği yükle" onPress={onLoadMore}>
-      <Text>Daha fazla geçmiş yükle</Text>
+    {page.nextCursor && onLoadMore && <Pressable accessibilityRole="button" accessibilityLabel="Daha fazla tarih değişikliği yükle"
+      accessibilityState={{ disabled: loadingMore, busy: loadingMore }} disabled={loadingMore} onPress={onLoadMore} style={{ minHeight: 48, justifyContent: "center" }}>
+      <Text>{loadingMore ? "Geçmiş yükleniyor…" : "Daha fazla geçmiş yükle"}</Text>
     </Pressable>}
   </View>;
 }
