@@ -64,4 +64,26 @@ describe("task date adjustment detail", () => {
     expect(tree).toContain("10 Eki 2026");
     expect(tree).toContain("12 Eki 2026");
   });
+
+  test("announces and disables the load-more action while a history page is loading", async () => {
+    let resolveNext!: (value: { data: Page; error: undefined; response: { ok: true; status: number } }) => void;
+    const GET = jest.fn()
+      .mockResolvedValueOnce({ data: first, error: undefined, response: { ok: true, status: 200 } })
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveNext = resolve; }));
+    const flow = createTaskDateAdjustmentFlow({ client: { GET, POST: jest.fn() } as unknown as ApiClient });
+    let screen!: ReturnType<typeof create> & { toJSON: () => unknown };
+    await act(async () => { screen = create(createElement(TaskDateAdjustmentView, { taskId: "task-1", flow, onAccepted: jest.fn() })) as typeof screen; });
+    const open = screen.root.findAll((node) => node.props.accessibilityLabel === "Ertele / Yeniden planla")[0];
+    await act(async () => { (open!.props.onPress as () => void)(); });
+    const more = screen.root.findAll((node) => node.props.accessibilityLabel === "Daha fazla tarih değişikliği yükle")[0];
+    await act(async () => { (more!.props.onPress as () => void)(); });
+
+    expect(more!.props.disabled).toBe(true);
+    expect((more!.props.accessibilityState as { busy?: boolean }).busy).toBe(true);
+    expect(JSON.stringify(screen.toJSON())).toContain("Geçmiş yükleniyor…");
+    await act(async () => {
+      resolveNext({ data: second, error: undefined, response: { ok: true, status: 200 } });
+      await Promise.resolve();
+    });
+  });
 });
