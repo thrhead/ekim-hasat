@@ -25,6 +25,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
   const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>();
   const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<CalendarTask | null>(null);
+  const [adjustmentNotice, setAdjustmentNotice] = useState<string | null>(null);
   const [showingSavedView, setShowingSavedView] = useState(false);
   const requestState = useRef(new CalendarRequestState());
   const activeRequest = useRef<ReturnType<CalendarRequestState["beginRead"]> | null>(null);
@@ -139,16 +140,19 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
   }, [accountId, client]);
 
   const selectDate = (selectedDate: string) => {
+    setAdjustmentNotice(null);
     void load({ selectedDate, ...(selectedFieldId ? { fieldId: selectedFieldId } : {}) });
   };
 
   const changeMonth = (offset: -1 | 1) => {
     if (!data) return;
+    setAdjustmentNotice(null);
     void load({ selectedDate: shiftMonth(data.selectedDate, offset), ...(selectedFieldId ? { fieldId: selectedFieldId } : {}) });
   };
 
   const selectField = (fieldId?: string) => {
     if (!data) return;
+    setAdjustmentNotice(null);
     setFieldPickerOpen(false);
     void load({ selectedDate: data.selectedDate, ...(fieldId ? { fieldId } : {}) });
   };
@@ -158,6 +162,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
 
   return <ScrollView contentContainerStyle={styles.content} accessibilityLabel="Takvim işleri">
     <Text accessibilityRole="header" style={styles.title}>Takvim</Text>
+    {adjustmentNotice && <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={styles.status}>{adjustmentNotice}</Text>}
     {loading && <Text accessibilityRole="progressbar" accessibilityLabel="Takvim yükleniyor" accessibilityLiveRegion="polite" style={styles.status}>Takvim yükleniyor…</Text>}
     {!loading && error && <View>
       <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}>{error.message}</Text>
@@ -199,7 +204,14 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
       {pageError && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}>{pageError}</Text>}
       <CalendarMonthOverview monthStart={data.monthStart} indicators={data.monthIndicators} selectedDate={data.selectedDate} onSelectDate={selectDate} onChangeMonth={changeMonth} />
     </View>}
-    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} />}
+    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} client={client}
+      onAccepted={async () => {
+        setAdjustmentNotice("Görev tarihi değişikliği kaydedildi.");
+        const selectedDate = data?.selectedDate;
+        const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
+        setSelectedTask(null);
+        await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+      }} />}
   </ScrollView>;
 }
 

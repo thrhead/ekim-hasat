@@ -416,6 +416,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
+  TaskDateAdjustment: 'TaskDateAdjustment',
   FieldObservation: 'FieldObservation',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
   CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskDateAdjustment" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1798,6 +1799,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TaskDateAdjustment: {
+      payload: Prisma.$TaskDateAdjustmentPayload<ExtArgs>
+      fields: Prisma.TaskDateAdjustmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TaskDateAdjustmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TaskDateAdjustmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        findFirst: {
+          args: Prisma.TaskDateAdjustmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TaskDateAdjustmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        findMany: {
+          args: Prisma.TaskDateAdjustmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>[]
+        }
+        create: {
+          args: Prisma.TaskDateAdjustmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        createMany: {
+          args: Prisma.TaskDateAdjustmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TaskDateAdjustmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>[]
+        }
+        delete: {
+          args: Prisma.TaskDateAdjustmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        update: {
+          args: Prisma.TaskDateAdjustmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.TaskDateAdjustmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TaskDateAdjustmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TaskDateAdjustmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.TaskDateAdjustmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskDateAdjustmentPayload>
+        }
+        aggregate: {
+          args: Prisma.TaskDateAdjustmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskDateAdjustment>
+        }
+        groupBy: {
+          args: Prisma.TaskDateAdjustmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskDateAdjustmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TaskDateAdjustmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskDateAdjustmentCountAggregateOutputType> | number
+        }
+      }
+    }
     FieldObservation: {
       payload: Prisma.$FieldObservationPayload<ExtArgs>
       fields: Prisma.FieldObservationFieldRefs
@@ -2475,6 +2550,27 @@ export const TaskCompletionScalarFieldEnum = {
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
+export const TaskDateAdjustmentScalarFieldEnum = {
+  id: 'id',
+  adjustmentId: 'adjustmentId',
+  plannedTaskId: 'plannedTaskId',
+  seasonPlanId: 'seasonPlanId',
+  seasonId: 'seasonId',
+  fieldId: 'fieldId',
+  businessId: 'businessId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  previousPlannedLocalDate: 'previousPlannedLocalDate',
+  newPlannedLocalDate: 'newPlannedLocalDate',
+  baseTaskVersion: 'baseTaskVersion',
+  acceptedTaskVersion: 'acceptedTaskVersion',
+  payloadFingerprint: 'payloadFingerprint',
+  adjustedAt: 'adjustedAt'
+} as const
+
+export type TaskDateAdjustmentScalarFieldEnum = (typeof TaskDateAdjustmentScalarFieldEnum)[keyof typeof TaskDateAdjustmentScalarFieldEnum]
+
+
 export const FieldObservationScalarFieldEnum = {
   id: 'id',
   businessId: 'businessId',
@@ -2878,6 +2974,7 @@ export type GlobalOmitConfig = {
   plannedTask?: Prisma.PlannedTaskOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
+  taskDateAdjustment?: Prisma.TaskDateAdjustmentOmit
   fieldObservation?: Prisma.FieldObservationOmit
   calendarReadSnapshot?: Prisma.CalendarReadSnapshotOmit
   calendarReadSnapshotTask?: Prisma.CalendarReadSnapshotTaskOmit

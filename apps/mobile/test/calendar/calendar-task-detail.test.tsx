@@ -15,7 +15,7 @@ const task: Task = {
 describe("Calendar read-only task detail", () => {
   it("shows original planned date, Field, Season/plan context and overdue status without mutation actions", async () => {
     let screen!: ReturnType<typeof create>;
-    await act(async () => { screen = create(createElement(CalendarTaskDetail, { task, onClose: jest.fn(), saved: true })); });
+    await act(async () => { screen = create(createElement(CalendarTaskDetail, { task, onClose: jest.fn(), saved: true, client: {} as ApiClient, onAccepted: jest.fn() })); });
     const tree = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
     expect(tree).toContain("4 Ekim 2026");
     expect(tree).toContain("Kuzey tarla");
@@ -24,12 +24,13 @@ describe("Calendar read-only task detail", () => {
     expect(tree).toContain("Manuel plan");
     expect(tree).toContain("Gecikmiş");
     expect(tree).toContain("Kaydedilmiş takvim bilgisi");
+    expect(tree).toContain("Çevrimdışıyken tarih değiştirilemez.");
     for (const forbidden of ["Tamamla", "Düzenle", "Ertele", "Atla", "Tarihi değiştir"]) expect(tree).not.toContain(forbidden);
     const buttons = screen.root.findAll((node) => node.props.accessibilityRole === "button");
     expect([...new Set(buttons.map((node) => node.props.accessibilityLabel))]).toEqual(["Görev ayrıntılarını kapat"]);
   });
 
-  it("opens a task from the agenda into read-only details", async () => {
+  it("opens a task from the agenda into details with only the approved adjustment action", async () => {
     const businessId = "22222222-2222-4222-8222-222222222222";
     const fieldId = "33333333-3333-4333-8333-333333333333";
     const readId = "11111111-1111-4111-8111-111111111111";
@@ -54,6 +55,7 @@ describe("Calendar read-only task detail", () => {
     const tree = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
     expect(tree).toContain("Görev ayrıntılarını kapat");
     expect(tree).toContain("Manuel plan");
-    for (const forbidden of ["Tamamla", "Düzenle", "Ertele", "Atla", "Tarihi değiştir"]) expect(tree).not.toContain(forbidden);
+    expect(tree).toContain("Ertele veya yeniden planla");
+    for (const forbidden of ["Tamamla", "Düzenle", "Atla", "Tarihi değiştir"]) expect(tree).not.toContain(forbidden);
   });
 });

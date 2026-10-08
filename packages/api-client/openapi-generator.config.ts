@@ -12,6 +12,7 @@ const contracts = [
   { schema: "../../specs/005-field-management-region-resolution/contracts/fields.openapi.yaml", output: "./src/generated/fields-api.ts" },
   { schema: "../../specs/006-field-observations-basic-diary/contracts/observations-diary.openapi.yaml", output: "./src/generated/observations-diary-api.ts" },
   { schema: "../../specs/007-calendar/contracts/calendar.openapi.yaml", output: "./src/generated/calendar-api.ts" },
+  { schema: "../../specs/008-manual-active-season-task-adjustment/contracts/task-date-adjustments.openapi.yaml", output: "./src/generated/task-date-adjustments-api.ts" },
 ];
 const normalizeLineEndings = (text: string) => text.replace(/\r\n/g, "\n");
 

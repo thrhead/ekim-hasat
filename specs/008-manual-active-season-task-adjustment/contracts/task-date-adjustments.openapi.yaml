@@ -1,0 +1,229 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Task Date Adjustment API
+  version: 1.0.0
+  description: >-
+    Online-only, farmer-approved planned-date changes for unfinished tasks in
+    ACTIVE Seasons, plus task-scoped adjustment history. The API resolves the
+    Business and Membership from authenticated identity.
+servers:
+  - url: /v1
+security:
+  - bearerAuth: []
+tags: [task-date-adjustments]
+paths:
+  /tasks/{taskId}/date-adjustments:
+    post:
+      operationId: adjustPlannedTaskDate
+      summary: Change one unfinished ACTIVE-season task's planned date
+      description: >-
+        Requires the current task version in If-Match and a stable adjustmentId
+        for exact retries. Current authorization is revalidated before resolving
+        accepted retries. Exact accepted retries replay before live eligibility
+        and version checks; new commands validate eligibility and If-Match before
+        checking for NO_DATE_CHANGE. Accepts only a currently authorized task
+        in an ACTIVE Season with an APPROVED plan and no accepted completion.
+        Canonical task update and append-only adjustment record commit
+        atomically. No offline queue is supported.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/ExpectedTaskVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdjustPlannedTaskDateRequest' }
+      responses:
+        '201':
+          description: Accepted and committed for the first time.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskDateAdjustment' }
+        '200':
+          description: Exact retry returned the original accepted adjustment; reload task detail for current canonical state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskDateAdjustment' }
+        '400': { $ref: '#/components/responses/AdjustmentValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Stale task version, task no longer adjustable, task already completed, or adjustmentId reused with different input. No stale date is automatically reapplied.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+    get:
+      operationId: getPlannedTaskAdjustmentHistory
+      summary: Read current task date and its accepted adjustment history
+      description: >-
+        Returns current canonical task date/version and a bounded page of
+        accepted adjustments after current authorization is checked. This
+        task-scoped read is separate from Diary and completion history. A
+        completed task may retain readable adjustment history but is not
+        adjustable.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, minLength: 1, maxLength: 512 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Current task state and one history page, newest adjustment first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskDateAdjustmentHistoryPage' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ExpectedTaskVersion:
+      name: If-Match
+      in: header
+      required: true
+      description: Current PlannedTask.version from an authorized read; stale value returns 409.
+      schema: { type: string, pattern: '^"?[1-9][0-9]*"?$' }
+  schemas:
+    AdjustPlannedTaskDateRequest:
+      type: object
+      additionalProperties: false
+      required: [adjustmentId, newPlannedLocalDate]
+      properties:
+        adjustmentId:
+          type: string
+          format: uuid
+          description: Stable client-generated identity for this accepted command and exact online retries; not an offline queued command.
+        newPlannedLocalDate:
+          type: string
+          format: date
+          description: Business-local calendar date on or after actual planting date.
+    TaskDateAdjustment:
+      type: object
+      required: [adjustmentId, taskId, previousPlannedLocalDate, newPlannedLocalDate, baseTaskVersion, acceptedTaskVersion, adjustedAt]
+      properties:
+        adjustmentId: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        previousPlannedLocalDate: { type: string, format: date }
+        newPlannedLocalDate: { type: string, format: date }
+        baseTaskVersion: { type: integer, minimum: 1 }
+        acceptedTaskVersion: { type: integer, minimum: 2 }
+        adjustedAt: { type: string, format: date-time, description: Server acceptance timestamp in UTC. }
+    TaskDateAdjustmentHistoryItem:
+      type: object
+      required: [adjustmentId, previousPlannedLocalDate, newPlannedLocalDate, adjustedAt]
+      properties:
+        adjustmentId: { type: string, format: uuid }
+        previousPlannedLocalDate: { type: string, format: date }
+        newPlannedLocalDate: { type: string, format: date }
+        adjustedAt: { type: string, format: date-time }
+    CurrentTaskAdjustmentState:
+      type: object
+      required: [taskId, plannedLocalDate, taskVersion, adjustable]
+      properties:
+        taskId: { type: string, format: uuid }
+        plannedLocalDate: { type: string, format: date, description: Current canonical date. }
+        taskVersion: { type: integer, minimum: 1 }
+        adjustable: { type: boolean, description: True only for an unfinished task in an ACTIVE Season with an APPROVED plan. }
+    TaskDateAdjustmentHistoryPage:
+      type: object
+      required: [task, items, nextCursor]
+      properties:
+        task: { $ref: '#/components/schemas/CurrentTaskAdjustmentState' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/TaskDateAdjustmentHistoryItem' }
+        nextCursor: { type: string, nullable: true }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, NO_DATE_CHANGE, IDEMPOTENCY_KEY_REUSED, TASK_VERSION_CONFLICT, TASK_ALREADY_COMPLETED, TASK_NOT_ACTIONABLE, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
+    InvalidRequestError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string, const: INVALID_REQUEST }
+            message: { type: string }
+            requestId: { type: string }
+    NoDateChangeError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string, const: NO_DATE_CHANGE }
+            message: { type: string }
+            requestId: { type: string }
+  responses:
+    InvalidRequest:
+      description: Malformed task ID, version, date, cursor, or limit.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    AdjustmentValidationError:
+      description: >-
+        Invalid request shape uses INVALID_REQUEST. A new adjustment command
+        requesting the current canonical date returns NO_DATE_CHANGE only after
+        authorization, eligibility, and If-Match validation. That outcome
+        creates no state, version, history, or accepted idempotency receipt.
+        Exact replay of a previously accepted adjustment is handled before live
+        eligibility/version validation and does not return NO_DATE_CHANGE only
+        because the task version later advanced.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/InvalidRequestError'
+              - $ref: '#/components/schemas/NoDateChangeError'
+    Unauthorized:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: No current authorized Business Membership/scope.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Task is unavailable in the authorized Business scope.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unexpected:
+      description: Unexpected failure. Retry only the exact request with its original adjustmentId and If-Match value.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
