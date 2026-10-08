@@ -10,59 +10,59 @@
 
 ## Eligibility and Canonical State
 
-- [ ] CHK001 Are adjustment eligibility rules explicit for unfinished tasks in ACTIVE Seasons, including the meaning of unfinished and ACTIVE? [Clarity, Spec §FR-001; Plan §Design Decisions]
-- [ ] CHK002 Is completed-task immutability consistently stated across adjustment, completion, and task-detail requirements? [Consistency, Spec §FR-007; SPEC-003]
-- [ ] CHK003 Is the boundary between SPEC-002 DRAFT plan editing and this ACTIVE-task date adjustment explicit, including which existing DRAFT behavior remains unchanged? [Consistency, Spec §FR-001, §FR-003; SPEC-002]
-- [ ] CHK004 Is `PlannedTask.plannedLocalDate` unambiguously the sole canonical planned date after an accepted adjustment, with the prior date retained only as history? [Clarity, Spec §FR-006; Plan §Design Decisions; Data Model §Canonical entity]
-- [ ] CHK005 Are allowed date values and the Business-local-date constraint, including the planting-date lower bound, clearly specified without making device timezone authoritative? [Completeness, Spec §FR-004; Plan §Design Decisions]
+- [x] CHK001 Are adjustment eligibility rules explicit for unfinished tasks in ACTIVE Seasons, including the meaning of unfinished and ACTIVE? [Clarity, Spec §FR-001; Plan §Design Decisions]
+- [x] CHK002 Is completed-task immutability consistently stated across adjustment, completion, and task-detail requirements? [Consistency, Spec §FR-007; SPEC-003]
+- [x] CHK003 Is the boundary between SPEC-002 DRAFT plan editing and this ACTIVE-task date adjustment explicit, including which existing DRAFT behavior remains unchanged? [Consistency, Spec §FR-001, §FR-003; SPEC-002]
+- [x] CHK004 Is `PlannedTask.plannedLocalDate` unambiguously the sole canonical planned date after an accepted adjustment, with the prior date retained only as history? [Clarity, Spec §FR-006; Plan §Design Decisions; Data Model §Canonical entity]
+- [x] CHK005 Are allowed date values and the Business-local-date constraint, including the planting-date lower bound, clearly specified without making device timezone authoritative? [Completeness, Spec §FR-004; Plan §Design Decisions]
 - [x] CHK006 Are same-date submissions defined as either a no-op or an auditable adjustment, so the requirements do not leave meaningless history/version behavior to implementation choice? [Ambiguity, Spec §FR-016; Plan §Design Decisions; Contract]
 
 ## Concurrency and Idempotency
 
-- [ ] CHK007 Is the task version identified as the concurrency basis for active-task adjustment, and is its relationship to the DRAFT Season/plan version clear? [Clarity, Plan §Design Decisions; SPEC-002]
+- [x] CHK007 Is the task version identified as the concurrency basis for active-task adjustment, and is its relationship to the DRAFT Season/plan version clear? [Clarity, Plan §Design Decisions; SPEC-002]
 - [x] CHK008 Do the requirements distinguish a first accepted adjustment from an exact replay of that accepted command? [Completeness, Spec §FR-010, §FR-016; Plan §Design Decisions; Contract]
 - [x] CHK009 Is exact replay defined to return the original accepted result without creating duplicate history or failing only because the first request advanced the task version? [Clarity, Spec §FR-016; Plan §Design Decisions; Contract]
-- [ ] CHK010 Is reuse of the same `adjustmentId` with different task, actor/scope, base version, or date input defined as an idempotency conflict? [Completeness, Plan §Design Decisions; Data Model §New entity]
+- [x] CHK010 Is reuse of the same `adjustmentId` with different task, actor/scope, base version, or date input defined as an idempotency conflict? [Completeness, Plan §Design Decisions; Data Model §New entity]
 - [x] CHK011 Is a genuinely new command with a stale task version distinguished from exact replay and required to reject without changing canonical state? [Consistency, Spec §FR-009, §FR-016; Plan §Transaction and Read Semantics; Quickstart §Validation scenarios]
-- [ ] CHK012 Do stale-conflict requirements explicitly require current-state reload, clear farmer-facing notice, and a new explicit decision before any retry, without automatic reapplication? [Completeness, Spec §FR-009; Plan §Transaction and Read Semantics]
-- [ ] CHK013 Are completion-versus-adjustment races assigned deterministic transactional outcomes, including protection against adjusting a task that has become completed? [Coverage, Gap, Plan §Transaction and Read Semantics; SPEC-003]
+- [x] CHK012 Do stale-conflict requirements explicitly require current-state reload, clear farmer-facing notice, and a new explicit decision before any retry, without automatic reapplication? [Completeness, Spec §FR-009; Plan §Transaction and Read Semantics]
+- [x] CHK013 Are completion-versus-adjustment races assigned deterministic transactional outcomes, including protection against adjusting a task that has become completed? [Coverage, Gap, Plan §Transaction and Read Semantics; SPEC-003]
 
 ## Audit, Authorization, and Isolation
 
-- [ ] CHK014 Is accepted adjustment history explicitly append-only and required to retain previous date, new date, actor/membership, server acceptance time, and relevant task versions? [Completeness, Spec §FR-005; Data Model §New entity]
-- [ ] CHK015 Is the history read bounded with an explicit default/maximum and a defined relationship between the returned page and current canonical task state? [Clarity, Plan §Planned API Surface; Contract]
-- [ ] CHK016 Is task-detail history ownership explicit, with Diary excluded and no generic event store introduced? [Consistency, Spec §FR-005, §Explicit Scope Boundaries; Plan §Design Decisions]
-- [ ] CHK017 Are current authenticated Membership and server-side Business scope authoritative for both mutation and history reads? [Completeness, Spec §FR-008; Plan §Design Decisions; ADR-009]
-- [ ] CHK018 Do requirements explicitly prevent client-supplied identifiers from granting access and prevent cross-Business task IDs or adjustmentId probes from revealing task or history existence? [Security, Spec §FR-008; Plan §Idempotency and command ordering; ADR-009]
-- [ ] CHK019 Is authorization revalidation on idempotent retries specified without allowing a previously accepted command to bypass current access checks? [Coverage, Gap, Plan §Design Decisions; ADR-009]
+- [x] CHK014 Is accepted adjustment history explicitly append-only and required to retain previous date, new date, actor/membership, server acceptance time, and relevant task versions? [Completeness, Spec §FR-005; Data Model §New entity]
+- [x] CHK015 Is the history read bounded with an explicit default/maximum and a defined relationship between the returned page and current canonical task state? [Clarity, Plan §Planned API Surface; Contract]
+- [x] CHK016 Is task-detail history ownership explicit, with Diary excluded and no generic event store introduced? [Consistency, Spec §FR-005, §Explicit Scope Boundaries; Plan §Design Decisions]
+- [x] CHK017 Are current authenticated Membership and server-side Business scope authoritative for both mutation and history reads? [Completeness, Spec §FR-008; Plan §Design Decisions; ADR-009]
+- [x] CHK018 Do requirements explicitly prevent client-supplied identifiers from granting access and prevent cross-Business task IDs or adjustmentId probes from revealing task or history existence? [Security, Spec §FR-008; Plan §Idempotency and command ordering; ADR-009]
+- [x] CHK019 Is authorization revalidation on idempotent retries specified without allowing a previously accepted command to bypass current access checks? [Coverage, Gap, Plan §Design Decisions; ADR-009]
 
 ## Bugün, Takvim, and Online-Only Behavior
 
-- [ ] CHK020 Are Bugün and Takvim entry points limited to eligible task-detail actions and required to invoke the same canonical server behavior? [Consistency, Spec §FR-015; SPEC-007]
-- [ ] CHK021 Are the post-adjustment Bugün rules clear for today, future, and past planned dates, including what disappears from today's work versus remains overdue on applicable surfaces? [Clarity, Spec §FR-006; Plan §Transaction and Read Semantics; SPEC-007]
-- [ ] CHK022 Are Calendar agenda/month rules explicitly read-oriented, with the approved task-detail action as the only mutation entry point and inline, drag-and-drop, bulk, and completion actions excluded? [Scope, Spec §FR-015, §Out of Scope; SPEC-007]
-- [ ] CHK023 Do Calendar requirements distinguish an immutable existing `readId` and its pages from a fresh read after adjustment, including disappearance from a viewed date and updated month/date indicators only on fresh reads? [Completeness, Plan §Transaction and Read Semantics; Data Model §Calendar snapshots; SPEC-007]
-- [ ] CHK024 Is offline/saved Calendar data explicitly unable to submit an adjustment, and is online-only success defined as occurring only after server acceptance? [Clarity, Spec §FR-011, §FR-013; Plan §Design Decisions]
-- [ ] CHK025 Are unavailable, network failure, uncertain response, retry, and stale-conflict states sufficiently defined without implying a generic offline mutation queue? [Coverage, Spec §FR-009, §FR-011, §FR-013; Plan §Design Decisions]
+- [x] CHK020 Are Bugün and Takvim entry points limited to eligible task-detail actions and required to invoke the same canonical server behavior? [Consistency, Spec §FR-015; SPEC-007]
+- [x] CHK021 Are the post-adjustment Bugün rules clear for today, future, and past planned dates, including what disappears from today's work versus remains overdue on applicable surfaces? [Clarity, Spec §FR-006; Plan §Transaction and Read Semantics; SPEC-007]
+- [x] CHK022 Are Calendar agenda/month rules explicitly read-oriented, with the approved task-detail action as the only mutation entry point and inline, drag-and-drop, bulk, and completion actions excluded? [Scope, Spec §FR-015, §Out of Scope; SPEC-007]
+- [x] CHK023 Do Calendar requirements distinguish an immutable existing `readId` and its pages from a fresh read after adjustment, including disappearance from a viewed date and updated month/date indicators only on fresh reads? [Completeness, Plan §Transaction and Read Semantics; Data Model §Calendar snapshots; SPEC-007]
+- [x] CHK024 Is offline/saved Calendar data explicitly unable to submit an adjustment, and is online-only success defined as occurring only after server acceptance? [Clarity, Spec §FR-011, §FR-013; Plan §Design Decisions]
+- [x] CHK025 Are unavailable, network failure, uncertain response, retry, and stale-conflict states sufficiently defined without implying a generic offline mutation queue? [Coverage, Spec §FR-009, §FR-011, §FR-013; Plan §Design Decisions]
 
 ## API, Data, and Migration Requirements
 
-- [ ] CHK026 Are the POST and GET task date-adjustment contract paths, required concurrency input, `adjustmentId`, and new planned local date specified consistently across spec, plan, and OpenAPI contract? [Consistency, Plan §API; Contract]
-- [ ] CHK027 Are stale-version, idempotency-reuse, authorization, and ineligible/completed-task error outcomes distinguishable enough for the approved farmer recovery behavior? [Completeness, Plan §Planned API Surface; Contract]
-- [ ] CHK028 Does the history response define bounded results and expose the current canonical task state needed to refresh a stale task detail? [Completeness, Plan §Planned API Surface; Contract]
-- [ ] CHK029 Is generated-client impact and the OpenAPI-to-client generation workflow explicitly accounted for without hand-maintained divergent client types? [Dependency, Plan §Planned API Surface; API Client README]
-- [ ] CHK030 Do persistence requirements make canonical task update and append-only history insertion atomic, including rollback behavior if either write fails? [Completeness, Data Model §Command and state transition; Plan §Transaction and Read Semantics]
-- [ ] CHK031 Is the proposed migration additive and compatible with existing task data, with rollback preserving accepted audit history and no destructive production-data assumption? [Safety, Plan §Migration and Rollback Considerations; Data Model §New entity]
+- [x] CHK026 Are the POST and GET task date-adjustment contract paths, required concurrency input, `adjustmentId`, and new planned local date specified consistently across spec, plan, and OpenAPI contract? [Consistency, Plan §API; Contract]
+- [x] CHK027 Are stale-version, idempotency-reuse, authorization, and ineligible/completed-task error outcomes distinguishable enough for the approved farmer recovery behavior? [Completeness, Plan §Planned API Surface; Contract]
+- [x] CHK028 Does the history response define bounded results and expose the current canonical task state needed to refresh a stale task detail? [Completeness, Plan §Planned API Surface; Contract]
+- [x] CHK029 Is generated-client impact and the OpenAPI-to-client generation workflow explicitly accounted for without hand-maintained divergent client types? [Dependency, Plan §Planned API Surface; API Client README]
+- [x] CHK030 Do persistence requirements make canonical task update and append-only history insertion atomic, including rollback behavior if either write fails? [Completeness, Data Model §Command and state transition; Plan §Transaction and Read Semantics]
+- [x] CHK031 Is the proposed migration additive and compatible with existing task data, with rollback preserving accepted audit history and no destructive production-data assumption? [Safety, Plan §Migration and Rollback Considerations; Data Model §New entity]
 
 ## Scope, Acceptance, and Remaining Ambiguity
 
-- [ ] CHK032 Are all approved exclusions explicit and consistent: Skip, arbitrary ACTIVE-task edits, add/remove, weather automation, recurrence, reminders, generic offline sync/queues, finance, harvest/sales, and team features? [Scope, Spec §Out of Scope; Plan §Out of Scope]
-- [ ] CHK033 Are acceptance criteria objectively sufficient to distinguish accepted date adjustment, exact replay, stale conflict, completed-task rejection, and fresh Bugün/Calendar reads? [Measurability, Spec §User Scenarios & Testing; Quickstart §Validation scenarios]
+- [x] CHK032 Are all approved exclusions explicit and consistent: Skip, arbitrary ACTIVE-task edits, add/remove, weather automation, recurrence, reminders, generic offline sync/queues, finance, harvest/sales, and team features? [Scope, Spec §Out of Scope; Plan §Out of Scope]
+- [x] CHK033 Are acceptance criteria objectively sufficient to distinguish accepted date adjustment, exact replay, stale conflict, completed-task rejection, and fresh Bugün/Calendar reads? [Measurability, Spec §User Scenarios & Testing; Quickstart §Validation scenarios]
 - [x] CHK034 Are same-date/no-op behavior and any other remaining product ambiguities explicitly resolved or clearly reserved for product clarification before task generation? [Ambiguity, Spec §FR-016; Plan §Design Decisions; Contract; Quickstart]
 
 ## Notes
 
-- Checklist items remain reviewer-owned. CHK006, CHK008, CHK009, CHK011, and CHK034 were explicitly re-evaluated for the approved no-op and idempotency ordering decisions; other unchecked items have not been assessed by this follow-up.
+- All CHK001–CHK034 were re-evaluated against the final spec, plan, OpenAPI/data model, implementation tests, Impeccable gate, and whole-feature review. Checked markers mean the requirements-quality criteria are satisfied; they do not assert physical-device validation. CHK015 is satisfied as a bounded current-state-plus-history response contract; its separately observed concurrent-read window remains a deferred implementation limitation documented in plan.md.
 - This checklist evaluates requirement quality, not implementation status or test execution.
 - `$speckit-implement` reads checklist checkbox state as a gate and must not modify markers.
 - `checklists/requirements.md` is a separate built-in spec-quality checklist maintained by `$speckit-specify` and `$speckit-clarify`.

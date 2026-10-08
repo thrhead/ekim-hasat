@@ -42,4 +42,4 @@ git diff --check
 
 ## Expected result
 
-All listed test/type/lint commands pass; the fresh Today and Calendar reads show one canonical accepted date; old Calendar read identities remain coherent; exact retry never adds another history row; stale requests never overwrite; completed tasks and unauthorized Business data remain unchanged/unavailable.
+Focused SPEC-008 domain, API, generated-client, guarded integration, and mobile checks pass. The broad repository test runners retain the known Calendar baseline: `pnpm test` is 39/41 and `pnpm test:contract` is 19/21 because `calendar-http.contract.spec.ts` and `calendar.openapi.contract.spec.ts` fail under the combined runner; those files pass individually/together, and the SPEC-008 focused contract checks pass. Do not attribute this baseline to SPEC-008 without evidence of changed behavior. The fresh Today and Calendar reads show one canonical accepted date; old Calendar read identities remain coherent; exact retry never adds another history row; stale requests never overwrite; completed tasks and unauthorized Business data remain unchanged/unavailable.

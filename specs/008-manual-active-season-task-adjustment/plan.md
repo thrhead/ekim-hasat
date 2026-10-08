@@ -80,6 +80,8 @@ Contract source: [task-date-adjustments.openapi.yaml](contracts/task-date-adjust
 
 The implementation migration is additive: create the dedicated adjustment-history table with restrictive task/Season/Field/actor relations and pagination index. No existing task columns or Calendar snapshot schema need to change. Generate Prisma client through `apps/api`'s existing `prisma:generate` script; do not edit generated Prisma output by hand.
 
+The migration-backed task mutation guard permits only a changed planned date with exactly one task-version increment when the Season is ACTIVE, its plan is APPROVED, and the task has no completion. All other ACTIVE-task edits remain rejected.
+
 Rollback must not silently erase accepted adjustment history. Prefer a forward corrective migration. Dropping the new table is safe only before production acceptance data exists or after a separately approved preservation/export decision. No migration or database operation is performed during this planning phase.
 
 ## Testing Strategy
@@ -136,7 +138,7 @@ apps/mobile/test/calendar/                         # Calendar action/fresh-read/
 - Calendar's existing task projection marks taskVersion optional in OpenAPI. The feature-scoped task-detail/history read supplies a required current version before adjustment, avoiding a change to the closed SPEC-007 contract.
 - An older Calendar `readId` remains an immutable historical view; only a fresh read is canonical after adjustment. If the network fails later, SPEC-007's saved view remains labeled possibly outdated and read-only.
 - Physical iPhone runtime validation remains separately deferred by the known repository Expo SDK 54 versus App Store Expo Go SDK 57 mismatch. This plan neither treats that evidence as passed nor proposes an SDK upgrade for it.
-- This recovery run stops before Impeccable under the explicit resume instruction; T020/T030 remain deferred for the Impeccable UI/UX gate.
+- The history/current-state endpoint reads the task and its history rows in separate READ COMMITTED queries. A concurrent accepted adjustment between those reads can briefly return an older task date/version alongside a newer history row; this Minor whole-feature review finding is deferred and is not a product requirement.
 - No numeric latency target or retention duration is present in the approved sources; bounded history pagination and append-only retention are the selected defaults, with retention policy subject to platform policy rather than farmer-facing configuration.
 
 ## Complexity Tracking
