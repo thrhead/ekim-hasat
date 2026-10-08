@@ -18,6 +18,20 @@ const second: Page = {
 };
 
 describe("task date adjustment detail", () => {
+  test("keeps the task name and current planned date visible while choosing a new date", async () => {
+    const GET = jest.fn().mockResolvedValue({ data: first, error: undefined, response: { ok: true, status: 200 } });
+    const flow = createTaskDateAdjustmentFlow({ client: { GET, POST: jest.fn() } as unknown as ApiClient });
+    let screen!: ReturnType<typeof create>;
+    await act(async () => { screen = create(createElement(TaskDateAdjustmentView, { taskId: "task-1", taskTitle: "Sulama kontrolü", flow, onAccepted: jest.fn() })) as typeof screen; });
+    const open = screen.root.findAll((node) => node.props.accessibilityLabel === "Ertele / Yeniden planla")[0];
+    await act(async () => { (open!.props.onPress as () => void)(); });
+
+    const tree = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
+    expect(tree).toContain("Sulama kontrolü");
+    expect(tree).toContain("Mevcut planlanan tarih: 14 Ekim 2026");
+    expect(tree).toContain("Yeni planlanan tarih");
+  });
+
   test("disables the save action while the selected date is still canonical", async () => {
     const GET = jest.fn().mockResolvedValue({ data: first, error: undefined, response: { ok: true, status: 200 } });
     const flow = createTaskDateAdjustmentFlow({ client: { GET, POST: jest.fn() } as unknown as ApiClient });

@@ -36,6 +36,7 @@ describe("Today task date adjustment entry", () => {
 
     const cached = elements(TodayContent({ loading: false, error: null, data, onRetry: jest.fn(), onAdjust, cached: true }));
     expect(cached.some(({ type, props }) => type === Pressable && props.accessibilityLabel === "Ertele veya yeniden planla: Sulama kontrolü")).toBe(false);
+    expect(cached.some(({ props }) => props.children === "Tarih değişikliği için internet bağlantısı gerekir.")).toBe(true);
   });
 
   test("shows accessible loading and adjustment conflict outcomes in Today", () => {

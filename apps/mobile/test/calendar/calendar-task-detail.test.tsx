@@ -24,6 +24,7 @@ describe("Calendar read-only task detail", () => {
     expect(tree).toContain("Manuel plan");
     expect(tree).toContain("Gecikmiş");
     expect(tree).toContain("Kaydedilmiş takvim bilgisi");
+    expect(tree).toContain("Çevrimdışıyken tarih değiştirilemez.");
     for (const forbidden of ["Tamamla", "Düzenle", "Ertele", "Atla", "Tarihi değiştir"]) expect(tree).not.toContain(forbidden);
     const buttons = screen.root.findAll((node) => node.props.accessibilityRole === "button");
     expect([...new Set(buttons.map((node) => node.props.accessibilityLabel))]).toEqual(["Görev ayrıntılarını kapat"]);
