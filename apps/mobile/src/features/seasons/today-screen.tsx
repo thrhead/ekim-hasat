@@ -32,6 +32,7 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
   }), [client, getAuthorizationSession, store, suppliedCoordinator]);
   const adjustmentFlow = useMemo(() => createTaskDateAdjustmentFlow({ client }), [client]);
   const [adjustmentTaskId, setAdjustmentTaskId] = useState<string | null>(null);
+  const [adjustmentNotice, setAdjustmentNotice] = useState<string | null>(null);
   const [adjustmentStates, setAdjustmentStates] = useState<Record<string, "LOADING" | "CONFLICT">>({});
   const [data, setData] = useState<Today | null>(null);
   const [commandsLoaded, setCommandsLoaded] = useState(false);
@@ -200,12 +201,13 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     commands={completions}
     onComplete={(task) => void completeTask(task)} onRetryCompletion={(task) => void retryTask(task)}
     onReviewConflict={(task) => void reviewConflict(task)} onOpenHistory={onOpenHistory}
-    onAdjust={(task) => { setAdjustmentStates((current) => ({ ...current, [task.id]: "LOADING" })); setAdjustmentTaskId(task.id); }}
+    onAdjust={(task) => { setAdjustmentNotice(null); setAdjustmentStates((current) => ({ ...current, [task.id]: "LOADING" })); setAdjustmentTaskId(task.id); }}
+    adjustmentNotice={adjustmentNotice}
     adjustmentStates={adjustmentStates} />
   {adjustmentTaskId && <TaskDateAdjustmentView taskId={adjustmentTaskId} flow={adjustmentFlow} openOnMount
     taskTitle={data?.tasks.find((task) => task.id === adjustmentTaskId)?.title}
     label="Ertele veya yeniden planla"
-    onAccepted={async () => { setAdjustmentTaskId(null); setAdjustmentStates({}); await load(); }}
+    onAccepted={async () => { setAdjustmentNotice("Görev tarihi değişikliği kaydedildi."); setAdjustmentTaskId(null); setAdjustmentStates({}); await load(); }}
     onClose={() => { setAdjustmentTaskId(null); setAdjustmentStates((current) => { const next = { ...current }; delete next[adjustmentTaskId]; return next; }); }}
     onConflict={(failure) => { if (failure.code === "TASK_VERSION_CONFLICT") setAdjustmentStates((current) => ({ ...current, [adjustmentTaskId]: "CONFLICT" })); }} />}
   </>;
@@ -215,7 +217,7 @@ export function mayUseCachedToday(snapshot: TodaySnapshot | null, failureStatus:
   return Boolean(snapshot) && ![401, 403, 404].includes(failureStatus ?? 0) && belongsToBusinessToday(snapshot!, now);
 }
 
-export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, onAdjust, adjustmentStates = {}, cached = false, weather }: {
+export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, onAdjust, adjustmentStates = {}, adjustmentNotice, cached = false, weather }: {
   loading: boolean;
   error: string | null;
   data: Today | null;
@@ -228,6 +230,7 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
   onReviewConflict?: (task: Task) => void;
   onAdjust?: (task: Task) => void;
   adjustmentStates?: Record<string, "LOADING" | "CONFLICT">;
+  adjustmentNotice?: string | null;
   onOpenHistory?: (fieldId: string, seasonId?: string) => void;
   cached?: boolean;
   weather?: ReactNode;
@@ -236,6 +239,7 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
   return <ScrollView contentContainerStyle={styles.content}>
     {onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Sezon planına dön" onPress={onBack} style={styles.button}><Text style={styles.buttonText}>Sezon planına dön</Text></Pressable> : null}
     <Text accessibilityRole="header" style={styles.title}>Bugün</Text>
+    {adjustmentNotice && <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={styles.status}>{adjustmentNotice}</Text>}
     {loading ? <Text accessibilityRole="progressbar" accessibilityLabel="Bugünün işleri yükleniyor" style={styles.body}>Bugünün işleri yükleniyor…</Text> : null}
     {!loading && error ? <View accessibilityLiveRegion="polite"><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
       {commands.some((command) => command.state === "PENDING" || command.state === "CONFLICTED")
