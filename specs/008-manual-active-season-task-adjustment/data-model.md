@@ -41,7 +41,7 @@ One immutable row represents one accepted planned-date change. It is both the fa
 - Restrict deletion of referenced task, plan, Season, Field, actor, and Membership rows so accepted audit history is not silently erased.
 - Use composite foreign keys consistent with `TaskCompletion` to ensure task/plan, Season/Business/Field, Field/Business, and Membership/Business/User relationships agree.
 - Enforce `UNIQUE (businessId, adjustmentId)` and do not add a global unique constraint to the public `adjustmentId`. A different Business may independently use the same client UUID without collision or observable difference. The internal `id` remains the row primary key.
-- Index adjustment history by `(plannedTaskId, adjustedAt DESC, id DESC)` for stable task-detail pagination; add Business/Field/Season indexes only where the chosen relational constraints or authorization query require them.
+- Order accepted history by `(adjustedAt DESC, acceptedTaskVersion DESC, id DESC)`: accepted task versions provide the per-task semantic sequence when server timestamps tie, while the internal ID is only a final total-order fallback. The matching pagination index is `(plannedTaskId, adjustedAt DESC, acceptedTaskVersion DESC, id DESC)`; retain the original index for already-issued legacy cursor continuation during rollout.
 - There is no update/delete application path for this entity. It is a feature-specific append-only history record, not a generic event store.
 
 ## Command and state transition
@@ -67,7 +67,7 @@ An exact response replay returns the original adjustment row, which may describe
 
 ## Read model
 
-The task-scoped history read returns the current canonical planned date and task version alongside a bounded page of immutable adjustments ordered by `adjustedAt DESC, id DESC`. It is authorized against the current Membership and the task's current Business/Field/Season scope. Adjustment history remains separate from completion history and Diary. Actor identifiers remain retained in the authoritative record; farmer-facing projection should not invent an actor display name.
+The task-scoped history read returns the current canonical planned date and task version alongside a bounded page of immutable adjustments ordered by `adjustedAt DESC, acceptedTaskVersion DESC, id DESC`. Accepted task version is the semantic ordering sequence for adjustments to one task; the internal ID is only a final total-order fallback. Legacy cursors without an accepted version continue using their original `(adjustedAt, id)` ordering so already-issued cursors remain decodable during rollout. It is authorized against the current Membership and the task's current Business/Field/Season scope. Adjustment history remains separate from completion history and Diary. Actor identifiers remain retained in the authoritative record; farmer-facing projection should not invent an actor display name.
 
 Mobile follows the returned cursor for additional history pages and appends those immutable rows to the open detail. It keeps an uncertain adjustment's original ID, base version, and selected date only in ephemeral flow memory for explicit exact retry. This client state is not persisted and cannot be submitted while offline.
 

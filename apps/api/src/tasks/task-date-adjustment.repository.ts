@@ -28,7 +28,7 @@ export type TaskDateAdjustmentHistoryPage = Readonly<{
 }>;
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
-type AdjustmentCursor = Readonly<{ taskId: string; id: string; adjustedAt: string }>;
+type AdjustmentCursor = Readonly<{ taskId: string; id: string; adjustedAt: string; acceptedTaskVersion?: number }>;
 
 function dateString(value: Date): string { return value.toISOString().slice(0, 10); }
 function dateScalar(value: string): Date { return new Date(`${value}T00:00:00.000Z`); }
@@ -41,7 +41,8 @@ function decodeCursor(value: string | undefined, taskId: string): AdjustmentCurs
     if (value.length > 512) throw new Error();
     const cursor = JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as Partial<AdjustmentCursor>;
     if (cursor.taskId !== taskId || typeof cursor.id !== "string" || !uuidPattern.test(cursor.id)
-      || typeof cursor.adjustedAt !== "string" || !Number.isFinite(Date.parse(cursor.adjustedAt))) throw new Error();
+      || typeof cursor.adjustedAt !== "string" || !Number.isFinite(Date.parse(cursor.adjustedAt))
+      || (cursor.acceptedTaskVersion !== undefined && (!Number.isSafeInteger(cursor.acceptedTaskVersion) || cursor.acceptedTaskVersion < 1))) throw new Error();
     return cursor as AdjustmentCursor;
   } catch { throw new TaskDateAdjustmentError("INVALID_REQUEST"); }
 }
@@ -157,12 +158,18 @@ export class TaskDateAdjustmentRepository {
     });
     if (!task) throw new NotFoundException();
     const limit = query.limit ?? 50;
+    const legacyCursor = cursor !== null && cursor.acceptedTaskVersion === undefined;
     const rows = await this.prisma.taskDateAdjustment.findMany({
       where: { plannedTaskId: taskId, businessId: scope.businessId,
-        ...(cursor ? { OR: [{ adjustedAt: { lt: new Date(cursor.adjustedAt) } }, { adjustedAt: new Date(cursor.adjustedAt), id: { lt: cursor.id } }] } : {}),
+        ...(cursor ? { OR: legacyCursor
+          ? [{ adjustedAt: { lt: new Date(cursor.adjustedAt) } }, { adjustedAt: new Date(cursor.adjustedAt), id: { lt: cursor.id } }]
+          : [{ adjustedAt: { lt: new Date(cursor.adjustedAt) } },
+            { adjustedAt: new Date(cursor.adjustedAt), acceptedTaskVersion: { lt: cursor.acceptedTaskVersion! } },
+            { adjustedAt: new Date(cursor.adjustedAt), acceptedTaskVersion: cursor.acceptedTaskVersion!, id: { lt: cursor.id } }] } : {}),
       },
-      orderBy: [{ adjustedAt: "desc" }, { id: "desc" }], take: limit + 1,
-      select: { id: true, adjustmentId: true, previousPlannedLocalDate: true, newPlannedLocalDate: true, adjustedAt: true },
+      orderBy: legacyCursor ? [{ adjustedAt: "desc" }, { id: "desc" }]
+        : [{ adjustedAt: "desc" }, { acceptedTaskVersion: "desc" }, { id: "desc" }], take: limit + 1,
+      select: { id: true, adjustmentId: true, previousPlannedLocalDate: true, newPlannedLocalDate: true, adjustedAt: true, acceptedTaskVersion: true },
     });
     const hasNext = rows.length > limit;
     const pageRows = rows.slice(0, limit);
@@ -172,7 +179,7 @@ export class TaskDateAdjustmentRepository {
         adjustable: task.completion === null && task.seasonPlan.season.status === "ACTIVE" && task.seasonPlan.status === "APPROVED" },
       items: pageRows.map((row) => ({ adjustmentId: row.adjustmentId, previousPlannedLocalDate: dateString(row.previousPlannedLocalDate),
         newPlannedLocalDate: dateString(row.newPlannedLocalDate), adjustedAt: row.adjustedAt.toISOString() })),
-      nextCursor: hasNext && last ? encodeCursor({ taskId, id: last.id, adjustedAt: last.adjustedAt.toISOString() }) : null,
+      nextCursor: hasNext && last ? encodeCursor({ taskId, id: last.id, adjustedAt: last.adjustedAt.toISOString(), acceptedTaskVersion: last.acceptedTaskVersion }) : null,
     };
   }
 

@@ -439,6 +439,7 @@ model TaskDateAdjustment {
 
   @@unique([businessId, adjustmentId], map: "task_date_adjustments_business_id_adjustment_id_key")
   @@index([plannedTaskId, adjustedAt(sort: Desc), id(sort: Desc)], map: "task_date_adjustments_task_history_idx")
+  @@index([plannedTaskId, adjustedAt(sort: Desc), acceptedTaskVersion(sort: Desc), id(sort: Desc)], map: "task_date_adjustments_task_history_order_idx")
   @@map("task_date_adjustments")
 }
 
