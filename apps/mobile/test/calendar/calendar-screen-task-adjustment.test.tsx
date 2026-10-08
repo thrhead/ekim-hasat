@@ -74,6 +74,7 @@ describe("Calendar accepted task adjustment", () => {
     await act(async () => { (submit?.props.onPress as () => void)(); });
 
     expect(acceptedResult).toBe(true);
+    expect(JSON.stringify(screen.toJSON())).toContain("Görev tarihi değişikliği kaydedildi.");
     expect(screen.root.findAll((node) => node.props.accessibilityLabel === "Görev ayrıntılarını kapat")).toHaveLength(0);
     expect(POST.mock.calls).toEqual([
       ["/v1/calendar/reads", { body: {} }],

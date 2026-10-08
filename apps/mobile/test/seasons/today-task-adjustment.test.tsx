@@ -87,6 +87,7 @@ describe("Today task date adjustment entry", () => {
       body: { adjustmentId: expect.any(String), newPlannedLocalDate: "2026-10-14" },
     });
     expect(todayReads).toBe(2);
+    expect(JSON.stringify(screen.toJSON())).toContain("Görev tarihi değişikliği kaydedildi.");
     expect(JSON.stringify(screen.toJSON())).not.toContain("Sulama kontrolü");
   });
 });
