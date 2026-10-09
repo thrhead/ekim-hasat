@@ -87,6 +87,12 @@ const codeIs = (expected: string) => (error: unknown) =>
 
 test("accepted Skip snapshots the adjusted task once and an exact stale-version retry returns the original result", async () => {
   const beforeTask = await prisma.plannedTask.findUniqueOrThrow({ where: { id: mainTask } });
+  await assert.rejects(prisma.plannedTask.updateMany({ where: { id: mainTask }, data: { version: { increment: 1 } } }),
+    /ACTIVE season tasks are read-only/);
+  await assert.rejects(prisma.plannedTask.updateMany({ where: { id: mainTask }, data: { title: "unapproved active-task edit" } }),
+    /ACTIVE season tasks are read-only/);
+  assert.equal((await prisma.plannedTask.findUniqueOrThrow({ where: { id: mainTask } })).version, beforeTask.version);
+  assert.equal(await prisma.taskSkip.count({ where: { plannedTaskId: mainTask } }), 0);
   const moved = await adjustment.adjust(identityA, mainTask, 1, {
     adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-12",
   });
