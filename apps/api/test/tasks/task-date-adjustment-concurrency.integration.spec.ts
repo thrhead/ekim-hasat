@@ -146,11 +146,16 @@ test("the ACTIVE-task guard rejects date changes while the plan is not approved"
 
 
 test("accepted Skip makes date adjustment ineligible without changing date, version, or adjustment history", async () => {
+  const initialAdjustment = await adjustments.adjust(identity, skipGuardTask, 1, {
+    adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-10",
+  });
+  assert.equal(initialAdjustment.adjustment.newPlannedLocalDate, "2026-10-10");
   const before = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
   const skip = await skips.skip(identity, skipGuardTask, before.version, { skipId: randomUUID() });
   assert.equal(skip.kind, "accepted");
   const afterSkip = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
   const historyBefore = await prisma.taskDateAdjustment.findMany({ where: { plannedTaskId: skipGuardTask }, orderBy: { id: "asc" } });
+  assert.equal(historyBefore.length, 1);
   await assert.rejects(adjustments.adjust(identity, skipGuardTask, afterSkip.version, { adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-15" }),
     (error: unknown) => error instanceof TaskDateAdjustmentError && error.presentation.code === "TASK_NOT_ACTIONABLE");
   const after = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
