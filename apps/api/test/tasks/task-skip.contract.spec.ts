@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { createTaskSkipApp } from "../../src/tasks/task-skip.controller.js";
 
 const contractPath = fileURLToPath(new URL("../../../../specs/009-skip-active-task/contracts/task-skips.openapi.yaml", import.meta.url));
 const taskId = "22222222-2222-4222-8222-222222222222";
@@ -38,10 +39,6 @@ test("Skip OpenAPI contract defines accepted, replay, version, response, and err
 });
 
 test("Skip route returns 201 then exact replay 200 with the original stable result", async () => {
-  const loaded = await import("../../src/tasks/task-skip.controller.js").catch(() => null);
-  assert.ok(loaded, "Task Skip controller factory is required for the accepted/replay API contract");
-  const createTaskSkipApp = (loaded as unknown as { createTaskSkipApp: (dependencies: unknown) => Promise<{ init(): Promise<void>; getHttpAdapter(): { getInstance(): { ready(): Promise<void> } }; inject(options: unknown): Promise<{ statusCode: number; json(): Record<string, unknown> }>; close(): Promise<void> }> }).createTaskSkipApp;
-  assert.equal(typeof createTaskSkipApp, "function", "controller exports createTaskSkipApp");
   let calls = 0;
   const result = {
     skipId, taskId, taskTitle: "Prune the rows", seasonId: "33333333-3333-4333-8333-333333333333",
@@ -68,9 +65,6 @@ test("Skip route returns 201 then exact replay 200 with the original stable resu
 });
 
 test("Skip route requires If-Match and returns the established error envelope", async () => {
-  const loaded = await import("../../src/tasks/task-skip.controller.js").catch(() => null);
-  assert.ok(loaded, "Task Skip controller factory is required for request validation contract cases");
-  const createTaskSkipApp = (loaded as unknown as { createTaskSkipApp: (dependencies: unknown) => Promise<{ init(): Promise<void>; getHttpAdapter(): { getInstance(): { ready(): Promise<void> } }; inject(options: unknown): Promise<{ statusCode: number; json(): Record<string, unknown> }>; close(): Promise<void> }> }).createTaskSkipApp;
   let calls = 0;
   const app = await createTaskSkipApp({
     verify: async (token: string) => token === "valid" ? { provider: "test", subject: "farmer" } : null,
