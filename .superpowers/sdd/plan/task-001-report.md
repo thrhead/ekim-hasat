@@ -24,7 +24,7 @@ Added `specs/009-skip-active-task/contracts/task-skips.openapi.yaml` to the Open
 6. Initial explicit-path `git commit` attempt
    - Git could not invoke the configured `code --wait` editor because `code` is not installed. Retried with `git commit -m "chore(api-client): register task skip contract" -- <explicit paths>`, which succeeded.
 7. `git status --short --branch` and `git show --stat --oneline HEAD`
-   - Clean branch; commit `aa8f85f` contains only the generator config and this report.
+   - Clean branch; commit `5fb8323` contains only the generator config and this report.
 
 ## Self-review
 
@@ -33,3 +33,11 @@ The change is limited to the generator input list and uses the existing relative
 ## Concerns
 
 `check:generated` will remain red until the later generation task creates and commits `packages/api-client/src/generated/task-skips-api.ts`. Do not treat that expected intermediate state as the final generated-client verification.
+
+
+## Report-only correction
+
+Corrected the recorded commit hash from `aa8f85f` to the reviewed commit `5fb8323`. No production files changed.
+
+- Check: a `python3` assertion verified that the evidence line records commit `5fb8323` and the correction note identifies the superseded `aa8f85f` reference.
+- Output: `corrected commit reference verified`.
