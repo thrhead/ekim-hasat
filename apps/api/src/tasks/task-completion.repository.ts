@@ -15,12 +15,38 @@ export type TaskCompletionPublic = Readonly<{
 export type TaskCompletionOutcome = Readonly<{ kind: "accepted" | "replayed"; completion: TaskCompletionPublic }>;
 export type TaskCompletionHistoryFilters = Readonly<{ seasonId?: string; cursor?: string; limit?: number }>;
 export type TaskCompletionHistoryPage = Readonly<{ items: readonly TaskCompletionPublic[]; businessTimezone: string; nextCursor: string | null }>;
-export type TaskCompletionDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION"; id: string }>;
+export type TaskOutcomeHistoryEntry = Readonly<{
+  kind: "TASK_COMPLETION"; id: string; taskId: string; seasonId: string; fieldId: string; title: string;
+  plannedLocalDate: string; occurredAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
+}> | Readonly<{
+  kind: "TASK_SKIPPED"; id: string; skipId: string; taskId: string; seasonId: string; fieldId: string; title: string;
+  plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
+}>;
+export type TaskOutcomeHistoryPage = Readonly<{ items: readonly TaskOutcomeHistoryEntry[]; businessTimezone: string; nextCursor: string | null }>;
+export type TaskCompletionDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 const instantPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i;
 
 type HistoryCursor = Readonly<{ fieldId: string; seasonId: string | null; occurredAt: string; id: string }>;
+type OutcomeCursor = Readonly<{ fieldId: string; seasonId: string | null; eventAt: string; kind: "TASK_COMPLETION" | "TASK_SKIPPED"; eventId: string }>;
+
+function decodeOutcomeCursor(value: string | undefined, fieldId: string, seasonId: string | undefined): OutcomeCursor | null {
+  if (value === undefined) return null;
+  try {
+    if (!value || value.length > 512 || !/^[A-Za-z0-9_-]+$/.test(value)) throw new Error();
+    const decoded = Buffer.from(value, "base64url");
+    if (decoded.toString("base64url") !== value) throw new Error();
+    const parsed = JSON.parse(decoded.toString("utf8")) as Partial<OutcomeCursor>;
+    if (parsed.fieldId !== fieldId || parsed.seasonId !== (seasonId ?? null)
+      || typeof parsed.eventAt !== "string" || !instantPattern.test(parsed.eventAt) || !Number.isFinite(Date.parse(parsed.eventAt))
+      || (parsed.kind !== "TASK_COMPLETION" && parsed.kind !== "TASK_SKIPPED")
+      || typeof parsed.eventId !== "string" || !uuidPattern.test(parsed.eventId)) throw new Error();
+    return parsed as OutcomeCursor;
+  } catch { throw new TaskCompletionError("INVALID_REQUEST"); }
+}
+
+function encodeOutcomeCursor(value: OutcomeCursor): string { return Buffer.from(JSON.stringify(value)).toString("base64url"); }
 
 function decodeHistoryCursor(value: string | undefined, fieldId: string, seasonId: string | undefined): HistoryCursor | null {
   if (value === undefined) return null;
@@ -152,6 +178,63 @@ export class TaskCompletionRepository {
     };
   }
 
+  /** Bounded merged read of canonical completion and Skip outcomes. */
+  async readOutcomeHistory(identity: VerifiedSubject, fieldId: string, filters: TaskCompletionHistoryFilters = {}): Promise<TaskOutcomeHistoryPage> {
+    if (!uuidPattern.test(fieldId) || (filters.seasonId !== undefined && !uuidPattern.test(filters.seasonId))
+      || (filters.limit !== undefined && (!Number.isSafeInteger(filters.limit) || filters.limit < 1 || filters.limit > 100))) throw new TaskCompletionError("INVALID_REQUEST");
+    const scope = await this.membershipScope.resolveDefaultBusinessScope(identity);
+    if (!scope) throw new BusinessScopeForbiddenError();
+    const seasonId = filters.seasonId;
+    const cursor = decodeOutcomeCursor(filters.cursor, fieldId, seasonId);
+    const [field, business] = await Promise.all([
+      this.prisma.field.findFirst({ where: { id: fieldId, businessId: scope.businessId,
+        business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, select: { id: true } }),
+      this.prisma.business.findFirst({ where: { id: scope.businessId,
+        memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } }, select: { timezone: true } }),
+    ]);
+    if (!field || !business) throw new NotFoundException();
+    if (seasonId && !await this.prisma.season.findFirst({ where: { id: seasonId, fieldId, businessId: scope.businessId }, select: { id: true } })) throw new NotFoundException();
+    const limit = filters.limit ?? 50;
+    const boundary = cursor ? new Date(cursor.eventAt) : undefined;
+    const afterFilter = (kind: OutcomeCursor["kind"], timeField: "occurredAt" | "skippedAt") => {
+      if (!cursor) return {};
+      if (kind > cursor.kind) return { OR: [{ [timeField]: { lt: boundary } }, { [timeField]: boundary }] };
+      if (kind < cursor.kind) return { [timeField]: { lt: boundary } };
+      return { OR: [{ [timeField]: { lt: boundary } }, { [timeField]: boundary, id: { lt: cursor.eventId } }] };
+    };
+    const common = { fieldId, businessId: scope.businessId, ...(seasonId ? { seasonId } : {}),
+      field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } } };
+    const [completions, skips] = await Promise.all([
+      this.prisma.taskCompletion.findMany({ where: { ...common, ...afterFilter("TASK_COMPLETION", "occurredAt") },
+        orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
+        select: { id: true, plannedTaskId: true, seasonId: true, fieldId: true, occurredAt: true, plannedLocalDateSnapshot: true,
+          taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
+      this.prisma.taskSkip.findMany({ where: { ...common, ...afterFilter("TASK_SKIPPED", "skippedAt") },
+        orderBy: [{ skippedAt: "desc" }, { id: "desc" }], take: limit + 1,
+        select: { id: true, skipId: true, plannedTaskId: true, seasonId: true, fieldId: true, skippedAt: true,
+          plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
+    ]);
+    const timezone = resolveBusinessTimezone(business.timezone);
+    const merged: TaskOutcomeHistoryEntry[] = [
+      ...completions.map((row) => ({ kind: "TASK_COMPLETION" as const, id: row.id, taskId: row.plannedTaskId,
+        seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
+        plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10), occurredAt: row.occurredAt.toISOString(),
+        sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId })),
+      ...skips.map((row) => ({ kind: "TASK_SKIPPED" as const, id: row.id, skipId: row.skipId, taskId: row.plannedTaskId,
+        seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
+        plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10), skippedAt: row.skippedAt.toISOString(),
+        sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId })),
+    ];
+    const eventAt = (entry: TaskOutcomeHistoryEntry) => entry.kind === "TASK_SKIPPED" ? entry.skippedAt : entry.occurredAt;
+    merged.sort((left, right) => Date.parse(eventAt(right)) - Date.parse(eventAt(left))
+      || left.kind.localeCompare(right.kind) || right.id.localeCompare(left.id));
+    const hasNext = merged.length > limit;
+    const items = merged.slice(0, limit);
+    const last = items.at(-1);
+    return { items, businessTimezone: timezone,
+      nextCursor: hasNext && last ? encodeOutcomeCursor({ fieldId, seasonId: seasonId ?? null, eventAt: eventAt(last), kind: last.kind, eventId: last.id }) : null };
+  }
+
   /** Bounded canonical completion candidates for the mixed Field diary. */
   async readDiaryCandidates(identity: VerifiedSubject, fieldId: string, seasonId: string | undefined,
     after: TaskCompletionDiaryAfter | null, take: number): Promise<readonly Omit<TaskCompletionPublic, "businessTimezone">[]> {
@@ -167,7 +250,8 @@ export class TaskCompletionRepository {
     if (after && (!Number.isFinite(boundary!.getTime()) || !uuidPattern.test(after.id))) throw new TaskCompletionError("INVALID_REQUEST");
     const afterFilter = !after ? {} : { OR: [
       { occurredAt: { lt: boundary } },
-      ...(after.kind === "OBSERVATION" ? [{ occurredAt: boundary }] : [{ occurredAt: boundary, id: { lt: after.id } }]),
+      ...(after.kind === "OBSERVATION" ? [{ occurredAt: boundary }]
+        : after.kind === "TASK_COMPLETION" ? [{ occurredAt: boundary, id: { lt: after.id } }] : []),
     ] };
     const rows = await this.prisma.taskCompletion.findMany({
       where: { fieldId, businessId: scope.businessId, ...(seasonId ? { seasonId } : {}),

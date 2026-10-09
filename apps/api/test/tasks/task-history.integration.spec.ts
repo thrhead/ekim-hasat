@@ -5,6 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
 import { BusinessScopeForbiddenError } from "../../src/authorization/membership-scope.service.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { TaskCompletionError } from "../../src/tasks/task-completion.error.js";
 import { SeasonActivationRepository } from "../../src/seasons/seasons-activation.repository.js";
 import { assertDisposableDatabaseUrl } from "../support/disposable-database.js";
@@ -15,7 +16,7 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: data
 const businessId = randomUUID(), otherBusinessId = randomUUID(), userId = randomUUID(), otherUserId = randomUUID(), fieldId = randomUUID(), otherFieldId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID();
 const seasonA = randomUUID(), seasonB = randomUUID(), foreignSeason = randomUUID();
-const taskA = randomUUID(), taskB = randomUUID(), taskC = randomUUID(), otherFieldTask = randomUUID();
+const taskA = randomUUID(), taskB = randomUUID(), taskC = randomUUID(), taskD = randomUUID(), otherFieldTask = randomUUID();
 const tieCompletionIds = [randomUUID(), randomUUID()].sort((left, right) => right.localeCompare(left));
 const completionC = randomUUID();
 const identity = { provider: "task-history-test", subject: randomUUID() };
@@ -23,6 +24,7 @@ const otherIdentity = { provider: "task-history-test", subject: randomUUID() };
 const repository = new TaskCompletionRepository(prisma);
 const activation = new SeasonActivationRepository(prisma);
 const tieInstant = "2026-09-28T07:00:00.000Z";
+const skips = new TaskSkipRepository(prisma, () => new Date(tieInstant));
 
 before(async () => {
   await prisma.$connect();
@@ -52,11 +54,15 @@ before(async () => {
     { id: taskA, title: "Watering", plannedLocalDate: "2026-09-26" },
     { id: taskB, title: "Field check", plannedLocalDate: "2026-09-27" },
   ]);
-  await createSeason(seasonB, fieldId, businessId, identity, [{ id: taskC, title: "Harvest check", plannedLocalDate: "2026-09-25" }]);
+  await createSeason(seasonB, fieldId, businessId, identity, [
+    { id: taskC, title: "Harvest check", plannedLocalDate: "2026-09-25" },
+    { id: taskD, title: "Skip field check", plannedLocalDate: "2026-09-26" },
+  ]);
   await createSeason(foreignSeason, otherFieldId, otherBusinessId, otherIdentity, [{ id: otherFieldTask, title: "Other field task", plannedLocalDate: "2026-09-25" }]);
   await repository.complete(identity, taskA, 1, { completionId: tieCompletionIds[0]!, occurredAt: tieInstant });
   await repository.complete(identity, taskB, 1, { completionId: tieCompletionIds[1]!, occurredAt: tieInstant });
   await repository.complete(identity, taskC, 1, { completionId: completionC, occurredAt: "2026-09-29T07:00:00.000Z" });
+  await skips.skip(identity, taskD, 1, { skipId: randomUUID() });
 });
 
 after(async () => { await prisma.$disconnect(); });
@@ -109,4 +115,21 @@ test("history cannot read another field or business and requires current members
   await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "REVOKED" } });
   try { await assert.rejects(repository.readHistory(identity, fieldId, {}), BusinessScopeForbiddenError); }
   finally { await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "ACTIVE" } }); }
+});
+
+test("mixed Task History merges completions and skips with kind tie order and bounded pagination", async () => {
+  const first = await repository.readOutcomeHistory(identity, fieldId, { limit: 2 });
+  assert.deepEqual(first.items.map(({ kind, id }) => [kind, id]), [
+    ["TASK_COMPLETION", completionC], ["TASK_COMPLETION", tieCompletionIds[0]],
+  ]);
+  assert.ok(first.nextCursor);
+  const rest = await repository.readOutcomeHistory(identity, fieldId, { limit: 10, cursor: first.nextCursor! });
+  const tied = rest.items.filter((item) => (item.kind === "TASK_SKIPPED" ? item.skippedAt : item.occurredAt) === tieInstant);
+  assert.deepEqual(tied.map(({ kind }) => kind), ["TASK_COMPLETION", "TASK_SKIPPED"]);
+  const skipped = rest.items.find((item) => item.kind === "TASK_SKIPPED");
+  assert.ok(skipped && skipped.kind === "TASK_SKIPPED");
+  assert.equal(skipped.plannedLocalDate, "2026-09-26");
+  assert.equal(skipped.skippedAt, tieInstant);
+  assert.equal((await repository.readOutcomeHistory(identity, fieldId, { seasonId: seasonB })).items.every((item) => item.seasonId === seasonB), true);
+  await assert.rejects(repository.readOutcomeHistory(identity, fieldId, { seasonId: foreignSeason }));
 });

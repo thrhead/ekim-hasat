@@ -1,16 +1,21 @@
 import { ApiError } from "../observability/api-error.filter.js";
 
-export type DiaryKind = "OBSERVATION" | "TASK_COMPLETION";
+export type DiaryKind = "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED";
 export type DiaryEntry = Readonly<{
   kind: "OBSERVATION"; id: string; fieldId: string; seasonId: string | null; description: string; occurredAt: string;
 }> | Readonly<{
   kind: "TASK_COMPLETION"; id: string; taskId: string; seasonId: string; fieldId: string; title: string;
   plannedLocalDate: string; occurredAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
+}> | Readonly<{
+  kind: "TASK_SKIPPED"; id: string; skipId: string; taskId: string; seasonId: string; fieldId: string; title: string;
+  plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
 }>;
 export type DiarySortKey = Readonly<{ version: 1; fieldId: string; seasonId: string | null; occurredAt: string; kind: DiaryKind; id: string }>;
 export type DiaryPage = Readonly<{ items: readonly DiaryEntry[]; nextCursor: string | null }>;
 
 const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+type DiaryOrderEntry = Readonly<{ kind: DiaryKind; id: string } & ({ occurredAt: string } | { skippedAt: string })>;
+function eventAt(entry: DiaryOrderEntry): string { return "occurredAt" in entry ? entry.occurredAt : entry.skippedAt; }
 
 export function diaryLimit(value: number | undefined): number {
   if (value === undefined) return 50;
@@ -19,8 +24,8 @@ export function diaryLimit(value: number | undefined): number {
 }
 
 /** Negative means left sorts before right in the approved global diary order. */
-export function compareDiaryEntries(left: Pick<DiaryEntry, "occurredAt" | "kind" | "id">, right: Pick<DiaryEntry, "occurredAt" | "kind" | "id">): number {
-  const timeOrder = Date.parse(right.occurredAt) - Date.parse(left.occurredAt);
+export function compareDiaryEntries(left: DiaryOrderEntry, right: DiaryOrderEntry): number {
+  const timeOrder = Date.parse(eventAt(right)) - Date.parse(eventAt(left));
   if (timeOrder) return timeOrder;
   const kindOrder = left.kind.localeCompare(right.kind);
   if (kindOrder) return kindOrder;
@@ -44,13 +49,13 @@ export function decodeDiaryCursor(value: string | undefined, fieldId: string, se
     const decoded = JSON.parse(bytes.toString("utf8")) as Partial<DiarySortKey>;
     if (decoded.version !== 1 || decoded.fieldId !== fieldId || decoded.seasonId !== (seasonId ?? null)
         || typeof decoded.occurredAt !== "string" || !Number.isFinite(Date.parse(decoded.occurredAt))
-        || (decoded.kind !== "OBSERVATION" && decoded.kind !== "TASK_COMPLETION")
+        || (decoded.kind !== "OBSERVATION" && decoded.kind !== "TASK_COMPLETION" && decoded.kind !== "TASK_SKIPPED")
         || typeof decoded.id !== "string" || !uuid.test(decoded.id)) throw invalidRequest();
     return decoded as DiarySortKey;
   } catch { throw invalidRequest(); }
 }
 
-export function entryIsAfterCursor(entry: Pick<DiaryEntry, "occurredAt" | "kind" | "id">, cursor: DiarySortKey): boolean {
+export function entryIsAfterCursor(entry: DiaryOrderEntry, cursor: DiarySortKey): boolean {
   return compareDiaryEntries(entry, cursor) > 0;
 }
 
@@ -62,7 +67,7 @@ export function pageDiaryCandidates<T extends DiaryEntry>(
   const items = ordered.slice(0, limit);
   const last = items.at(-1);
   const nextCursor = ordered.length > limit && last
-    ? encodeDiaryCursor({ version: 1, fieldId, seasonId, occurredAt: last.occurredAt, kind: last.kind, id: last.id })
+    ? encodeDiaryCursor({ version: 1, fieldId, seasonId, occurredAt: eventAt(last), kind: last.kind, id: last.id })
     : null;
   return { items, nextCursor };
 }

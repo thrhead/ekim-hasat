@@ -19,6 +19,11 @@ export type TaskSkipPublic = Readonly<{
   skippedAt: string;
 }>;
 export type TaskSkipOutcome = Readonly<{ kind: "accepted" | "replayed"; skip: TaskSkipPublic }>;
+export type TaskSkipDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
+export type TaskSkipDiaryCandidate = Readonly<{
+  kind: "TASK_SKIPPED"; id: string; skipId: string; taskId: string; seasonId: string; fieldId: string; title: string;
+  plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
+}>;
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 
@@ -60,6 +65,35 @@ export class TaskSkipRepository {
 
   skip(identity: VerifiedSubject, taskId: string, baseTaskVersion: number, input: SkipTaskInput): Promise<TaskSkipOutcome> {
     return this.skipAttempt(identity, taskId, baseTaskVersion, input, true);
+  }
+
+  async readDiaryCandidates(identity: VerifiedSubject, fieldId: string, seasonId: string | undefined,
+    after: TaskSkipDiaryAfter | null, take: number): Promise<readonly TaskSkipDiaryCandidate[]> {
+    if (!uuidPattern.test(fieldId) || (seasonId !== undefined && !uuidPattern.test(seasonId))
+      || !Number.isSafeInteger(take) || take < 1 || take > 101) throw new TaskSkipError("INVALID_REQUEST");
+    const scope = await this.membershipScope.resolveDefaultBusinessScope(identity);
+    if (!scope) throw new BusinessScopeForbiddenError();
+    const field = await this.prisma.field.findFirst({ where: { id: fieldId, businessId: scope.businessId,
+      business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, select: { id: true } });
+    if (!field) throw new NotFoundException();
+    if (seasonId && !await this.prisma.season.findFirst({ where: { id: seasonId, fieldId, businessId: scope.businessId }, select: { id: true } })) throw new NotFoundException();
+    const boundary = after ? new Date(after.occurredAt) : undefined;
+    if (after && (!Number.isFinite(boundary!.getTime()) || !uuidPattern.test(after.id))) throw new TaskSkipError("INVALID_REQUEST");
+    const afterFilter = !after ? {} : { OR: [
+      { skippedAt: { lt: boundary } },
+      ...(after.kind === "TASK_SKIPPED" ? [{ skippedAt: boundary, id: { lt: after.id } }] : [{ skippedAt: boundary }]),
+    ] };
+    const rows = await this.prisma.taskSkip.findMany({
+      where: { fieldId, businessId: scope.businessId, ...(seasonId ? { seasonId } : {}),
+        field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, ...afterFilter },
+      orderBy: [{ skippedAt: "desc" }, { id: "desc" }], take,
+      select: { id: true, skipId: true, plannedTaskId: true, seasonId: true, fieldId: true, skippedAt: true,
+        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } },
+    });
+    return rows.map((row) => ({ kind: "TASK_SKIPPED", id: row.id, skipId: row.skipId, taskId: row.plannedTaskId,
+      seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
+      plannedLocalDate: dateString(row.plannedLocalDateSnapshot), skippedAt: row.skippedAt.toISOString(),
+      sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId }));
   }
 
   private async skipAttempt(identity: VerifiedSubject, taskId: string, baseTaskVersion: number, input: SkipTaskInput, recoverRace: boolean): Promise<TaskSkipOutcome> {

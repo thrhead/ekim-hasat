@@ -9,6 +9,7 @@ const fieldId = "11111111-1111-4111-8111-111111111111";
 const seasonId = "22222222-2222-4222-8222-222222222222";
 const obs = (id: string, occurredAt: string, description = id) => ({ kind: "OBSERVATION" as const, id, fieldId, seasonId: null, description, occurredAt });
 const completion = (id: string, occurredAt: string) => ({ kind: "TASK_COMPLETION" as const, id, taskId: id, seasonId, fieldId, title: "Cultivate", plannedLocalDate: "2026-10-04", occurredAt, sourceKind: "MANUAL" as const, templateVersionId: null });
+const skipped = (id: string, skippedAt: string) => ({ kind: "TASK_SKIPPED" as const, id, skipId: id, taskId: id, seasonId, fieldId, title: "Cultivate", plannedLocalDate: "2026-10-04", skippedAt, sourceKind: "MANUAL" as const, templateVersionId: null });
 const queryModule = () => import("../../src/observations/diary-query.js");
 const base64urlAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
@@ -40,6 +41,21 @@ test("diary ordering is deterministic with observations first on tied occurrence
     obs("dddddddd-dddd-4ddd-8ddd-dddddddddddd", "2026-10-04T09:00:00.000Z"),
   ]);
   assert.deepEqual(items.map(({ id }) => id), ["cccccccc-cccc-4ccc-8ccc-cccccccccccc", "dddddddd-dddd-4ddd-8ddd-dddddddddddd", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]);
+});
+
+test("skipped tasks follow completions on tied event times and continue strictly after legacy cursors", async () => {
+  const { sortDiaryEntries, encodeDiaryCursor, decodeDiaryCursor, pageDiaryCandidates } = await queryModule();
+  const instant = "2026-10-05T09:00:00.000Z";
+  const entries = sortDiaryEntries([skipped("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", instant),
+    completion("cccccccc-cccc-4ccc-8ccc-cccccccccccc", instant), obs("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", instant)]);
+  assert.deepEqual(entries.map(({ kind }) => kind), ["OBSERVATION", "TASK_COMPLETION", "TASK_SKIPPED"]);
+  const legacyCursor = encodeDiaryCursor({ version: 1, fieldId, seasonId: null, occurredAt: instant, kind: "TASK_COMPLETION", id: entries[1]!.id });
+  const decoded = decodeDiaryCursor(legacyCursor, fieldId, null);
+  assert.ok(decoded);
+  assert.deepEqual(pageDiaryCandidates(entries, 10, fieldId, null, decoded).items.map(({ kind }) => kind), ["TASK_SKIPPED"]);
+  const skippedCursor = encodeDiaryCursor({ version: 1, fieldId, seasonId: null, occurredAt: instant,
+    kind: "TASK_SKIPPED", id: entries[2]!.id });
+  assert.equal(decodeDiaryCursor(skippedCursor, fieldId, null)?.kind, "TASK_SKIPPED");
 });
 
 test("bounded page defaults to 50, caps at 100, and continues strictly after the global tuple", async () => {

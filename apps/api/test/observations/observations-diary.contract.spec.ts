@@ -27,3 +27,18 @@ test("SPEC-006 contract defines create and bounded diary operations with shared 
   assert.match(contract, /absent and cross-Business resources have the same response/);
   assert.doesNotMatch(contract, /^\s+(put|patch|delete):/m);
 });
+
+test("Field Diary contract projects Task Skipped as its own accepted event kind", async () => {
+  const contract = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
+  const page = /DiaryPage:[\s\S]*?(?=\n    ObservationDiaryEntry:)/.exec(contract)?.[0] ?? "";
+  const skipped = /TaskSkippedDiaryEntry:[\s\S]*?(?=\n    ApiError:)/.exec(contract)?.[0] ?? "";
+  assert.match(page, /TASK_SKIPPED/);
+  assert.match(page, /TaskSkippedDiaryEntry/);
+  assert.match(skipped, /kind: \{ type: string, const: TASK_SKIPPED \}/);
+  assert.match(skipped, /skipId/);
+  assert.match(skipped, /taskId/);
+  assert.match(skipped, /seasonId/);
+  assert.match(skipped, /plannedLocalDate/);
+  assert.match(skipped, /skippedAt/);
+  assert.match(skipped, /no duplicate diary record is persisted/);
+});

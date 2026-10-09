@@ -4,6 +4,7 @@ import type {
   TaskCompletionHistoryFilters,
   TaskCompletionOutcome,
   TaskCompletionHistoryPage,
+  TaskOutcomeHistoryPage,
   TaskCompletionRepository,
 } from "./task-completion.repository.js";
 
@@ -17,5 +18,9 @@ export class TaskCompletionService {
 
   readHistory(identity: VerifiedSubject, fieldId: string, filters: TaskCompletionHistoryFilters): Promise<TaskCompletionHistoryPage> {
     return this.repository.readHistory(identity, fieldId, filters);
+  }
+
+  readOutcomeHistory(identity: VerifiedSubject, fieldId: string, filters: TaskCompletionHistoryFilters): Promise<TaskOutcomeHistoryPage> {
+    return this.repository.readOutcomeHistory(identity, fieldId, filters);
   }
 }

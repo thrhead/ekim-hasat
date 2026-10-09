@@ -7,6 +7,7 @@ import type { operations as FieldOperations, paths as FieldPaths } from "./gener
 import type { operations as ObservationDiaryOperations, paths as ObservationDiaryPaths } from "./generated/observations-diary-api.js";
 import type { operations as CalendarOperations, paths as CalendarPaths } from "./generated/calendar-api.js";
 import type { operations as TaskDateAdjustmentOperations, paths as TaskDateAdjustmentPaths } from "./generated/task-date-adjustments-api.js";
+import type { operations as TaskSkipOperations, paths as TaskSkipPaths } from "./generated/task-skips-api.js";
 
 export type { components } from "./generated/onboarding-api.js";
 export type { components as SeasonComponents, operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
@@ -16,8 +17,9 @@ export type { components as FieldComponents, operations as FieldOperations, path
 export type { components as ObservationDiaryComponents, operations as ObservationDiaryOperations, paths as ObservationDiaryPaths } from "./generated/observations-diary-api.js";
 export type { components as CalendarComponents, operations as CalendarOperations, paths as CalendarPaths } from "./generated/calendar-api.js";
 export type { components as TaskDateAdjustmentComponents, operations as TaskDateAdjustmentOperations, paths as TaskDateAdjustmentPaths } from "./generated/task-date-adjustments-api.js";
-export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths & FieldPaths & ObservationDiaryPaths & CalendarPaths & TaskDateAdjustmentPaths;
-export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations & FieldOperations & ObservationDiaryOperations & CalendarOperations & TaskDateAdjustmentOperations;
+export type { components as TaskSkipComponents, operations as TaskSkipOperations, paths as TaskSkipPaths } from "./generated/task-skips-api.js";
+export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths & FieldPaths & ObservationDiaryPaths & CalendarPaths & TaskDateAdjustmentPaths & TaskSkipPaths;
+export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations & FieldOperations & ObservationDiaryOperations & CalendarOperations & TaskDateAdjustmentOperations & TaskSkipOperations;
 
 /** Creates the typed client from the generated application API paths. */
 export function createApiClient(options: ClientOptions = {}) {
