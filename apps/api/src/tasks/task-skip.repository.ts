@@ -74,19 +74,8 @@ export class TaskSkipRepository {
       return await this.prisma.$transaction(async (tx) => {
         await this.lockAuthorizedContext(tx, scope);
 
-        // Identity lookup precedes all live eligibility/version checks so a confirmed
-        // command can be replayed after its accepted version has moved forward.
-        const existingById = await tx.taskSkip.findUnique({
-          where: { businessId_skipId: { businessId: scope.businessId, skipId: input.skipId } },
-        });
-        if (existingById) {
-          if (existingById.plannedTaskId !== taskId || existingById.actorUserId !== scope.userId
-            || existingById.actorMembershipId !== scope.membershipId || existingById.payloadFingerprint !== payloadFingerprint) {
-            throw new TaskSkipError("IDEMPOTENCY_KEY_REUSED");
-          }
-          return { kind: "replayed", skip: publicSkip(existingById) };
-        }
-
+        // Resolve and lock the requested task inside the authorized Business
+        // before consulting a caller-visible mutation identity.
         const locked = await tx.$queryRaw<Array<{ id: string }>>`SELECT pt.id FROM planned_tasks pt
           JOIN season_plans sp ON sp.id = pt.season_plan_id
           JOIN seasons s ON s.id = sp.season_id
@@ -100,6 +89,20 @@ export class TaskSkipRepository {
             seasonPlan: { include: { season: { include: { snapshot: true } } } } },
         });
         if (!task) throw new NotFoundException();
+
+        // Replay still precedes terminal/eligibility/version checks, so an exact
+        // accepted command remains safe after its task version has moved.
+        const existingById = await tx.taskSkip.findUnique({
+          where: { businessId_skipId: { businessId: scope.businessId, skipId: input.skipId } },
+        });
+        if (existingById) {
+          if (existingById.plannedTaskId !== taskId || existingById.seasonId !== task.seasonPlan.seasonId
+            || existingById.actorUserId !== scope.userId || existingById.actorMembershipId !== scope.membershipId
+            || existingById.payloadFingerprint !== payloadFingerprint) {
+            throw new TaskSkipError("IDEMPOTENCY_KEY_REUSED");
+          }
+          return { kind: "replayed", skip: publicSkip(existingById) };
+        }
 
         // A different command identity cannot turn an accepted terminal outcome into a replay.
         if (task.skip) throw new TaskSkipError("TASK_ALREADY_SKIPPED");

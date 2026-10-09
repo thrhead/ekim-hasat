@@ -166,6 +166,12 @@ test("current authorization hides foreign tasks and revoked membership denies ev
 
   const own = await skip.skip(identityA, staleTask, 1, command(sharedSkipId));
   assert.equal(own.kind, "accepted");
+  const exactReplay = await skip.skip(identityA, staleTask, 1, command(sharedSkipId));
+  assert.equal(exactReplay.kind, "replayed");
+  assert.deepEqual(exactReplay.skip, own.skip);
+  // A known Business-scoped command ID must not reveal that the foreign task
+  // does not match it; task authorization/scope is checked before replay lookup.
+  await assert.rejects(skip.skip(identityA, crossBusinessTask, 1, command(sharedSkipId)), NotFoundException);
   // A public command ID is independently scoped by Business; it does not disclose or collide with A's row.
   const otherBusiness = await skip.skip(identityB, crossBusinessTask, 1, command(sharedSkipId));
   assert.equal(otherBusiness.kind, "accepted");
