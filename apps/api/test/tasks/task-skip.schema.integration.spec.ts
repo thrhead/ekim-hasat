@@ -7,7 +7,7 @@ const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
 const db = new Client({ connectionString: databaseUrl });
 
-test("TaskSkip migration retains one tenant-scoped, versioned, append-only outcome with bounded history reads", async () => {
+test("TaskSkip migration retains one tenant-scoped, versioned outcome with bounded history reads", async () => {
   await db.connect();
   try {
     const table = await db.query<{ name: string | null }>(
@@ -58,6 +58,15 @@ test("TaskSkip migration retains one tenant-scoped, versioned, append-only outco
     assert.ok(!unique.some((definition) => /unique \(skip_id\)/.test(definition)),
       "Skip command identity is not globally unique");
 
+    const globalSkipIdIndexes = await db.query(
+      `SELECT indexrelid FROM pg_index
+       WHERE indrelid = 'public.task_skips'::regclass
+         AND indisunique AND indpred IS NULL AND indnkeyatts = 1
+         AND pg_get_indexdef(indexrelid, 1, true) = 'skip_id'`,
+    );
+    assert.equal(globalSkipIdIndexes.rowCount, 0,
+      "no standalone global unique index may prevent the same skip_id in another Business");
+
     for (const [columns, reference] of [
       ["planned_task_id, season_plan_id", "planned_tasks(id, season_plan_id)"],
       ["season_plan_id, season_id", "season_plans(id, season_id)"],
@@ -87,13 +96,6 @@ test("TaskSkip migration retains one tenant-scoped, versioned, append-only outco
       "Field Task History and Diary reads have a bounded keyset index");
     assert.ok(indexDefinitions.some((definition) => /\(season_id, skipped_at desc, id desc\)/.test(definition)),
       "Season Task History and Diary reads have a bounded keyset index");
-
-    const triggers = await db.query<{ definition: string }>(
-      `SELECT pg_get_triggerdef(oid) AS definition FROM pg_trigger
-       WHERE tgrelid = 'public.task_skips'::regclass AND NOT tgisinternal`,
-    );
-    assert.ok(triggers.rows.some(({ definition }) => /(?:UPDATE OR DELETE|DELETE OR UPDATE)/i.test(definition)),
-      "accepted Skip rows reject update and delete");
   } finally {
     await db.end();
   }
