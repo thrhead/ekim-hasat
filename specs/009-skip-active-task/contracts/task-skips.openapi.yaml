@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Task Skip and History API
+  version: 1.0.0
+  description: >-
+    Online-only farmer-confirmed Skip for one eligible unfinished task, plus a
+    bounded Field/Season task outcome history. The API resolves Business and
+    current membership from authenticated identity.
+servers:
+  - url: /v1
+security:
+  - bearerAuth: []
+tags:
+  - name: task-skips
+  - name: task-history
+paths:
+  /tasks/{taskId}/skips:
+    post:
+      tags: [task-skips]
+      operationId: skipPlannedTask
+      summary: Skip one eligible unfinished task
+      description: >-
+        Requires the current PlannedTask version in If-Match and a stable,
+        client-generated skipId for exact retries. Current authorization is
+        revalidated before replay. A new command is accepted only for an
+        unfinished task in an ACTIVE Season with an APPROVED plan and activation
+        snapshot. Skip is terminal and distinct from completion, deletion,
+        cancellation and date adjustment. Canonical version increment and the
+        append-only Skip record commit atomically. Completion, Skip and date
+        adjustment are serialized on the same task row; the first committed
+        incompatible outcome wins. No offline queue is supported.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/ExpectedTaskVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SkipPlannedTaskRequest' }
+      responses:
+        '201':
+          description: Skip accepted and committed for the first time.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSkip' }
+        '200':
+          description: Exact retry returned the original accepted Skip event.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSkip' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: >-
+            Task is completed/skipped/not actionable, version is stale, or
+            skipId was reused with different input. No second terminal event is
+            accepted and no stale command is reapplied.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+  /fields/{fieldId}/task-history:
+    get:
+      tags: [task-history]
+      operationId: getFieldTaskHistory
+      summary: Read completed and skipped task outcomes for an authorized Field
+      description: >-
+        Returns a bounded chronological page of canonical completed and skipped
+        task outcomes, optionally limited to a Season belonging to this Field
+        and Business. Outcomes use a discriminator and never classify Skip as
+        completion. Authorization is revalidated for every page. The existing
+        completion-only endpoint remains available unchanged.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+        - name: seasonId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, minLength: 1, maxLength: 512 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Bounded page in stable event-time, kind and event-ID order.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskHistoryPage' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Unexpected' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ExpectedTaskVersion:
+      name: If-Match
+      in: header
+      required: true
+      description: Current PlannedTask.version from an authorized read; stale value returns 409.
+      schema: { type: string, pattern: '^"?[1-9][0-9]*"?$' }
+  schemas:
+    SkipPlannedTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [skipId]
+      properties:
+        skipId:
+          type: string
+          format: uuid
+          description: Stable client-generated identity for this online Skip and exact retries; not an offline queued command.
+    TaskSkip:
+      type: object
+      required: [skipId, taskId, taskTitle, seasonId, fieldId, plannedLocalDate, baseTaskVersion, acceptedTaskVersion, skippedAt]
+      properties:
+        skipId: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        taskTitle: { type: string }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        plannedLocalDate: { type: string, format: date, description: Current canonical date captured when Skip was accepted. }
+        baseTaskVersion: { type: integer, minimum: 1 }
+        acceptedTaskVersion: { type: integer, minimum: 2 }
+        skippedAt: { type: string, format: date-time, description: Server acceptance time in UTC. }
+    TaskHistoryPage:
+      type: object
+      required: [items, businessTimezone, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/TaskCompletionHistoryEntry'
+              - $ref: '#/components/schemas/TaskSkippedHistoryEntry'
+            discriminator:
+              propertyName: kind
+              mapping:
+                TASK_COMPLETION: '#/components/schemas/TaskCompletionHistoryEntry'
+                TASK_SKIPPED: '#/components/schemas/TaskSkippedHistoryEntry'
+        businessTimezone: { type: string }
+        nextCursor: { type: string, nullable: true, maxLength: 512 }
+    TaskCompletionHistoryEntry:
+      type: object
+      required: [kind, id, taskId, seasonId, fieldId, title, plannedLocalDate, occurredAt, sourceKind, templateVersionId]
+      properties:
+        kind: { type: string, const: TASK_COMPLETION }
+        id: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        occurredAt: { type: string, format: date-time }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
+        templateVersionId: { type: string, format: uuid, nullable: true }
+    TaskSkippedHistoryEntry:
+      type: object
+      required: [kind, id, skipId, taskId, seasonId, fieldId, title, plannedLocalDate, skippedAt, sourceKind, templateVersionId]
+      properties:
+        kind: { type: string, const: TASK_SKIPPED }
+        id: { type: string, format: uuid, description: Stable event ID used for pagination. }
+        skipId: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        skippedAt: { type: string, format: date-time }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
+        templateVersionId: { type: string, format: uuid, nullable: true }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, TASK_ALREADY_COMPLETED, TASK_ALREADY_SKIPPED, TASK_NOT_ACTIONABLE, TASK_VERSION_CONFLICT, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }
+  responses:
+    InvalidRequest:
+      description: Invalid identifier, version, cursor, limit, or payload.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthorized:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: No current authorized Business membership or task scope.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Field, Season, or task is unavailable in the authorized scope; foreign existence is not disclosed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unexpected:
+      description: Unexpected failure. Retry only the exact Skip request with its original skipId and If-Match value.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
