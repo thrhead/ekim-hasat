@@ -1,4 +1,3 @@
-import { Pressable } from "react-native";
 import { createTaskCompletionCommandStore, type TaskCompletionCommand, type TaskCompletionCommandStorage, type TodaySnapshot } from "../../src/features/tasks/task-completion-command-store";
 import { TodayContent } from "../../src/features/seasons/today-screen";
 import { createTaskSkipFlow } from "../../src/features/tasks/task-skip";
@@ -13,7 +12,7 @@ const planned: Today = { localDate: "2026-10-07", businessTimezone: "Europe/Ista
 ] };
 const pending: TaskCompletionCommand = { completionId: "completion-1", taskId: "task-2", seasonId: "season-1", fieldId: "field-1", title: "Tarla kontrolü", cropDisplayName: "Arpa", plannedLocalDate: "2026-10-07", baseTaskVersion: 2, occurredAt: "2026-10-07T09:00:00Z", request: { completionId: "completion-1", occurredAt: "2026-10-07T09:00:00Z" }, state: "PENDING" };
 function storage(failSnapshotWrite = false): TaskCompletionCommandStorage {
-  let commands = [pending]; let snapshot: TodaySnapshot | null = { ...planned, fetchedAt: "2026-10-07T08:00:00Z" };
+  const commands = [pending]; let snapshot: TodaySnapshot | null = { ...planned, fetchedAt: "2026-10-07T08:00:00Z" };
   return { async listCommands() { return structuredClone(commands); }, async insertCommand(_, command) { commands.push(command); }, async recordAccepted() {}, async recordConflict() {},
     async writeTodaySnapshot(_, value) { if (failSnapshotWrite) throw new Error("disk unavailable"); snapshot = structuredClone(value); }, async readTodaySnapshot() { return structuredClone(snapshot); },
     async deleteTodaySnapshot() { snapshot = null; } };

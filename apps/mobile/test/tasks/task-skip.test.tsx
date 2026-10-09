@@ -3,7 +3,6 @@ const { act, create } = require("react-test-renderer") as {
   act: (callback: () => void | Promise<void>) => Promise<void>;
   create: (element: React.ReactElement) => TestScreen;
 };
-import { Pressable } from "react-native";
 import type { ApiClient, TaskSkipComponents } from "../../../../packages/api-client/src/index";
 import { TaskSkipView } from "../../src/features/tasks/task-skip-view";
 import { createTaskSkipFlow } from "../../src/features/tasks/task-skip";
