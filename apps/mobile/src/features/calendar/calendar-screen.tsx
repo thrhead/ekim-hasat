@@ -208,6 +208,13 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
       <CalendarMonthOverview monthStart={data.monthStart} indicators={data.monthIndicators} selectedDate={data.selectedDate} onSelectDate={selectDate} onChangeMonth={changeMonth} />
     </View>}
     {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} client={client} businessTimezone={data?.businessTimezone}
+      onSkipConflict={async () => {
+        setAdjustmentNotice("Takvim yenilendi. Görevin güncel durumunu kontrol edin.");
+        const selectedDate = data?.selectedDate;
+        const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
+        setSelectedTask(null);
+        await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+      }}
       onAccepted={async (result?: TaskSkipResult) => {
         if (result) {
           setAdjustmentNotice("Görev atlandı.");
