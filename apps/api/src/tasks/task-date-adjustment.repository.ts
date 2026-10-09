@@ -91,7 +91,7 @@ export class TaskDateAdjustmentRepository {
 
         const task = await tx.plannedTask.findFirst({
           where: { id: taskId, seasonPlan: { season: { businessId: scope.businessId, field: { businessId: scope.businessId } } } },
-          include: { completion: true, seasonPlan: { include: { season: { include: { snapshot: true } } } } },
+          include: { completion: true, skip: true, seasonPlan: { include: { season: { include: { snapshot: true } } } } },
         });
         if (!task) throw new NotFoundException();
 
@@ -109,7 +109,7 @@ export class TaskDateAdjustmentRepository {
         let validated;
         try {
           validated = validateTaskDateAdjustment({
-            seasonStatus: season.status, planStatus: task.seasonPlan.status, completed: task.completion !== null,
+            seasonStatus: season.status, planStatus: task.seasonPlan.status, completed: task.completion !== null, skipped: task.skip !== null,
             currentPlannedLocalDate: dateString(task.plannedLocalDate), actualPlantingDate: dateString(season.actualPlantingDate),
             currentTaskVersion: task.version, expectedTaskVersion: baseTaskVersion, newPlannedLocalDate: input.newPlannedLocalDate,
           });

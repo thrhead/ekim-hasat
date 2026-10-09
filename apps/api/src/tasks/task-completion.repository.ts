@@ -98,7 +98,7 @@ export class TaskCompletionRepository {
 
         const task = await tx.plannedTask.findFirst({ where: { id: taskId, seasonPlan: { season: {
           businessId: scope.businessId, field: { businessId: scope.businessId },
-        } } }, include: { seasonPlan: { include: { season: { include: { snapshot: true, business: { select: { timezone: true } } } } } } } });
+        } } }, include: { skip: { select: { id: true } }, seasonPlan: { include: { season: { include: { snapshot: true, business: { select: { timezone: true } } } } } } } });
         if (!task) throw new NotFoundException();
 
         const existingById = await tx.taskCompletion.findUnique({ where: { id: input.completionId }, include: { season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
@@ -109,6 +109,8 @@ export class TaskCompletionRepository {
           }
           return { kind: "replayed", completion: this.toPublic(existingById) };
         }
+
+        if (task.skip) throw new TaskCompletionError("TASK_NOT_ACTIONABLE");
 
         const season = task.seasonPlan.season;
         if (season.status !== "ACTIVE" || task.seasonPlan.status !== "APPROVED" || !season.snapshot) throw new TaskCompletionError("TASK_NOT_ACTIONABLE");

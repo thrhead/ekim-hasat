@@ -17,6 +17,7 @@ export type TaskDateAdjustmentInput = Readonly<{
   seasonStatus: string;
   planStatus: string;
   completed: boolean;
+  skipped: boolean;
   currentPlannedLocalDate: unknown;
   actualPlantingDate: unknown;
   currentTaskVersion: number;
@@ -36,7 +37,7 @@ export function validateTaskDateAdjustment(input: TaskDateAdjustmentInput): Vali
   if (input.completed) {
     throw new TaskDateAdjustmentError("TASK_ALREADY_COMPLETED", "A completed task cannot be rescheduled.");
   }
-  if (input.seasonStatus !== "ACTIVE" || input.planStatus !== "APPROVED") {
+  if (input.skipped || input.seasonStatus !== "ACTIVE" || input.planStatus !== "APPROVED") {
     throw new TaskDateAdjustmentError("TASK_NOT_ACTIONABLE", "This task is not available for rescheduling.");
   }
   if (input.currentTaskVersion !== input.expectedTaskVersion) {
