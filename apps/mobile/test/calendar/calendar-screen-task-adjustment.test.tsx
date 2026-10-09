@@ -5,7 +5,7 @@ jest.mock("@react-native-async-storage/async-storage", () => (
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { CalendarScreen } from "../../src/features/calendar/calendar-screen";
-import type { ApiClient, CalendarComponents, TaskDateAdjustmentComponents } from "../../../../packages/api-client/src/index";
+import type { ApiClient, CalendarComponents, TaskDateAdjustmentComponents, TaskSkipComponents } from "../../../../packages/api-client/src/index";
 
 const businessId = "22222222-2222-4222-8222-222222222222";
 const fieldId = "33333333-3333-4333-8333-333333333333";
@@ -40,6 +40,40 @@ const accepted: TaskDateAdjustmentComponents["schemas"]["TaskDateAdjustment"] = 
 };
 
 describe("Calendar accepted task adjustment", () => {
+  test("accepted Skip invalidates failed Today cache pruning and keeps recovery notice after Calendar refresh", async () => {
+    const original = read("11111111-1111-4111-8111-111111111111", "2026-10-07", [task]);
+    const fresh = read("77777777-7777-4777-8777-777777777777", "2026-10-07", []);
+    const skip: TaskSkipComponents["schemas"]["TaskSkip"] = {
+      skipId: "99999999-9999-4999-8999-999999999999", taskId, taskTitle: task.title,
+      seasonId: task.seasonId, fieldId, plannedLocalDate: task.plannedLocalDate,
+      baseTaskVersion: 4, acceptedTaskVersion: 5, skippedAt: "2026-10-08T10:00:00.000Z",
+    };
+    const todayStore = { pruneTodayTask: jest.fn().mockRejectedValue(new Error("snapshot read failed")) };
+    let calendarReads = 0;
+    const POST = jest.fn(async (path: string) => {
+      if (path === "/tasks/{taskId}/skips") return { data: skip, error: undefined, response: { ok: true, status: 201 } };
+      calendarReads += 1;
+      return { data: calendarReads === 1 ? original : fresh, error: undefined, response: { ok: true, status: 200 } };
+    });
+    const GET = jest.fn(async () => ({ data: { items: [], nextCursor: null }, error: undefined, response: { ok: true, status: 200 } }));
+    let screen!: ReturnType<typeof create>;
+    await act(async () => { screen = create(createElement(CalendarScreen, { client: { POST, GET } as unknown as ApiClient,
+      accountId: "account-1", todayStore: todayStore as never })); });
+    await act(async () => {
+      const taskButton = screen.root.findAll((node) => String(node.props.accessibilityLabel ?? "").includes("Sulama kontrolü"))[0];
+      (taskButton?.props.onPress as (() => void) | undefined)?.();
+    });
+    await act(async () => { (screen.root.findAll((node) => node.props.accessibilityLabel === `Görevi atla: ${task.title}`)[0]?.props.onPress as (() => void) | undefined)?.(); });
+    await act(async () => {
+      (screen.root.findAll((node) => node.props.accessibilityLabel === "Atlamayı onayla")[0]?.props.onPress as (() => void) | undefined)?.();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const rendered = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
+    expect(todayStore.pruneTodayTask).toHaveBeenCalledWith("account-1", taskId);
+    expect(calendarReads).toBe(2);
+    expect(rendered).toContain("Bugün görünümündeki kayıt yenilenemedi.");
+  });
+
   test("starts a new read for server-selected date and Field scope without rewriting the old snapshot", async () => {
     const original = read("11111111-1111-4111-8111-111111111111", "2026-10-07", [task]);
     const fresh = read("77777777-7777-4777-8777-777777777777", "2026-10-07", []);

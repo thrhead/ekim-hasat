@@ -14,6 +14,18 @@ type TestScreen = { root: { findAllByType(type: unknown): { props: Record<string
 function button(root: TestScreen, label: string) { return root.root.findAll((item) => item.props.accessibilityLabel === label)[0]!; }
 
 describe("online task Skip", () => {
+  it("creates a UUID mutation identity when crypto.randomUUID is unavailable", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+    Object.defineProperty(globalThis, "crypto", { configurable: true, value: undefined });
+    try {
+      const command = createTaskSkipFlow({ client: { POST: jest.fn() } as unknown as ApiClient }).createCommand(task.id, task.taskVersion);
+      expect(command.skipId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    } finally {
+      if (descriptor) Object.defineProperty(globalThis, "crypto", descriptor);
+      else Reflect.deleteProperty(globalThis, "crypto");
+    }
+  });
+
   it("requires explicit confirmation and reports accepted server result with an accessible busy state", async () => {
     const POST = jest.fn().mockResolvedValue({ data: accepted, response: { ok: true, status: 201 } });
     const onAccepted = jest.fn(); let root!: TestScreen;

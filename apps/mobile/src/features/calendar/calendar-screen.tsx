@@ -11,15 +11,16 @@ import { createCalendarSavedViewStore } from "./calendar-saved-view-store";
 import type { CalendarSavedView } from "./calendar-saved-view-store";
 import { canUseCalendarSavedView } from "./calendar-offline-policy";
 import { createTaskCompletionCommandStore } from "../tasks/task-completion-command-store";
+import type { TaskCompletionCommandStore } from "../tasks/task-completion-command-store";
 import type { TaskSkipResult } from "../tasks/task-skip";
 
 type CalendarTask = CalendarComponents["schemas"]["CalendarTask"];
 type SavedViewStore = ReturnType<typeof createCalendarSavedViewStore>;
 const defaultSavedViewStore = createCalendarSavedViewStore();
 
-export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore }) {
+export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore, todayStore: suppliedTodayStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore; todayStore?: TaskCompletionCommandStore }) {
   const [data, setData] = useState<CalendarRead | null>(null);
-  const todayStore = useMemo(() => createTaskCompletionCommandStore(), []);
+  const todayStore = useMemo(() => suppliedTodayStore ?? createTaskCompletionCommandStore(), [suppliedTodayStore]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ message: string; retryable: boolean } | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -216,15 +217,17 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
         await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
       }}
       onAccepted={async (result?: TaskSkipResult) => {
+        let projectionError: string | null = null;
         if (result) {
           setAdjustmentNotice("Görev atlandı.");
           try { await todayStore.pruneTodayTask(accountId, result.taskId); }
-          catch { setPageError("Görev atlandı; Bugün görünümündeki kayıt yenilenemedi."); }
+          catch { projectionError = "Görev atlandı; Bugün görünümündeki kayıt yenilenemedi."; }
         } else setAdjustmentNotice("Görev tarihi değişikliği kaydedildi.");
         const selectedDate = data?.selectedDate;
         const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
         setSelectedTask(null);
         await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+        if (projectionError) setPageError(projectionError);
       }} />}
   </ScrollView>;
 }

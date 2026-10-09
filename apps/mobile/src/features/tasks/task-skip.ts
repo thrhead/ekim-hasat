@@ -40,4 +40,11 @@ function failure(kind: TaskSkipFailure["kind"], message: string, status?: number
   return Object.assign(new Error(message), { kind, ...(status !== undefined ? { status } : {}), ...(code ? { code } : {}) });
 }
 function isOnline(): boolean { return typeof navigator === "undefined" || navigator.onLine !== false; }
-function createId(): string { return globalThis.crypto?.randomUUID?.() ?? `skip-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function createId(): string {
+  const randomUUID = globalThis.crypto?.randomUUID;
+  if (randomUUID) return randomUUID.call(globalThis.crypto);
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (letter) => {
+    const random = Math.floor(Math.random() * 16);
+    return (letter === "x" ? random : (random & 0x3) | 0x8).toString(16);
+  });
+}

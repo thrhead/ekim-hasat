@@ -208,9 +208,9 @@ export function createTaskCompletionCommandStore(options: Readonly<{ storage?: T
     async pruneTodayTask(accountId: string, taskId: string): Promise<void> {
       const account = assertAccountId(accountId);
       if (!taskId.trim()) throw new Error("A task ID is required");
-      const snapshot = await storage.readTodaySnapshot(account);
-      if (!snapshot || !snapshot.tasks.some((task) => task.id === taskId)) return;
       try {
+        const snapshot = await storage.readTodaySnapshot(account);
+        if (!snapshot || !snapshot.tasks.some((task) => task.id === taskId)) return;
         await storage.writeTodaySnapshot(account, { ...snapshot, tasks: snapshot.tasks.filter((task) => task.id !== taskId) });
       } catch (failure) {
         await storage.deleteTodaySnapshot?.(account).catch(() => undefined);
