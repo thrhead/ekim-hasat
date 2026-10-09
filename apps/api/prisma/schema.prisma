@@ -20,6 +20,7 @@ model ApplicationUser {
   idempotencyRecords  IdempotencyRecord[]
   commandRecords      BusinessCommandIdempotencyRecord[]
   taskCompletions     TaskCompletion[]                   @relation("CompletionActorUser")
+  taskSkips           TaskSkip[]                         @relation("TaskSkipActorUser")
   taskDateAdjustments TaskDateAdjustment[]               @relation("TaskDateAdjustmentActorUser")
   observations        FieldObservation[]                 @relation("ObservationActorUser")
 
@@ -42,6 +43,7 @@ model Business {
   weatherSnapshots    WeatherSnapshot[]
   observations        FieldObservation[]
   taskDateAdjustments TaskDateAdjustment[]
+  taskSkips           TaskSkip[]
 
   @@map("businesses")
 }
@@ -56,6 +58,7 @@ model Membership {
   business            Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
   user                ApplicationUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
   taskCompletions     TaskCompletion[]
+  taskSkips           TaskSkip[]           @relation("TaskSkipActorMembership")
   taskDateAdjustments TaskDateAdjustment[] @relation("TaskDateAdjustmentActorMembership")
   observations        FieldObservation[]   @relation("ObservationActorMembership")
 
@@ -85,6 +88,7 @@ model Field {
   commandRecords              BusinessCommandIdempotencyRecord[]
   seasons                     Season[]
   taskCompletions             TaskCompletion[]
+  taskSkips                   TaskSkip[]
   taskDateAdjustments         TaskDateAdjustment[]
   observations                FieldObservation[]
   weatherSnapshot             WeatherSnapshot?
@@ -312,6 +316,7 @@ model Season {
   snapshot              SeasonContextSnapshot?
   commandRecords        BusinessCommandIdempotencyRecord[]
   taskCompletions       TaskCompletion[]
+  taskSkips             TaskSkip[]
   taskDateAdjustments   TaskDateAdjustment[]
   observations          FieldObservation[]
 
@@ -336,6 +341,7 @@ model SeasonPlan {
   tasks               PlannedTask[]
   completions         TaskCompletion[]
   taskDateAdjustments TaskDateAdjustment[]
+  taskSkips           TaskSkip[]
 
   @@unique([id, seasonId])
   @@index([templateVersionId])
@@ -353,6 +359,7 @@ model PlannedTask {
 
   seasonPlan      SeasonPlan           @relation(fields: [seasonPlanId], references: [id], onDelete: Restrict)
   completion      TaskCompletion?
+  skip            TaskSkip?
   dateAdjustments TaskDateAdjustment[]
 
   @@unique([id, seasonPlanId])
@@ -410,6 +417,40 @@ model TaskCompletion {
   @@index([seasonId, occurredAt(sort: Desc), id(sort: Desc)])
   @@index([businessId])
   @@map("task_completions")
+}
+
+// Append-only accepted Skip outcome; no application update/delete path.
+// Positive base version, accepted = base + 1, and non-empty fingerprint checks are migration-owned.
+model TaskSkip {
+  id                       String   @id @default(uuid()) @db.Uuid
+  skipId                   String   @map("skip_id") @db.Uuid
+  plannedTaskId            String   @unique(map: "task_skips_planned_task_id_key") @map("planned_task_id") @db.Uuid
+  seasonPlanId             String   @map("season_plan_id") @db.Uuid
+  seasonId                 String   @map("season_id") @db.Uuid
+  fieldId                  String   @map("field_id") @db.Uuid
+  businessId               String   @map("business_id") @db.Uuid
+  actorUserId              String   @map("actor_user_id") @db.Uuid
+  actorMembershipId        String   @map("actor_membership_id") @db.Uuid
+  skippedAt                DateTime @default(now()) @map("skipped_at") @db.Timestamptz(6)
+  baseTaskVersion          Int      @map("base_task_version")
+  acceptedTaskVersion      Int      @map("accepted_task_version")
+  payloadFingerprint       String   @map("payload_fingerprint")
+  taskTitleSnapshot        String   @map("task_title_snapshot")
+  plannedLocalDateSnapshot DateTime @map("planned_local_date_snapshot") @db.Date
+
+  plannedTask     PlannedTask     @relation(fields: [plannedTaskId, seasonPlanId], references: [id, seasonPlanId], onDelete: Restrict)
+  seasonPlan      SeasonPlan      @relation(fields: [seasonPlanId, seasonId], references: [id, seasonId], onDelete: Restrict)
+  season          Season          @relation(fields: [seasonId, businessId, fieldId], references: [id, businessId, fieldId], onDelete: Restrict)
+  field           Field           @relation(fields: [fieldId, businessId], references: [id, businessId], onDelete: Restrict)
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  actorUser       ApplicationUser @relation("TaskSkipActorUser", fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorMembership Membership      @relation("TaskSkipActorMembership", fields: [actorMembershipId, businessId, actorUserId], references: [id, businessId, userId], onDelete: Restrict)
+
+  @@unique([businessId, skipId], map: "task_skips_business_id_skip_id_key")
+  @@unique([plannedTaskId, seasonPlanId])
+  @@index([fieldId, skippedAt(sort: Desc), id(sort: Desc)])
+  @@index([seasonId, skippedAt(sort: Desc), id(sort: Desc)])
+  @@map("task_skips")
 }
 
 model TaskDateAdjustment {
