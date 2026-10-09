@@ -80,15 +80,18 @@ function FieldDiaryContent({ client, fieldId, fieldName, seasonId, seasonName, o
 }
 
 function DiaryRow({ item, timezone }: { item: DiaryEntry; timezone: string }) {
-  const occurred = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(new Date(item.occurredAt));
-  const title = item.kind === "OBSERVATION" ? "Gözlem" : "Tamamlanan iş";
+  const isTask = item.kind !== "OBSERVATION";
+  const skipped = item.kind === "TASK_SKIPPED";
+  const happenedAt = item.kind === "OBSERVATION" ? item.occurredAt : skipped ? item.skippedAt : item.occurredAt;
+  const occurred = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(new Date(happenedAt));
+  const title = item.kind === "OBSERVATION" ? "Gözlem" : skipped ? "Görev atlandı" : "Tamamlanan iş";
   const description = item.kind === "OBSERVATION" ? item.description : item.title;
-  const planned = item.kind === "TASK_COMPLETION" ? new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.plannedLocalDate}T12:00:00Z`)) : null;
-  const provenance = item.kind === "TASK_COMPLETION" ? item.sourceKind === "MANUAL" ? "Elle eklenen iş" : "Onaylı plana göre" : item.seasonId ? "Sezona bağlı gözlem" : "Tarla gözlemi";
-  return <View accessible accessibilityLabel={`${title}, ${description}, gerçekleşti ${occurred}, ${timezone}${planned ? `, planlanan ${planned}` : ""}, ${provenance}`} style={styles.row}>
+  const planned = isTask ? new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.plannedLocalDate}T12:00:00Z`)) : null;
+  const provenance = item.kind === "OBSERVATION" ? item.seasonId ? "Sezona bağlı gözlem" : "Tarla gözlemi" : item.sourceKind === "MANUAL" ? "Elle eklenen iş" : "Onaylı plana göre";
+  return <View accessible accessibilityLabel={`${title}, ${description}, ${skipped ? "atlandı" : "gerçekleşti"} ${occurred}, ${timezone}${planned ? `, planlanan ${planned}` : ""}, ${provenance}`} style={styles.row}>
     <Text accessibilityRole="header" style={styles.rowTitle}>{title}</Text>
     <Text style={styles.body}>{description}</Text>
-    <Text style={styles.body}>Gerçekleşti: {occurred} · {timezone}</Text>
+    <Text style={styles.body}>{skipped ? "Atlanma zamanı" : "Gerçekleşti"}: {occurred} · {timezone}</Text>
     {planned && <Text style={styles.body}>Planlanan gün: {planned}</Text>}
     <Text style={styles.body}>{provenance}</Text>
     {item.kind === "TASK_COMPLETION" && <Text style={styles.body}>Sezonda tamamlanan iş</Text>}

@@ -6,6 +6,7 @@ import { readFieldDiary } from "../../src/features/observations/diary-client";
 type Page = ObservationDiaryComponents["schemas"]["DiaryPage"];
 const observation: Page["items"][number] = { kind: "OBSERVATION", id: "observation-1", fieldId: "field-1", seasonId: null, description: "Yapraklar sarardı", occurredAt: "2026-10-05T09:00:00Z" };
 const completion: Page["items"][number] = { kind: "TASK_COMPLETION", id: "completion-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-1", title: "Sulamayı kontrol et", occurredAt: "2026-10-04T09:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
+const skipped: Page["items"][number] = { kind: "TASK_SKIPPED", id: "skip-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-2", title: "Sürmeyi atla", skippedAt: "2026-10-04T10:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1", skipId: "skip-1" };
 function page(items: Page["items"] = [], nextCursor: string | null = null): Page { return { items, nextCursor, businessTimezone: "Europe/Istanbul" }; }
 function success(data: Page) { return { data, response: { ok: true, status: 200 } }; }
 function deferred<T>() {
@@ -59,6 +60,14 @@ describe("Field/Season diary", () => {
     expect(rendered).not.toContain("template-1");
     expect(node(screen, "Günlük yüklendi").props.accessibilityLiveRegion).toBe("polite");
     await act(async () => screen.unmount());
+  });
+
+  it("renders skipped work as its own diary event, never as a completion", async () => {
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([skipped]))));
+    const rendered = text(screen);
+    expect(rendered).toContain("Görev atlandı"); expect(rendered).toContain("Sürmeyi atla");
+    expect(rendered).toContain("Planlanan gün"); expect(rendered).toContain("Atlanma zamanı");
+    expect(rendered).not.toContain("Tamamlanan iş"); expect(rendered).not.toContain("Sezonda tamamlanan iş");
   });
 
   it("announces loading then an empty state with the permitted create action", async () => {

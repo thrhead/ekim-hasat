@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient } from "../../api/onboarding-client";
-import type { TaskCompletionComponents, TaskCompletionOperations } from "../../../../../packages/api-client/src/index";
+import type { TaskSkipComponents, TaskSkipOperations } from "../../../../../packages/api-client/src/index";
 import { createTaskCompletionCommandStore, type TaskCompletionCommand } from "./task-completion-command-store";
 
-type HistoryPage = TaskCompletionOperations["getFieldTaskCompletionHistory"]["responses"][200]["content"]["application/json"];
-type Completion = TaskCompletionComponents["schemas"]["TaskCompletion"];
+type HistoryPage = TaskSkipOperations["getFieldTaskHistory"]["responses"][200]["content"]["application/json"];
+type HistoryEntry = TaskSkipComponents["schemas"]["TaskHistoryPage"]["items"][number];
 
 export async function readFieldTaskCompletionHistory(client: ApiClient, fieldId: string, filters: Readonly<{ seasonId?: string; cursor?: string }> = {}): Promise<HistoryPage> {
-  const result = await client.GET("/fields/{fieldId}/task-completions", {
+  const result = await client.GET("/fields/{fieldId}/task-history", {
     params: { path: { fieldId }, query: { limit: 50, ...(filters.seasonId ? { seasonId: filters.seasonId } : {}), ...(filters.cursor ? { cursor: filters.cursor } : {}) } },
   });
-  if (!result.response.ok || result.error !== undefined || result.data === undefined) throw new Error("Tamamlanan işler yüklenemedi.");
+  if (!result.response.ok || result.error !== undefined || result.data === undefined) throw new Error("Tarla geçmişi yüklenemedi.");
   return result.data;
 }
 
@@ -100,7 +100,7 @@ export function TaskCompletionHistoryContent({ loading, loadingMore = false, err
 }) {
   return <ScrollView contentContainerStyle={styles.content}>
     <Pressable accessibilityRole="button" accessibilityLabel="Bugüne dön" onPress={onBack} style={styles.button}><Text style={styles.buttonText}>Bugüne dön</Text></Pressable>
-    <Text accessibilityRole="header" style={styles.title}>Tamamlanan işler</Text>
+    <Text accessibilityRole="header" style={styles.title}>İş geçmişi</Text>
     <Text style={styles.body}>{seasonId ? "Bu sezonun tarla geçmişi" : "Tarla geçmişi"}</Text>
     {seasonId ? <Pressable accessibilityRole="button" accessibilityLabel="Tarlanın tüm geçmişini göster" onPress={onShowAll} style={styles.button}>
       <Text style={styles.buttonText}>Tüm sezonlar</Text></Pressable> : null}
@@ -108,7 +108,7 @@ export function TaskCompletionHistoryContent({ loading, loadingMore = false, err
     {!loading && error ? <View accessibilityLiveRegion="polite"><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="Geçmişi yeniden yükle" onPress={onRetry} style={styles.button}><Text style={styles.buttonText}>Yeniden dene</Text></Pressable></View> : null}
     {!loading && !error && data?.items.length === 0 ? <Text accessibilityLiveRegion="polite" style={styles.body}>
-      {seasonId ? "Bu sezonda tamamlanmış iş yok." : "Bu tarlada tamamlanmış iş yok."}
+      {seasonId ? "Bu sezonda geçmiş kaydı yok." : "Bu tarlada geçmiş kaydı yok."}
     </Text> : null}
     {!loading && !error && data?.items.map((item) => <TaskCompletionHistoryRow key={item.id} item={item} timezone={data.businessTimezone} />)}
     {localCommands.length ? <View accessibilityLiveRegion="polite" style={styles.localSection}>
@@ -125,11 +125,15 @@ export function TaskCompletionHistoryContent({ loading, loadingMore = false, err
   </ScrollView>;
 }
 
-export function TaskCompletionHistoryRow({ item, timezone }: { item: Completion; timezone: string }) {
-  return <View accessible accessibilityLabel={`${item.title}, planlanan ${formatPlannedDate(item.plannedLocalDate)}, gerçekleşti ${formatOccurrence(item.occurredAt, timezone)}, ${timezone}`} style={styles.row}>
+export function TaskCompletionHistoryRow({ item, timezone }: { item: HistoryEntry; timezone: string }) {
+  const skipped = item.kind === "TASK_SKIPPED";
+  const occurredAt = skipped ? item.skippedAt : item.occurredAt;
+  const outcome = skipped ? "Görev atlandı" : "Tamamlandı";
+  return <View accessible accessibilityLabel={`${outcome}: ${item.title}, planlanan ${formatPlannedDate(item.plannedLocalDate)}, ${skipped ? "atlandı" : "gerçekleşti"} ${formatOccurrence(occurredAt, timezone)}, ${timezone}`} style={styles.row}>
     <Text accessibilityRole="header" style={styles.rowTitle}>{item.title}</Text>
+    <Text style={styles.provenance}>{outcome}</Text>
     <Text style={styles.body}>Planlanan gün: {formatPlannedDate(item.plannedLocalDate)}</Text>
-    <Text style={styles.body}>Gerçekleşti: {formatOccurrence(item.occurredAt, timezone)} · {timezone}</Text>
+    <Text style={styles.body}>{skipped ? "Atlanma zamanı" : "Gerçekleşti"}: {formatOccurrence(occurredAt, timezone)} · {timezone}</Text>
     <Text style={styles.provenance}>{item.sourceKind === "MANUAL" ? "Elle eklenen iş" : "Onaylı plana göre"}</Text>
   </View>;
 }
