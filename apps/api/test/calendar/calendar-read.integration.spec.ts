@@ -6,6 +6,7 @@ import { NotFoundException } from "@nestjs/common";
 import { Prisma, PrismaClient } from "../../src/generated/prisma/client.js";
 import { MembershipScopeService } from "../../src/authorization/membership-scope.service.js";
 import { CalendarReadRepository } from "../../src/calendar/calendar-read.repository.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { businessLocalDate } from "../../src/seasons/business-timezone.js";
 import { assertDisposableDatabaseUrl } from "../support/disposable-database.js";
 
@@ -24,6 +25,12 @@ const customCropIds: string[] = [];
 const seasonIds: string[] = [];
 const planIds: string[] = [];
 const calendarReadIds: string[] = [];
+const retainedBusinessIds = new Set<string>();
+const retainedFieldIds = new Set<string>();
+const retainedSeasonIds = new Set<string>();
+const retainedPlanIds = new Set<string>();
+const retainedCropIds = new Set<string>();
+const retainedSubjects = new Set<string>();
 
 before(async () => prisma.$connect());
 
@@ -32,21 +39,27 @@ after(async () => {
     if (calendarReadIds.length) {
       await prisma.calendarReadSnapshot.deleteMany({ where: { readId: { in: calendarReadIds } } });
     }
-    if (seasonIds.length) {
+    const disposableSeasonIds = seasonIds.filter((id) => !retainedSeasonIds.has(id));
+    const disposablePlanIds = planIds.filter((id) => !retainedPlanIds.has(id));
+    if (disposableSeasonIds.length) {
       await prisma.season.updateMany({
-        where: { id: { in: seasonIds }, status: "ACTIVE" },
+        where: { id: { in: disposableSeasonIds }, status: "ACTIVE" },
         data: { status: "DRAFT", activatedAt: null },
       });
     }
-    if (planIds.length) await prisma.plannedTask.deleteMany({ where: { seasonPlanId: { in: planIds } } });
-    if (planIds.length) await prisma.seasonPlan.deleteMany({ where: { id: { in: planIds } } });
-    if (seasonIds.length) await prisma.season.deleteMany({ where: { id: { in: seasonIds } } });
-    if (customCropIds.length) await prisma.customCrop.deleteMany({ where: { id: { in: customCropIds } } });
-    if (fieldIds.length) await prisma.field.deleteMany({ where: { id: { in: fieldIds } } });
-    if (userSubjects.length) {
-      await prisma.applicationUser.deleteMany({ where: { authProvider: provider, authSubject: { in: userSubjects } } });
+    if (disposablePlanIds.length) await prisma.plannedTask.deleteMany({ where: { seasonPlanId: { in: disposablePlanIds } } });
+    if (disposablePlanIds.length) await prisma.seasonPlan.deleteMany({ where: { id: { in: disposablePlanIds } } });
+    if (disposableSeasonIds.length) await prisma.season.deleteMany({ where: { id: { in: disposableSeasonIds } } });
+    const disposableCropIds = customCropIds.filter((id) => !retainedCropIds.has(id));
+    if (disposableCropIds.length) await prisma.customCrop.deleteMany({ where: { id: { in: disposableCropIds } } });
+    const disposableFieldIds = fieldIds.filter((id) => !retainedFieldIds.has(id));
+    if (disposableFieldIds.length) await prisma.field.deleteMany({ where: { id: { in: disposableFieldIds } } });
+    const disposableSubjects = userSubjects.filter((id) => !retainedSubjects.has(id));
+    if (disposableSubjects.length) {
+      await prisma.applicationUser.deleteMany({ where: { authProvider: provider, authSubject: { in: disposableSubjects } } });
     }
-    if (businessIds.length) await prisma.business.deleteMany({ where: { id: { in: businessIds } } });
+    const disposableBusinessIds = businessIds.filter((id) => !retainedBusinessIds.has(id));
+    if (disposableBusinessIds.length) await prisma.business.deleteMany({ where: { id: { in: disposableBusinessIds } } });
   } finally {
     await prisma.$disconnect();
   }
@@ -109,8 +122,23 @@ test("Calendar read capture returns one authorized read identity with overdue pr
   const task = await prisma.plannedTask.create({
     data: { seasonPlanId: plan.id, title: "Overdue fixture task", plannedLocalDate: new Date("2026-10-05T00:00:00.000Z") },
   });
+  const selectedTask = await prisma.plannedTask.create({
+    data: { seasonPlanId: plan.id, title: "Selected date fixture task", plannedLocalDate: new Date("2026-10-10T00:00:00.000Z") },
+  });
+  const remainingTask = await prisma.plannedTask.create({
+    data: { seasonPlanId: plan.id, title: "Remaining overdue fixture task", plannedLocalDate: new Date("2026-10-07T00:00:00.000Z") },
+  });
   await prisma.seasonPlan.update({ where: { id: plan.id }, data: { status: "APPROVED" } });
-  await prisma.season.update({ where: { id: season.id }, data: { status: "ACTIVE", activatedAt: new Date("2026-09-01T00:00:00.000Z") } });
+  const activatedAt = new Date("2026-09-01T00:00:00.000Z");
+  await prisma.season.update({ where: { id: season.id }, data: { status: "ACTIVE", activatedAt } });
+  await prisma.seasonContextSnapshot.create({ data: { seasonId: season.id, source: "MANUAL", templateVersionId: null,
+    cropSnapshot: {}, activatedAt, businessTimezone: "Europe/Istanbul", activatedLocalDate: new Date("2026-09-01T00:00:00.000Z") } });
+  retainedBusinessIds.add(business.id);
+  retainedFieldIds.add(fieldId);
+  retainedSeasonIds.add(season.id);
+  retainedPlanIds.add(plan.id);
+  retainedCropIds.add(customCrop.id);
+  retainedSubjects.add(subject);
 
   const failingPrisma = new Proxy(prisma, {
     get(target, property) {
@@ -141,13 +169,28 @@ test("Calendar read capture returns one authorized read identity with overdue pr
   assert.equal(await prisma.calendarReadSnapshot.count({ where: { businessId: business.id } }), 0);
 
   const repository = new CalendarReadRepository(prisma);
-  const read = await repository.createRead(identity, { selectedDate: "2026-10-06" });
+  const read = await repository.createRead(identity, { selectedDate: "2026-10-10" });
   calendarReadIds.push(read.readId);
-  assert.equal(read.selectedDate, "2026-10-06");
+  assert.equal(read.selectedDate, "2026-10-10");
   assert.ok(read.readId);
-  assert.equal(read.overdueTasksPage.items[0]?.taskId, task.id);
-  assert.equal(read.selectedDateTasksPage.items.length, 0);
+  assert.deepEqual(read.overdueTasksPage.items.map(({ taskId }) => taskId), [task.id, remainingTask.id]);
+  assert.deepEqual(read.selectedDateTasksPage.items.map(({ taskId }) => taskId), [selectedTask.id]);
   assert.equal(read.monthIndicators.find(({ date }) => date === "2026-10-05")?.hasWork, true);
+  assert.equal(read.monthIndicators.find(({ date }) => date === "2026-10-10")?.hasWork, true);
+
+  const skipRepository = new TaskSkipRepository(prisma);
+  await skipRepository.skip(identity, task.id, 1, { skipId: randomUUID() });
+  await skipRepository.skip(identity, selectedTask.id, 1, { skipId: randomUUID() });
+  const freshRead = await repository.createRead(identity, { selectedDate: "2026-10-10" });
+  calendarReadIds.push(freshRead.readId);
+  assert.notEqual(freshRead.readId, read.readId);
+  assert.deepEqual(freshRead.overdueTasksPage.items.map(({ taskId }) => taskId), [remainingTask.id]);
+  assert.deepEqual(freshRead.selectedDateTasksPage.items, []);
+  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-05")?.hasWork, false);
+  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-10")?.hasWork, false);
+  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-07")?.hasWork, true);
+  const oldSnapshotTasks = await prisma.calendarReadSnapshotTask.findMany({ where: { readId: read.readId }, select: { taskId: true } });
+  assert.deepEqual(oldSnapshotTasks.map(({ taskId }) => taskId).sort(), [task.id, remainingTask.id, selectedTask.id].sort());
 });
 
 test("omitted selectedDate is resolved from captured asOf in the authorized Business timezone and bound to readId", async () => {

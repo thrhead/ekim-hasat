@@ -95,6 +95,7 @@ export class CalendarReadRepository {
     const tasks = await db.plannedTask.findMany({
       where: {
         completion: null,
+        skip: null,
         seasonPlan: {
           is: {
             status: "APPROVED",

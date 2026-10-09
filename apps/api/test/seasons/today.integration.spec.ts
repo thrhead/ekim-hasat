@@ -5,17 +5,16 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
 import { TodayRepository, businessLocalDate, FALLBACK_BUSINESS_TIMEZONE } from "../../src/seasons/today.repository.js";
 import { BusinessScopeForbiddenError } from "../../src/authorization/membership-scope.service.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
+import { assertDisposableDatabaseUrl } from "../support/disposable-database.js";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgresql://ekim_hasat:ekim_hasat_local@localhost:5432/ekim_hasat";
-const databaseName = new URL(databaseUrl).pathname.slice(1);
-if (databaseName !== "ekim_hasat_test") {
-  throw new Error(`Today PostgreSQL integration test requires disposable database ekim_hasat_test; got ${databaseName || "no database"}`);
-}
+assertDisposableDatabaseUrl(process.env.DATABASE_URL);
+const databaseUrl = process.env.DATABASE_URL!;
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const businessId = randomUUID(); const otherBusinessId = randomUUID(); const userId = randomUUID();
 const fieldId = randomUUID(); const otherFieldId = randomUUID(); const cropId = randomUUID(); const cropKey = randomUUID(); const templateId = randomUUID();
 const seasonId = randomUUID(); const otherSeasonId = randomUUID(); const identity = { provider: "today-test", subject: randomUUID() };
-const actionableTaskId = randomUUID(); const completionTaskId = randomUUID();
+const actionableTaskId = randomUUID(); const anotherDueTaskId = randomUUID(); const completionTaskId = randomUUID();
 let instant = new Date("2026-08-01T20:30:00.000Z");
 const repository = new TodayRepository(prisma, () => instant);
 
@@ -30,6 +29,7 @@ before(async () => {
     const tasks = id === seasonId
       ? [
           { id: actionableTaskId, title: "Inspect field", plannedLocalDate: new Date("2026-08-02T00:00:00.000Z") },
+          { id: anotherDueTaskId, title: "Check irrigation", plannedLocalDate: new Date("2026-08-02T00:00:00.000Z") },
           { id: completionTaskId, title: "Record completed work", plannedLocalDate: new Date("2026-08-03T00:00:00.000Z") },
         ]
       : [{ id: randomUUID(), title: "Inspect field", plannedLocalDate: new Date("2026-08-02T00:00:00.000Z") }];
@@ -45,11 +45,26 @@ after(async () => { await prisma.$disconnect(); });
 test("business-local midnight wins over UTC and device timezone across authorized fields", async () => {
   instant = new Date("2026-08-01T20:30:00.000Z"); // Tokyo is already Aug 2; UTC is still Aug 1.
   const response = await repository.readToday(identity);
-  assert.equal(response.localDate, "2026-08-02"); assert.equal(response.tasks.length, 1); assert.equal(response.tasks[0]?.fieldId, fieldId);
+  assert.equal(response.localDate, "2026-08-02"); assert.equal(response.tasks.length, 2); assert.ok(response.tasks.every((task) => task.fieldId === fieldId));
   assert.equal(response.businessTimezone, "Asia/Tokyo");
   const task = response.tasks.find((candidate) => candidate.id === actionableTaskId);
   assert.equal(task?.taskVersion, 1);
   assert.equal(task?.plannedLocalDate, response.localDate);
+});
+
+test("Today excludes an accepted Skip while preserving other due work and Business-local date", async () => {
+  instant = new Date("2026-08-01T20:30:00.000Z");
+  const activatedAt = new Date("2026-08-01T01:00:00.000Z");
+  await prisma.seasonContextSnapshot.create({ data: { seasonId, source: "VALIDATED_TEMPLATE", templateVersionId: templateId,
+    cropSnapshot: {}, activatedAt, businessTimezone: "Asia/Tokyo", activatedLocalDate: new Date("2026-08-01T00:00:00.000Z") } });
+  const skipRepository = new TaskSkipRepository(prisma, () => instant);
+  await skipRepository.skip(identity, actionableTaskId, 1, { skipId: randomUUID() });
+
+  const response = await repository.readToday(identity);
+  assert.equal(response.localDate, "2026-08-02");
+  assert.equal(response.businessTimezone, "Asia/Tokyo");
+  assert.equal(response.tasks.some((task) => task.id === actionableTaskId), false);
+  assert.deepEqual(response.tasks.map((task) => task.id), [anotherDueTaskId]);
 });
 
 test("Today excludes only accepted completion and preserves task version metadata", async () => {
@@ -58,9 +73,9 @@ test("Today excludes only accepted completion and preserves task version metadat
   const season = await prisma.season.findUniqueOrThrow({ where: { id: seasonId }, include: { plan: true } });
   const activatedAt = season.activatedAt ?? new Date("2026-08-01T01:00:00.000Z");
   await prisma.season.update({ where: { id: seasonId }, data: { activatedAt } });
-  await prisma.seasonContextSnapshot.create({ data: { seasonId, source: season.plan!.source,
+  await prisma.seasonContextSnapshot.upsert({ where: { seasonId }, create: { seasonId, source: season.plan!.source,
     templateVersionId: season.plan!.templateVersionId, cropSnapshot: {}, activatedAt, businessTimezone: "Asia/Tokyo",
-    activatedLocalDate: new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(activatedAt) + "T00:00:00.000Z") } });
+    activatedLocalDate: new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(activatedAt) + "T00:00:00.000Z") }, update: {} });
   await prisma.taskCompletion.create({ data: {
     id: randomUUID(), plannedTaskId: task.id, seasonPlanId: task.seasonPlanId, seasonId, fieldId, businessId,
     actorUserId: userId, actorMembershipId: (await prisma.membership.findUniqueOrThrow({ where: { businessId_userId: { businessId, userId } } })).id,
@@ -81,7 +96,7 @@ test("forged business identity cannot select a different business and revoked me
   instant = new Date("2026-08-01T20:30:00.000Z"); // Keep this authorization assertion on the independent Aug 2 task.
   const forgedIdentity = { ...identity, businessId: otherBusinessId, role: "OWNER" };
   const forged = await repository.readToday(forgedIdentity);
-  assert.equal(forged.tasks.length, 1); assert.equal(forged.tasks[0]?.id, actionableTaskId); assert.equal(forged.tasks[0]?.fieldId, fieldId);
+  assert.deepEqual(forged.tasks.map((task) => task.id), [anotherDueTaskId]); assert.equal(forged.tasks[0]?.fieldId, fieldId);
   await prisma.membership.updateMany({ where: { userId, businessId }, data: { status: "REVOKED" } });
   try { await assert.rejects(repository.readToday(identity), BusinessScopeForbiddenError); }
   finally { await prisma.membership.updateMany({ where: { userId, businessId }, data: { status: "ACTIVE" } }); }

@@ -23,7 +23,7 @@ export class TodayRepository {
     if (!business) throw new NotFoundException();
     const timezone = resolveBusinessTimezone(business.timezone);
     const localDate = businessLocalDate(this.now(), timezone);
-    const tasks = await this.prisma.plannedTask.findMany({ where: { plannedLocalDate: dateScalar(localDate), completion: null, seasonPlan: {
+    const tasks = await this.prisma.plannedTask.findMany({ where: { plannedLocalDate: dateScalar(localDate), completion: null, skip: null, seasonPlan: {
       season: { businessId: scope.businessId, status: "ACTIVE", plan: { status: "APPROVED" }, field: { businessId: scope.businessId }, business: {
         memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } },
       } },
