@@ -70,6 +70,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
+  TaskSkip: 'TaskSkip',
   TaskDateAdjustment: 'TaskDateAdjustment',
   FieldObservation: 'FieldObservation',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
@@ -360,6 +361,27 @@ export const TaskCompletionScalarFieldEnum = {
 } as const
 
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
+
+
+export const TaskSkipScalarFieldEnum = {
+  id: 'id',
+  skipId: 'skipId',
+  plannedTaskId: 'plannedTaskId',
+  seasonPlanId: 'seasonPlanId',
+  seasonId: 'seasonId',
+  fieldId: 'fieldId',
+  businessId: 'businessId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  skippedAt: 'skippedAt',
+  baseTaskVersion: 'baseTaskVersion',
+  acceptedTaskVersion: 'acceptedTaskVersion',
+  payloadFingerprint: 'payloadFingerprint',
+  taskTitleSnapshot: 'taskTitleSnapshot',
+  plannedLocalDateSnapshot: 'plannedLocalDateSnapshot'
+} as const
+
+export type TaskSkipScalarFieldEnum = (typeof TaskSkipScalarFieldEnum)[keyof typeof TaskSkipScalarFieldEnum]
 
 
 export const TaskDateAdjustmentScalarFieldEnum = {
