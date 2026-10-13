@@ -39,6 +39,16 @@ type GeneratedObservation = Assert<
 type GeneratedDiary = Assert<
   DiaryResponse extends ObservationDiaryComponents["schemas"]["DiaryPage"] ? true : false
 >;
+type GeneratedSkippedDiary = Assert<
+  ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"] extends ObservationDiaryComponents["schemas"]["DiaryPage"]["items"][number]
+    ? true
+    : false
+>;
+type SkippedDiaryKind = Assert<
+  ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"]["kind"] extends "TASK_SKIPPED"
+    ? true
+    : false
+>;
 type HasConflictCode = Assert<
   "IDEMPOTENCY_KEY_REUSED" extends ObservationDiaryComponents["schemas"]["ApiError"]["error"]["code"]
     ? true
@@ -54,7 +64,24 @@ void (0 as unknown as HasObservationPaths);
 void (0 as unknown as HasObservationOperations);
 void (0 as unknown as GeneratedObservation);
 void (0 as unknown as GeneratedDiary);
+void (0 as unknown as GeneratedSkippedDiary);
+void (0 as unknown as SkippedDiaryKind);
 void (0 as unknown as HasConflictCode);
 void (0 as unknown as HasStructuredErrors);
 void createResult;
 void diaryResult;
+
+const skippedDiary: ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"] = {
+  kind: "TASK_SKIPPED",
+  id: "event-id",
+  skipId: "skip-id",
+  taskId: "task-id",
+  seasonId: "season-id",
+  fieldId: "field-id",
+  title: "Tarlayı kontrol et",
+  plannedLocalDate: "2026-10-09",
+  skippedAt: "2026-10-09T07:45:00.000Z",
+  sourceKind: "MANUAL",
+  templateVersionId: null,
+};
+void skippedDiary;

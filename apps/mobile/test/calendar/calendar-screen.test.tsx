@@ -5,6 +5,7 @@ jest.mock("@react-native-async-storage/async-storage", () => (
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { CalendarScreen } from "../../src/features/calendar/calendar-screen";
+import { CalendarTaskDetail } from "../../src/features/calendar/calendar-task-detail";
 import type { ApiClient, CalendarComponents } from "../../../../packages/api-client/src/index";
 
 const readId = "11111111-1111-4111-8111-111111111111";
@@ -75,6 +76,15 @@ function node(screen: TestRenderer, label: string) {
 }
 
 describe("Calendar agenda screen", () => {
+  it("keeps saved read-only Calendar task details unavailable for Skip", async () => {
+    const actionable = { ...response.selectedDateTasksPage.items[0]!, taskVersion: 2 };
+    let fresh!: TestRenderer; let saved!: TestRenderer;
+    await act(async () => { fresh = create(<CalendarTaskDetail task={actionable} onClose={jest.fn()} client={{ POST: jest.fn() } as unknown as ApiClient} onAccepted={jest.fn()} />) as TestRenderer; });
+    await act(async () => { saved = create(<CalendarTaskDetail task={actionable} onClose={jest.fn()} saved client={{ POST: jest.fn() } as unknown as ApiClient} onAccepted={jest.fn()} />) as TestRenderer; });
+    expect(JSON.stringify(saved.toJSON())).toContain("Kaydedilmiş takvim bilgisi");
+    expect(fresh.root.findAll(({ props }) => String(props.accessibilityLabel ?? "").includes("Görevi atla")).length).toBeGreaterThan(0);
+    expect(saved.root.findAll(({ props }) => String(props.accessibilityLabel ?? "").includes("Görevi atla")).length).toBe(0);
+  });
   it("starts without a selectedDate and displays resolved date, overdue and selected-date work read-only", async () => {
     const POST = jest.fn().mockResolvedValue({ data: response, error: undefined, response: { ok: true, status: 201 } });
     const screen = await mount(POST);

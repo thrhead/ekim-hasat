@@ -5,6 +5,7 @@ import { Client } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
 import { SeasonActivationRepository } from "../../src/seasons/seasons-activation.repository.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
 import { TaskCompletionError } from "../../src/tasks/task-completion.error.js";
 import { TaskDateAdjustmentRepository } from "../../src/tasks/task-date-adjustment.repository.js";
@@ -18,8 +19,9 @@ prismaUrl.searchParams.set("application_name", "spec008-adjustment-race");
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: prismaUrl.toString() }) });
 const run = randomUUID(), businessId = randomUUID(), fieldId = randomUUID(), userId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID();
-const raceTask = randomUUID(), completeFirstTask = randomUUID(), adjustFirstTask = randomUUID(), rollbackTask = randomUUID();
+const raceTask = randomUUID(), completeFirstTask = randomUUID(), adjustFirstTask = randomUUID(), rollbackTask = randomUUID(), skipGuardTask = randomUUID();
 const identity = { provider: "adjustment-concurrency-test", subject: run };
+const skips = new TaskSkipRepository(prisma);
 const adjustments = new TaskDateAdjustmentRepository(prisma);
 const completions = new TaskCompletionRepository(prisma);
 
@@ -31,7 +33,7 @@ before(async () => {
   await prisma.$executeRaw`INSERT INTO fields (id,business_id,name,representative_point) VALUES (${fieldId}::uuid,${businessId}::uuid,'Adjustment concurrency fixture',ST_SetSRID(ST_MakePoint(29,41),4326))`;
   await prisma.cropDefinitionVersion.create({ data: { id: cropId, cropKey: `adjustment-race-${run}`, version: "1", displayName: "Fixture crop" } });
   await prisma.validatedTemplateVersion.create({ data: { id: templateId, templateKey: `adjustment-race-template-${run}`, version: "1", cropDefinitionVersionId: cropId, taskDefinitions: [] } });
-  const taskIds = [raceTask, completeFirstTask, adjustFirstTask, rollbackTask];
+  const taskIds = [raceTask, completeFirstTask, adjustFirstTask, rollbackTask, skipGuardTask];
   await prisma.season.create({ data: { id: seasonId, businessId, fieldId, cropKey: `adjustment-race-${run}`, cropDefinitionVersionId: cropId,
     actualPlantingDate: new Date("2026-09-01T00:00:00Z"), status: "DRAFT", version: 1,
     plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: templateId, sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: templateId } }, status: "DRAFT",
@@ -140,4 +142,24 @@ test("the ACTIVE-task guard rejects date changes while the plan is not approved"
   } finally {
     await prisma.seasonPlan.update({ where: { id: plan.id }, data: { status: "APPROVED" } });
   }
+});
+
+
+test("accepted Skip makes date adjustment ineligible without changing date, version, or adjustment history", async () => {
+  const initialAdjustment = await adjustments.adjust(identity, skipGuardTask, 1, {
+    adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-10",
+  });
+  assert.equal(initialAdjustment.adjustment.newPlannedLocalDate, "2026-10-10");
+  const before = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
+  const skip = await skips.skip(identity, skipGuardTask, before.version, { skipId: randomUUID() });
+  assert.equal(skip.kind, "accepted");
+  const afterSkip = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
+  const historyBefore = await prisma.taskDateAdjustment.findMany({ where: { plannedTaskId: skipGuardTask }, orderBy: { id: "asc" } });
+  assert.equal(historyBefore.length, 1);
+  await assert.rejects(adjustments.adjust(identity, skipGuardTask, afterSkip.version, { adjustmentId: randomUUID(), newPlannedLocalDate: "2026-10-15" }),
+    (error: unknown) => error instanceof TaskDateAdjustmentError && error.presentation.code === "TASK_NOT_ACTIONABLE");
+  const after = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipGuardTask } });
+  assert.equal(after.plannedLocalDate.toISOString(), afterSkip.plannedLocalDate.toISOString());
+  assert.equal(after.version, afterSkip.version);
+  assert.deepEqual(await prisma.taskDateAdjustment.findMany({ where: { plannedTaskId: skipGuardTask }, orderBy: { id: "asc" } }), historyBefore);
 });

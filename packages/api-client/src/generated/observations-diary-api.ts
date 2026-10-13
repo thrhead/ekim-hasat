@@ -8,7 +8,7 @@ export type paths = {
         };
         /**
          * Read an authorized Field or Season diary page
-         * @description Returns a unified projection of canonical accepted observations and existing accepted task completions. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations and completions and is validated against the authorized Field and Business. Deterministic keyset order is occurredAt DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
+         * @description Returns a unified projection of canonical accepted observations, task completions, and task skips. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations, completions, and skips and is validated against the authorized Field and Business. Deterministic keyset order is event time DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Existing version-1 cursors for OBSERVATION and TASK_COMPLETION remain valid. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
          */
         get: operations["getFieldDiary"];
         put?: never;
@@ -74,7 +74,7 @@ export type components = {
         };
         DiaryPage: {
             businessTimezone: string;
-            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"])[];
+            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"])[];
             nextCursor: string | null;
         };
         Observation: {
@@ -126,6 +126,39 @@ export type components = {
             plannedLocalDate: string;
             /** Format: uuid */
             seasonId: string;
+            /** @enum {string} */
+            sourceKind: "MANUAL" | "VALIDATED_TEMPLATE";
+            /** Format: uuid */
+            taskId: string;
+            /** Format: uuid */
+            templateVersionId: string | null;
+            title: string;
+        };
+        /** @description Projection of an existing accepted SPEC-009 TaskSkip; no duplicate diary record is persisted. */
+        TaskSkippedDiaryEntry: {
+            /** Format: uuid */
+            fieldId: string;
+            /**
+             * Format: uuid
+             * @description Stable event ID used for ordering and pagination.
+             */
+            id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "TASK_SKIPPED";
+            /** Format: date */
+            plannedLocalDate: string;
+            /** Format: uuid */
+            seasonId: string;
+            /** Format: uuid */
+            skipId: string;
+            /**
+             * Format: date-time
+             * @description Server acceptance time in UTC.
+             */
+            skippedAt: string;
             /** @enum {string} */
             sourceKind: "MANUAL" | "VALIDATED_TEMPLATE";
             /** Format: uuid */

@@ -4,7 +4,7 @@ import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { VerifiedSubject } from "@ekim-hasat/domain/identity/auth-provider";
 import { authenticateSeasonRequest, configureSeasonApiObservability, requireSeasonResourceId, type SeasonReadDependencies } from "../seasons/seasons-read.controller.js";
-import { type CompleteTaskInput, type TaskCompletionHistoryFilters, type TaskCompletionHistoryPage, type TaskCompletionOutcome } from "./task-completion.repository.js";
+import { type CompleteTaskInput, type TaskCompletionHistoryFilters, type TaskCompletionHistoryPage, type TaskCompletionOutcome, type TaskOutcomeHistoryPage } from "./task-completion.repository.js";
 import { TaskCompletionError } from "./task-completion.error.js";
 import { TaskCompletionErrorFilter } from "./task-completion.error.filter.js";
 
@@ -12,6 +12,7 @@ export type TaskCompletionDependencies = Readonly<{
   verify: SeasonReadDependencies["verify"];
   complete: (identity: VerifiedSubject, taskId: string, baseTaskVersion: number, input: CompleteTaskInput) => Promise<TaskCompletionOutcome>;
   readHistory: (identity: VerifiedSubject, fieldId: string, filters: TaskCompletionHistoryFilters) => Promise<TaskCompletionHistoryPage>;
+  readOutcomeHistory?: (identity: VerifiedSubject, fieldId: string, filters: TaskCompletionHistoryFilters) => Promise<TaskOutcomeHistoryPage>;
 }>;
 const dependenciesKey = Symbol("TASK_COMPLETION_DEPENDENCIES");
 
@@ -66,6 +67,15 @@ export class TaskCompletionController {
     const identity = await authenticateSeasonRequest(authorization, this.dependencies.verify);
     requireSeasonResourceId(fieldId);
     return this.dependencies.readHistory(identity, fieldId, parseHistoryFilters(query ?? {}));
+  }
+
+  @Get("fields/:fieldId/task-history")
+  async outcomeHistory(@Headers("authorization") authorization: string | undefined, @Param("fieldId") fieldId: string,
+    @Query() query: Record<string, unknown>): Promise<TaskOutcomeHistoryPage> {
+    const identity = await authenticateSeasonRequest(authorization, this.dependencies.verify);
+    requireSeasonResourceId(fieldId);
+    if (!this.dependencies.readOutcomeHistory) throw new Error("Task outcome history is not configured");
+    return this.dependencies.readOutcomeHistory(identity, fieldId, parseHistoryFilters(query ?? {}));
   }
 }
 

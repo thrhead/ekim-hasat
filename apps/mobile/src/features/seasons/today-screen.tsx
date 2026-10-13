@@ -6,6 +6,8 @@ import { belongsToBusinessToday, createTaskCompletionCommandStore, type TaskComp
 import { createTaskCompletionCoordinator } from "../tasks/task-completion";
 import { createTaskDateAdjustmentFlow } from "../tasks/task-date-adjustment";
 import { TaskDateAdjustmentView } from "../tasks/task-date-adjustment-view";
+import { createTaskSkipFlow, type TaskSkipFailure, type TaskSkipResult } from "../tasks/task-skip";
+import { TaskSkipView } from "../tasks/task-skip-view";
 import { readWeatherOverview, type WeatherOverviewPage } from "../weather/weather-client";
 import { WeatherCard, WeatherOverviewCards, type WeatherCardState } from "../weather/weather-card";
 import { WeatherAnnouncement, weatherAnnouncementMessage } from "../weather/weather-announcement";
@@ -31,8 +33,11 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     getAuthorizationSession: getAuthorizationSession ?? (() => null),
   }), [client, getAuthorizationSession, store, suppliedCoordinator]);
   const adjustmentFlow = useMemo(() => createTaskDateAdjustmentFlow({ client }), [client]);
+  const skipFlow = useMemo(() => createTaskSkipFlow({ client }), [client]);
+  const skippedTaskIds = useRef(new Set<string>());
   const [adjustmentTaskId, setAdjustmentTaskId] = useState<string | null>(null);
   const [adjustmentNotice, setAdjustmentNotice] = useState<string | null>(null);
+  const [skipNotice, setSkipNotice] = useState<string | null>(null);
   const [adjustmentStates, setAdjustmentStates] = useState<Record<string, "LOADING" | "CONFLICT">>({});
   const [data, setData] = useState<Today | null>(null);
   const [commandsLoaded, setCommandsLoaded] = useState(false);
@@ -60,15 +65,18 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     try {
       const latest = await readTodayPlannedWork(client);
       const snapshot: TodaySnapshot = { ...latest, fetchedAt: now().toISOString() };
-      setData(latest);
-      await store.writeTodaySnapshot(accountId, snapshot).catch(() => undefined);
+      const visible = { ...latest, tasks: latest.tasks.filter((task) => !skippedTaskIds.current.has(task.id)) };
+      for (const task of latest.tasks) skippedTaskIds.current.delete(task.id);
+      setData(visible);
+      await store.writeTodaySnapshot(accountId, { ...visible, fetchedAt: snapshot.fetchedAt }).catch(() => undefined);
       const rows = await refreshCommands();
       setRetryPendingOnOpen(rows.some((row) => row.state === "PENDING"));
     } catch (failure) {
       const status = failure && typeof failure === "object" && "status" in failure ? Number((failure as { status: unknown }).status) : undefined;
       const snapshot = await store.readTodaySnapshot(accountId).catch(() => null);
       if (mayUseCachedToday(snapshot, status, now())) {
-        setData(snapshot);
+        const visible = { ...snapshot, tasks: snapshot.tasks.filter((task) => !skippedTaskIds.current.has(task.id)) };
+        setData(visible);
         setCached(true);
         setError(null);
         await refreshCommands();
@@ -82,6 +90,17 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     }
     finally { setLoading(false); }
   }, [accountId, client, coordinator, now, refreshCommands, store]);
+
+  async function skipAccepted(result: TaskSkipResult) {
+    setSkipNotice(null);
+    setAdjustmentNotice("Görev atlandı.");
+    skippedTaskIds.current.add(result.taskId);
+    setData((current) => current ? { ...current, tasks: current.tasks.filter((task) => task.id !== result.taskId) } : current);
+    setCached(false);
+    try { await store.pruneTodayTask(accountId, result.taskId); }
+    catch { setError("Görev atlandı. Güncel işler yüklenemedi; Bugün görünümü yenilenmeli."); }
+    await load();
+  }
 
   const loadWeather = useCallback(async () => {
     const generation = ++weatherRequestGeneration.current;
@@ -201,8 +220,10 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     commands={completions}
     onComplete={(task) => void completeTask(task)} onRetryCompletion={(task) => void retryTask(task)}
     onReviewConflict={(task) => void reviewConflict(task)} onOpenHistory={onOpenHistory}
+    skipFlow={skipFlow} onSkipAccepted={skipAccepted} onSkipConflict={(failure: TaskSkipFailure) => { setSkipNotice(failure.message); return load(); }}
     onAdjust={(task) => { setAdjustmentNotice(null); setAdjustmentStates((current) => ({ ...current, [task.id]: "LOADING" })); setAdjustmentTaskId(task.id); }}
     adjustmentNotice={adjustmentNotice}
+    skipNotice={skipNotice}
     adjustmentStates={adjustmentStates} />
   {adjustmentTaskId && <TaskDateAdjustmentView taskId={adjustmentTaskId} flow={adjustmentFlow} openOnMount
     taskTitle={data?.tasks.find((task) => task.id === adjustmentTaskId)?.title}
@@ -217,7 +238,7 @@ export function mayUseCachedToday(snapshot: TodaySnapshot | null, failureStatus:
   return Boolean(snapshot) && ![401, 403, 404].includes(failureStatus ?? 0) && belongsToBusinessToday(snapshot!, now);
 }
 
-export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, onAdjust, adjustmentStates = {}, adjustmentNotice, cached = false, weather }: {
+export function TodayContent({ loading, error, data, onRetry, onBack, taskStates = {}, commands = [], onComplete, onRetryCompletion, onReviewConflict, onOpenHistory, onAdjust, adjustmentStates = {}, adjustmentNotice, skipNotice, cached = false, weather, skipFlow, onSkipAccepted, onSkipConflict }: {
   loading: boolean;
   error: string | null;
   data: Today | null;
@@ -231,15 +252,20 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
   onAdjust?: (task: Task) => void;
   adjustmentStates?: Record<string, "LOADING" | "CONFLICT">;
   adjustmentNotice?: string | null;
+  skipNotice?: string | null;
   onOpenHistory?: (fieldId: string, seasonId?: string) => void;
   cached?: boolean;
   weather?: ReactNode;
+  skipFlow?: ReturnType<typeof createTaskSkipFlow>;
+  onSkipAccepted?: (result: TaskSkipResult) => void | Promise<void>;
+  onSkipConflict?: (failure: TaskSkipFailure) => void | Promise<void>;
 }) {
   const retainedCommands = commands.filter((command) => !data?.tasks.some((task) => task.id === command.taskId));
   return <ScrollView contentContainerStyle={styles.content}>
     {onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Sezon planına dön" onPress={onBack} style={styles.button}><Text style={styles.buttonText}>Sezon planına dön</Text></Pressable> : null}
     <Text accessibilityRole="header" style={styles.title}>Bugün</Text>
     {adjustmentNotice && <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={styles.status}>{adjustmentNotice}</Text>}
+    {skipNotice && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.status}>{skipNotice}</Text>}
     {loading ? <Text accessibilityRole="progressbar" accessibilityLabel="Bugünün işleri yükleniyor" style={styles.body}>Bugünün işleri yükleniyor…</Text> : null}
     {!loading && error ? <View accessibilityLiveRegion="polite"><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
       {commands.some((command) => command.state === "PENDING" || command.state === "CONFLICTED")
@@ -298,6 +324,7 @@ export function TodayContent({ loading, error, data, onRetry, onBack, taskStates
             <Text style={styles.buttonText}>{adjustmentStates[task.id] === "CONFLICT" ? "Güncel tarihi gözden geçir" : "Ertele / Yeniden planla"}</Text>
           </Pressable>
         </>}
+        {!cached && skipFlow && onSkipAccepted && task.taskVersion !== undefined && <TaskSkipView task={task} flow={skipFlow} businessTimezone={data.businessTimezone} onAccepted={onSkipAccepted} onConflict={onSkipConflict} />}
       </View>;
       })}
       {commands.filter((command) => command.state === "ACCEPTED" && !data.tasks.some((task) => task.id === command.taskId)).map((command) => <View key={command.completionId} style={styles.task}>

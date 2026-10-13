@@ -9,6 +9,7 @@ const base = {
   seasonStatus: "ACTIVE" as const,
   planStatus: "APPROVED" as const,
   completed: false,
+  skipped: false,
   currentPlannedLocalDate: "2026-10-10",
   actualPlantingDate: "2026-09-28",
   currentTaskVersion: 4,
@@ -28,6 +29,7 @@ test("accepts a changed valid date for an unfinished task in an approved ACTIVE 
 test("rejects completed, inactive, or unapproved tasks before mutation", () => {
   for (const input of [
     { ...base, completed: true },
+    { ...base, skipped: true },
     { ...base, seasonStatus: "DRAFT" as const },
     { ...base, planStatus: "DRAFT" as const },
   ]) {

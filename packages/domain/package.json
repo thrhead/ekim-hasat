@@ -56,6 +56,10 @@
       "types": "./dist/tasks/task-date-adjustment.d.ts",
       "import": "./dist/tasks/task-date-adjustment.js"
     },
+    "./tasks/task-skip": {
+      "types": "./dist/tasks/task-skip.d.ts",
+      "import": "./dist/tasks/task-skip.js"
+    },
     "./observations/field-observation": {
       "types": "./dist/observations/field-observation.d.ts",
       "import": "./dist/observations/field-observation.js"

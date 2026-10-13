@@ -416,6 +416,7 @@ export const ModelName = {
   PlannedTask: 'PlannedTask',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
+  TaskSkip: 'TaskSkip',
   TaskDateAdjustment: 'TaskDateAdjustment',
   FieldObservation: 'FieldObservation',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
@@ -437,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskDateAdjustment" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1799,6 +1800,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TaskSkip: {
+      payload: Prisma.$TaskSkipPayload<ExtArgs>
+      fields: Prisma.TaskSkipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TaskSkipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TaskSkipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        findFirst: {
+          args: Prisma.TaskSkipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TaskSkipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        findMany: {
+          args: Prisma.TaskSkipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>[]
+        }
+        create: {
+          args: Prisma.TaskSkipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        createMany: {
+          args: Prisma.TaskSkipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TaskSkipCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>[]
+        }
+        delete: {
+          args: Prisma.TaskSkipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        update: {
+          args: Prisma.TaskSkipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        deleteMany: {
+          args: Prisma.TaskSkipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TaskSkipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TaskSkipUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>[]
+        }
+        upsert: {
+          args: Prisma.TaskSkipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSkipPayload>
+        }
+        aggregate: {
+          args: Prisma.TaskSkipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskSkip>
+        }
+        groupBy: {
+          args: Prisma.TaskSkipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskSkipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TaskSkipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskSkipCountAggregateOutputType> | number
+        }
+      }
+    }
     TaskDateAdjustment: {
       payload: Prisma.$TaskDateAdjustmentPayload<ExtArgs>
       fields: Prisma.TaskDateAdjustmentFieldRefs
@@ -2550,6 +2625,27 @@ export const TaskCompletionScalarFieldEnum = {
 export type TaskCompletionScalarFieldEnum = (typeof TaskCompletionScalarFieldEnum)[keyof typeof TaskCompletionScalarFieldEnum]
 
 
+export const TaskSkipScalarFieldEnum = {
+  id: 'id',
+  skipId: 'skipId',
+  plannedTaskId: 'plannedTaskId',
+  seasonPlanId: 'seasonPlanId',
+  seasonId: 'seasonId',
+  fieldId: 'fieldId',
+  businessId: 'businessId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  skippedAt: 'skippedAt',
+  baseTaskVersion: 'baseTaskVersion',
+  acceptedTaskVersion: 'acceptedTaskVersion',
+  payloadFingerprint: 'payloadFingerprint',
+  taskTitleSnapshot: 'taskTitleSnapshot',
+  plannedLocalDateSnapshot: 'plannedLocalDateSnapshot'
+} as const
+
+export type TaskSkipScalarFieldEnum = (typeof TaskSkipScalarFieldEnum)[keyof typeof TaskSkipScalarFieldEnum]
+
+
 export const TaskDateAdjustmentScalarFieldEnum = {
   id: 'id',
   adjustmentId: 'adjustmentId',
@@ -2974,6 +3070,7 @@ export type GlobalOmitConfig = {
   plannedTask?: Prisma.PlannedTaskOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
+  taskSkip?: Prisma.TaskSkipOmit
   taskDateAdjustment?: Prisma.TaskDateAdjustmentOmit
   fieldObservation?: Prisma.FieldObservationOmit
   calendarReadSnapshot?: Prisma.CalendarReadSnapshotOmit

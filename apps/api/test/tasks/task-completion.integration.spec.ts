@@ -3,6 +3,7 @@ import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
 import { TaskCompletionError } from "../../src/tasks/task-completion.error.js";
 import { SeasonActivationRepository } from "../../src/seasons/seasons-activation.repository.js";
@@ -12,8 +13,9 @@ const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const run = randomUUID(), businessId = randomUUID(), fieldId = randomUUID(), userId = randomUUID();
-const cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID(), taskId = randomUUID();
+const cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID();
 const identity = { provider: "completion-test", subject: run };
+const skipRepository = new TaskSkipRepository(prisma);
 const repository = new TaskCompletionRepository(prisma, () => new Date("2026-09-29T12:00:00.000Z"));
 const activation = new SeasonActivationRepository(prisma, () => new Date("2026-09-29T00:00:00.000Z"));
 const occurredAt = "2026-09-29T07:45:00.000Z";
@@ -29,7 +31,7 @@ before(async () => {
   await prisma.season.create({ data: { id: seasonId, businessId, fieldId, cropKey: `completion-${run}`, cropDefinitionVersionId: cropId,
     actualPlantingDate: new Date("2026-09-01T00:00:00Z"), status: "DRAFT", version: 1,
     plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: templateId, sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: templateId } }, status: "DRAFT",
-      tasks: { create: { id: taskId, title: "Check crop", description: "preserve", plannedLocalDate: new Date("2026-09-29T00:00:00Z"), sourceTemplateTaskKey: "check", version: 1 } } } } } });
+      tasks: { create: [taskId, skipTaskId].map((id) => ({ id, title: "Check crop", description: "preserve", plannedLocalDate: new Date("2026-09-29T00:00:00Z"), sourceTemplateTaskKey: "check", version: 1 })) } } } } });
   await activation.activate(identity, seasonId, 1, randomUUID());
 });
 
@@ -71,4 +73,17 @@ test("stale task base version returns a stable conflict without writing a comple
   await assert.rejects(repository.complete(identity, taskId, 2, { completionId: randomUUID(), occurredAt }),
     (error: unknown) => error instanceof TaskCompletionError && error.presentation.code === "TASK_VERSION_CONFLICT");
   assert.equal(await prisma.taskCompletion.count({ where: { plannedTaskId: taskId } }), beforeCount);
+});
+
+
+test("completion at the incremented post-Skip version remains terminally unavailable and writes no completion", async () => {
+  const accepted = await skipRepository.skip(identity, skipTaskId, 1, { skipId: randomUUID() });
+  assert.equal(accepted.kind, "accepted");
+  const afterSkip = await prisma.plannedTask.findUniqueOrThrow({ where: { id: skipTaskId } });
+  assert.equal(afterSkip.version, accepted.skip.acceptedTaskVersion);
+  const beforeOutbox = await prisma.taskCompletion.count({ where: { plannedTaskId: skipTaskId } });
+  await assert.rejects(repository.complete(identity, skipTaskId, afterSkip.version, { completionId: randomUUID(), occurredAt }),
+    (error: unknown) => error instanceof TaskCompletionError && error.presentation.code === "TASK_NOT_ACTIONABLE");
+  assert.equal(await prisma.taskCompletion.count({ where: { plannedTaskId: skipTaskId } }), beforeOutbox);
+  assert.equal(await prisma.taskSkip.count({ where: { plannedTaskId: skipTaskId } }), 1);
 });

@@ -52,7 +52,7 @@ paths:
       tags: [diary]
       operationId: getFieldDiary
       summary: Read an authorized Field or Season diary page
-      description: Returns a unified projection of canonical accepted observations and existing accepted task completions. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations and completions and is validated against the authorized Field and Business. Deterministic keyset order is occurredAt DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
+      description: Returns a unified projection of canonical accepted observations, task completions, and task skips. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations, completions, and skips and is validated against the authorized Field and Business. Deterministic keyset order is event time DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Existing version-1 cursors for OBSERVATION and TASK_COMPLETION remain valid. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
       parameters:
         - $ref: '#/components/parameters/FieldId'
         - name: seasonId
@@ -136,11 +136,13 @@ components:
             oneOf:
               - $ref: '#/components/schemas/ObservationDiaryEntry'
               - $ref: '#/components/schemas/TaskCompletionDiaryEntry'
+              - $ref: '#/components/schemas/TaskSkippedDiaryEntry'
             discriminator:
               propertyName: kind
               mapping:
                 OBSERVATION: '#/components/schemas/ObservationDiaryEntry'
                 TASK_COMPLETION: '#/components/schemas/TaskCompletionDiaryEntry'
+                TASK_SKIPPED: '#/components/schemas/TaskSkippedDiaryEntry'
         businessTimezone: { type: string }
         nextCursor: { type: string, nullable: true, maxLength: 512 }
     ObservationDiaryEntry:
@@ -166,6 +168,22 @@ components:
         title: { type: string }
         plannedLocalDate: { type: string, format: date }
         occurredAt: { type: string, format: date-time }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
+        templateVersionId: { type: string, format: uuid, nullable: true }
+    TaskSkippedDiaryEntry:
+      type: object
+      description: Projection of an existing accepted SPEC-009 TaskSkip; no duplicate diary record is persisted.
+      required: [kind, id, skipId, taskId, seasonId, fieldId, title, plannedLocalDate, skippedAt, sourceKind, templateVersionId]
+      properties:
+        kind: { type: string, const: TASK_SKIPPED }
+        id: { type: string, format: uuid, description: Stable event ID used for ordering and pagination. }
+        skipId: { type: string, format: uuid }
+        taskId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        plannedLocalDate: { type: string, format: date }
+        skippedAt: { type: string, format: date-time, description: Server acceptance time in UTC. }
         sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE] }
         templateVersionId: { type: string, format: uuid, nullable: true }
     ApiError:

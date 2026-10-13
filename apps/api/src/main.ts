@@ -24,6 +24,8 @@ import { TodayRepository } from "./seasons/today.repository.js";
 import { TaskCompletionRepository } from "./tasks/task-completion.repository.js";
 import { TaskCompletionService } from "./tasks/task-completion.service.js";
 import { createTaskCompletionModule } from "./tasks/task-completion.controller.js";
+import { TaskSkipRepository } from "./tasks/task-skip.repository.js";
+import { createTaskSkipModule } from "./tasks/task-skip.controller.js";
 import { TaskDateAdjustmentRepository } from "./tasks/task-date-adjustment.repository.js";
 import { TaskDateAdjustmentService } from "./tasks/task-date-adjustment.service.js";
 import { createTaskDateAdjustmentModule } from "./tasks/task-date-adjustment.controller.js";
@@ -81,11 +83,12 @@ async function bootstrap(): Promise<void> {
   const seasonActivationRepository = new SeasonActivationRepository(prisma);
   const todayRepository = new TodayRepository(prisma);
   const taskCompletionRepository = new TaskCompletionRepository(prisma);
+  const taskSkipRepository = new TaskSkipRepository(prisma);
   const taskCompletionService = new TaskCompletionService(taskCompletionRepository);
   const taskDateAdjustmentRepository = new TaskDateAdjustmentRepository(prisma);
   const taskDateAdjustmentService = new TaskDateAdjustmentService(taskDateAdjustmentRepository);
   const observationCreateRepository = new ObservationCreateRepository(prisma);
-  const observationDiaryRepository = new ObservationDiaryRepository(prisma, taskCompletionRepository);
+  const observationDiaryRepository = new ObservationDiaryRepository(prisma, taskCompletionRepository, taskSkipRepository);
   const verify = (token: string) => authenticator.verify(token);
   const regionResolver = new UnavailableRegionResolver();
   const fieldsReadService = new FieldsReadService(new MembershipScopeService(prisma), new FieldsReadRepository(prisma));
@@ -126,7 +129,9 @@ async function bootstrap(): Promise<void> {
     verify,
     complete: (identity, taskId, version, input) => taskCompletionService.complete(identity, taskId, version, input),
     readHistory: (identity, fieldId, filters) => taskCompletionService.readHistory(identity, fieldId, filters),
+    readOutcomeHistory: (identity, fieldId, filters) => taskCompletionService.readOutcomeHistory(identity, fieldId, filters),
   });
+  const taskSkipModule = createTaskSkipModule({ verify, skip: (identity, taskId, version, input) => taskSkipRepository.skip(identity, taskId, version, input) });
   const taskDateAdjustmentModule = createTaskDateAdjustmentModule({
     verify,
     adjust: (identity, taskId, version, input) => taskDateAdjustmentService.adjust(identity, taskId, version, input),
@@ -162,7 +167,7 @@ async function bootstrap(): Promise<void> {
     readPage: (identity, request) => calendarPagesService.read(identity, request),
   });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, taskDateAdjustmentModule, observationModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, taskSkipModule, taskDateAdjustmentModule, observationModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

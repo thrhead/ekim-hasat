@@ -13,6 +13,29 @@ const task: Task = {
 };
 
 describe("Calendar read-only task detail", () => {
+  it("routes a rejected Skip to refresh without reporting a successful date change", async () => {
+    const POST = jest.fn().mockResolvedValue({ response: { ok: false, status: 409 }, error: { error: { code: "TASK_VERSION_CONFLICT" } } });
+    const onAccepted = jest.fn();
+    const onSkipConflict = jest.fn();
+    let screen!: ReturnType<typeof create>;
+    await act(async () => { screen = create(createElement(CalendarTaskDetail, {
+      task: { ...task, taskVersion: 4 }, onClose: jest.fn(), client: { POST } as unknown as ApiClient,
+      onAccepted, onSkipConflict,
+    })); });
+    await act(async () => {
+      const open = screen.root.findAll((node) => node.props.accessibilityLabel === `Görevi atla: ${task.title}`)[0];
+      (open?.props.onPress as (() => void) | undefined)?.();
+    });
+    await act(async () => {
+      const confirm = screen.root.findAll((node) => node.props.accessibilityLabel === "Atlamayı onayla")[0];
+      (confirm?.props.onPress as (() => void) | undefined)?.();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(POST).toHaveBeenCalledTimes(1);
+    expect(onSkipConflict).toHaveBeenCalledTimes(1);
+    expect(onAccepted).not.toHaveBeenCalled();
+  });
+
   it("shows original planned date, Field, Season/plan context and overdue status without mutation actions", async () => {
     let screen!: ReturnType<typeof create>;
     await act(async () => { screen = create(createElement(CalendarTaskDetail, { task, onClose: jest.fn(), saved: true, client: {} as ApiClient, onAccepted: jest.fn() })); });

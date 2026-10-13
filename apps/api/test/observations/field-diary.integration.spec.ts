@@ -7,6 +7,7 @@ import { ObservationDiaryRepository } from "../../src/observations/observation-d
 import { ObservationCreateRepository } from "../../src/observations/observation.repository.js";
 import { decodeDiaryCursor } from "../../src/observations/diary-query.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { SeasonActivationRepository } from "../../src/seasons/seasons-activation.repository.js";
 import { assertDisposableDatabaseUrl } from "../support/disposable-database.js";
 
@@ -14,13 +15,14 @@ const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl! }) });
 const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomUUID(), userId = randomUUID(), foreignUserId = randomUUID(), fieldId = randomUUID(), foreignFieldId = randomUUID(), seasonId = randomUUID();
-const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), completionId = randomUUID();
+const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID(), completionId = randomUUID(), skipId = randomUUID();
 const identity = { provider: "spec006-diary", subject: run };
 const foreignIdentity = { provider: "spec006-diary", subject: `${run}-foreign` };
 const taskCompletions = new TaskCompletionRepository(prisma);
 const observationCreates = new ObservationCreateRepository(prisma, () => new Date("2026-10-05T10:00:00.000Z"));
-const diary = new ObservationDiaryRepository(prisma, taskCompletions);
 const tieAt = "2026-10-04T09:30:00.000Z";
+const taskSkips = new TaskSkipRepository(prisma, () => new Date(tieAt));
+const diary = new ObservationDiaryRepository(prisma, taskCompletions, taskSkips);
 const observationIds: string[] = [];
 
 before(async () => {
@@ -42,9 +44,13 @@ before(async () => {
     actualPlantingDate: new Date("2026-10-01T00:00:00.000Z"), status: "DRAFT", version: 1,
     plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: templateId,
       sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: templateId } }, status: "DRAFT",
-      tasks: { create: [{ id: taskId, title: "Check row", plannedLocalDate: new Date("2026-10-04T00:00:00.000Z"), sourceTemplateTaskKey: "check-row", version: 1 }] } } } } });
+      tasks: { create: [
+        { id: taskId, title: "Check row", plannedLocalDate: new Date("2026-10-04T00:00:00.000Z"), sourceTemplateTaskKey: "check-row", version: 1 },
+        { id: skipTaskId, title: "Skip irrigation check", plannedLocalDate: new Date("2026-10-03T00:00:00.000Z"), sourceTemplateTaskKey: "skip-check", version: 1 },
+      ] } } } } });
   await new SeasonActivationRepository(prisma).activate(identity, seasonId, 1, randomUUID());
   await taskCompletions.complete(identity, taskId, 1, { completionId, occurredAt: tieAt });
+  await taskSkips.skip(identity, skipTaskId, 1, { skipId });
 
   for (let index = 0; index < 105; index++) observationIds.push(randomUUID());
   const observations = observationIds.map((id, index) => ({ id, businessId, fieldId,
@@ -71,14 +77,21 @@ test("Field and Season diary pages merge canonical completions and observations 
   assert.equal(first.businessTimezone, "Asia/Tokyo");
   assert.ok(first.nextCursor);
   const second = await diary.read(identity, fieldId, { limit: 100, cursor: first.nextCursor! });
-  assert.equal(second.items.length, 7);
+  assert.equal(second.items.length, 8);
   assert.equal(second.nextCursor, null);
   const ids = [...first.items, ...second.items].map(({ id }) => id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(ids.length, 107);
+  assert.equal(ids.length, 108);
   assert.equal(ids.includes(completionId), true);
-  const tieEntries = [...first.items, ...second.items].filter((entry) => entry.occurredAt === tieAt);
-  assert.deepEqual(tieEntries.map(({ kind }) => kind), ["OBSERVATION", "TASK_COMPLETION"]);
+  const tieEntries = [...first.items, ...second.items].filter((entry) => (entry.kind === "TASK_SKIPPED" ? entry.skippedAt : entry.occurredAt) === tieAt);
+  assert.deepEqual(tieEntries.map(({ kind }) => kind), ["OBSERVATION", "TASK_COMPLETION", "TASK_SKIPPED"]);
+  const skipProjection = [...first.items, ...second.items].find((entry) => entry.kind === "TASK_SKIPPED" && entry.skipId === skipId);
+  assert.ok(skipProjection && skipProjection.kind === "TASK_SKIPPED");
+  assert.equal(skipProjection.taskId, skipTaskId);
+  assert.equal(skipProjection.seasonId, seasonId);
+  assert.equal(skipProjection.plannedLocalDate, "2026-10-03");
+  assert.equal(skipProjection.skippedAt, tieAt);
+  assert.equal([...first.items, ...second.items].filter((entry) => entry.kind === "TASK_SKIPPED" && entry.skipId === skipId).length, 1);
   const season = await diary.read(identity, fieldId, { seasonId, limit: 100 });
   assert.ok(season.items.every((item) => item.kind === "TASK_COMPLETION" || item.seasonId === seasonId));
   assert.equal(season.items.some((item) => item.kind === "TASK_COMPLETION" && item.id === completionId), true);

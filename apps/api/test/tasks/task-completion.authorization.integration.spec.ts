@@ -3,6 +3,8 @@ import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
+import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
+import { TaskCompletionError } from "../../src/tasks/task-completion.error.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
 import { BusinessScopeForbiddenError } from "../../src/authorization/membership-scope.service.js";
 import { NotFoundException } from "@nestjs/common";
@@ -13,9 +15,10 @@ const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomUUID(), fieldId = randomUUID(), foreignFieldId = randomUUID(), userId = randomUUID();
-const foreignUserId = randomUUID(), cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID(), taskId = randomUUID(), foreignSeasonId = randomUUID(), foreignTaskId = randomUUID();
+const foreignUserId = randomUUID(), cropId = randomUUID(), templateId = randomUUID(), seasonId = randomUUID(), taskId = randomUUID(), foreignSeasonId = randomUUID(), foreignTaskId = randomUUID(), terminalTaskId = randomUUID();
 const identity = { provider: "completion-auth", subject: run };
 const repository = new TaskCompletionRepository(prisma);
+const skips = new TaskSkipRepository(prisma);
 const activation = new SeasonActivationRepository(prisma);
 const command = () => ({ completionId: randomUUID(), occurredAt: "2026-09-29T08:00:00.000Z" });
 
@@ -28,7 +31,7 @@ before(async () => {
   await prisma.cropDefinitionVersion.create({ data: { id: cropId, cropKey: `auth-${run}`, version: "1", displayName: "Fixture" } });
   const template = await prisma.validatedTemplateVersion.create({ data: { id: templateId, templateKey: `auth-template-${run}`, version: "1", cropDefinitionVersionId: cropId, taskDefinitions: [] } });
   const createSeason = (id: string, bId: string, fId: string, task: string, suffix: string) => prisma.season.create({ data: { id, businessId: bId, fieldId: fId, cropKey: `auth-${run}`, cropDefinitionVersionId: cropId, actualPlantingDate: new Date("2026-09-01Z"), status: "DRAFT", version: 1,
-    plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: template.id, sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: template.id } }, status: "DRAFT", tasks: { create: { id: task, title: "Check", plannedLocalDate: new Date("2026-09-29Z"), sourceTemplateTaskKey: suffix, version: 1 } } } } } });
+    plan: { create: { source: "VALIDATED_TEMPLATE", templateVersionId: template.id, sourceSnapshot: { source: "VALIDATED_TEMPLATE", templateProvenance: { templateVersionId: template.id } }, status: "DRAFT", tasks: { create: [task, ...(task === taskId ? [terminalTaskId] : [])].map((id) => ({ id, title: "Check", plannedLocalDate: new Date("2026-09-29Z"), sourceTemplateTaskKey: suffix, version: 1 })) } } } } });
   await createSeason(seasonId, businessId, fieldId, taskId, "local");
   await createSeason(foreignSeasonId, foreignBusinessId, foreignFieldId, foreignTaskId, "foreign");
   await activation.activate(identity, seasonId, 1, randomUUID());
@@ -53,4 +56,20 @@ test("replay does not disclose result after membership revocation", async () => 
   await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "REVOKED" } });
   try { await assert.rejects(repository.complete(identity, taskId, 1, payload), BusinessScopeForbiddenError); }
   finally { await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "ACTIVE" } }); }
+});
+
+
+test("revoked membership blocks queued completion after Skip; restored membership still cannot complete the terminal task", async () => {
+  const accepted = await skips.skip(identity, terminalTaskId, 1, { skipId: randomUUID() });
+  assert.equal(accepted.kind, "accepted");
+  const skippedTask = await prisma.plannedTask.findUniqueOrThrow({ where: { id: terminalTaskId } });
+  await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "REVOKED" } });
+  try {
+    await assert.rejects(repository.complete(identity, terminalTaskId, skippedTask.version, command()), BusinessScopeForbiddenError);
+  } finally {
+    await prisma.membership.update({ where: { businessId_userId: { businessId, userId } }, data: { status: "ACTIVE" } });
+  }
+  await assert.rejects(repository.complete(identity, terminalTaskId, skippedTask.version, command()),
+    (error: unknown) => error instanceof TaskCompletionError && error.presentation.code === "TASK_NOT_ACTIONABLE");
+  assert.equal(await prisma.taskCompletion.count({ where: { plannedTaskId: terminalTaskId } }), 0);
 });

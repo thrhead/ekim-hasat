@@ -4,10 +4,12 @@ import { TaskCompletionHistoryContent, TaskCompletionHistoryRow, readFieldTaskCo
 import { TodayContent } from "../../src/features/seasons/today-screen";
 import { createTaskCompletionCoordinator } from "../../src/features/tasks/task-completion";
 import { createTaskCompletionCommandStore } from "../../src/features/tasks/task-completion-command-store";
-import type { TaskCompletionComponents, SeasonOperations } from "../../../../packages/api-client/src/index";
+import type { TaskCompletionComponents, TaskSkipComponents, SeasonOperations } from "../../../../packages/api-client/src/index";
 import type { TaskCompletionCommand, TaskCompletionCommandStorage } from "../../src/features/tasks/task-completion-command-store";
 
-type History = TaskCompletionComponents["schemas"]["TaskCompletionHistoryPage"];
+type History = TaskSkipComponents["schemas"]["TaskHistoryPage"];
+type TaskHistory = TaskSkipComponents["schemas"]["TaskHistoryPage"];
+const skipped: TaskSkipComponents["schemas"]["TaskSkippedHistoryEntry"] = { kind: "TASK_SKIPPED", id: "skip-1", skipId: "skip-1", taskId: "task-skip", seasonId: "season-1", fieldId: "field-1", title: "Sürmeyi atla", plannedLocalDate: "2026-09-26", skippedAt: "2026-09-28T07:00:00.000Z", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
 type Today = SeasonOperations["getTodayPlannedTasks"]["responses"][200]["content"]["application/json"];
 type Element = { type: unknown; props: Record<string, unknown> };
 // react-test-renderer v19 ships without declarations; keep the test API narrowly typed.
@@ -28,7 +30,8 @@ const accepted: TaskCompletionComponents["schemas"]["TaskCompletion"] = {
   plannedLocalDate: "2026-09-26", occurredAt: "2026-09-28T07:00:00.000Z", sourceKind: "VALIDATED_TEMPLATE",
   templateVersionId: "template-1", businessTimezone: "Asia/Tokyo",
 };
-const data: History = { items: [accepted], businessTimezone: "Asia/Tokyo", nextCursor: null };
+const historyCompletion: TaskSkipComponents["schemas"]["TaskCompletionHistoryEntry"] = { kind: "TASK_COMPLETION", id: accepted.id, taskId: accepted.taskId, seasonId: accepted.seasonId, fieldId: accepted.fieldId, title: accepted.title, plannedLocalDate: accepted.plannedLocalDate, occurredAt: accepted.occurredAt, sourceKind: accepted.sourceKind, templateVersionId: "template-1" };
+const data: History = { items: [historyCompletion], businessTimezone: "Asia/Tokyo", nextCursor: null };
 const today: Today = { localDate: "2026-09-26", businessTimezone: "Asia/Tokyo", tasks: [{
   id: "task-1", seasonId: "season-1", fieldId: "field-1", title: accepted.title, cropDisplayName: "Arpa",
   plannedLocalDate: accepted.plannedLocalDate, sourceKind: accepted.sourceKind, taskVersion: 2,
@@ -64,8 +67,8 @@ describe("accepted task completion History", () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(get.mock.calls[1]?.[1].params.query.seasonId).toBeUndefined();
 
-    const allSeasons: History = { ...data, items: [{ ...accepted, id: "all-row", title: "Tüm sezonlardan gelen kayıt" }] };
-    const seasonOnly: History = { ...data, items: [{ ...accepted, id: "season-row", title: "Eski sezon filtresinden gelen kayıt" }] };
+    const allSeasons: History = { ...data, items: [{ ...historyCompletion, id: "all-row", title: "Tüm sezonlardan gelen kayıt" }] };
+    const seasonOnly: History = { ...data, items: [{ ...historyCompletion, id: "season-row", title: "Eski sezon filtresinden gelen kayıt" }] };
     await act(async () => requestB.resolve({ response: { ok: true }, data: allSeasons, error: undefined }));
     expect(JSON.stringify(root!.toJSON())).toContain("Tarla geçmişi");
     expect(JSON.stringify(root!.toJSON())).toContain("Tüm sezonlardan gelen kayıt");
@@ -78,7 +81,7 @@ describe("accepted task completion History", () => {
   });
 
   test("distinguishes original planned date from occurrence in Business timezone", () => {
-    const row = collectElements(TaskCompletionHistoryRow({ item: accepted, timezone: data.businessTimezone }));
+    const row = collectElements(TaskCompletionHistoryRow({ item: historyCompletion, timezone: data.businessTimezone }));
     expect(row.some(({ type, props }) => type === Text && JSON.stringify(props.children).includes("26 Eyl 2026"))).toBe(true);
     expect(row.some(({ type, props }) => type === Text && JSON.stringify(props.children).includes("16:00"))).toBe(true);
     expect(row.some(({ type, props }) => type === Text && props.children === accepted.title)).toBe(true);
@@ -86,6 +89,18 @@ describe("accepted task completion History", () => {
     expect(row.some(({ props }) => JSON.stringify(props).includes("recordedAt"))).toBe(false);
     expect(row.some(({ props }) => JSON.stringify(props).includes("actorUserId"))).toBe(false);
     expect(row.filter(({ type }) => type === Text).every(({ props }) => props.allowFontScaling !== false)).toBe(true);
+  });
+
+  test("renders skipped history as a distinct outcome with planned and accepted context", () => {
+    const mixed: TaskHistory = { items: [skipped], businessTimezone: "Asia/Tokyo", nextCursor: null };
+    const view = collectElements(TaskCompletionHistoryContent({ loading: false, error: null, data: mixed, onRetry: jest.fn(), onBack: jest.fn(), onShowAll: jest.fn() }));
+    view.push(...collectElements(TaskCompletionHistoryRow({ item: skipped, timezone: "Asia/Tokyo" })));
+    const rendered = JSON.stringify(view);
+    expect(rendered).toContain("Görev atlandı");
+    expect(rendered).toContain("Sürmeyi atla");
+    expect(rendered).toContain("Planlanan gün");
+    expect(rendered).toContain("Atlanma zamanı");
+    expect(rendered).not.toContain("Tamamlandı");
   });
 
   test("offers accessible loading, empty, error retry, and season-filter reset states", () => {
@@ -101,7 +116,7 @@ describe("accepted task completion History", () => {
 
     const onShowAll = jest.fn();
     const empty = collectElements(TaskCompletionHistoryContent({ loading: false, error: null, data: { ...data, items: [] }, onRetry: jest.fn(), onBack: jest.fn(), onShowAll, seasonId: "season-1" }));
-    expect(empty.some(({ type, props }) => type === Text && props.children === "Bu sezonda tamamlanmış iş yok.")).toBe(true);
+    expect(empty.some(({ type, props }) => type === Text && props.children === "Bu sezonda geçmiş kaydı yok.")).toBe(true);
     const allFields = empty.find(({ type, props }) => type === Pressable && props.accessibilityLabel === "Tarlanın tüm geçmişini göster");
     expect(allFields).toBeDefined();
     (allFields?.props.onPress as (() => void) | undefined)?.();
@@ -164,7 +179,7 @@ describe("accepted task completion History", () => {
 
     const get = jest.fn(async () => ({ response: { ok: true }, data, error: undefined }));
     const page = await readFieldTaskCompletionHistory({ GET: get } as never, route!.fieldId, { seasonId: route!.seasonId });
-    expect(get).toHaveBeenCalledWith("/fields/{fieldId}/task-completions", {
+    expect(get).toHaveBeenCalledWith("/fields/{fieldId}/task-history", {
       params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1" } },
     });
     const row = collectElements(TaskCompletionHistoryRow({ item: page.items[0]!, timezone: page.businessTimezone }));

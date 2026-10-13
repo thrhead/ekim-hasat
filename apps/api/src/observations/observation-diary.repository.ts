@@ -5,13 +5,14 @@ import { MembershipScopeService } from "../authorization/membership-scope.servic
 import { ApiError } from "../observability/api-error.filter.js";
 import { resolveBusinessTimezone } from "../seasons/business-timezone.js";
 import { TaskCompletionRepository } from "../tasks/task-completion.repository.js";
+import { TaskSkipRepository } from "../tasks/task-skip.repository.js";
 import type { ObservationDiaryFilters, ObservationDiaryPage } from "./observation.controller.js";
 import { decodeDiaryCursor, diaryLimit, pageDiaryCandidates, type DiaryEntry } from "./diary-query.js";
 
 export class ObservationDiaryRepository {
   private readonly membershipScope: MembershipScopeService;
 
-  constructor(private readonly prisma: PrismaClient, private readonly taskCompletions: TaskCompletionRepository) {
+  constructor(private readonly prisma: PrismaClient, private readonly taskCompletions: TaskCompletionRepository, private readonly taskSkips?: TaskSkipRepository) {
     this.membershipScope = new MembershipScopeService(prisma);
   }
 
@@ -35,7 +36,7 @@ export class ObservationDiaryRepository {
       { occurredAt: { lt: new Date(cursor.occurredAt) } },
       ...(cursor.kind === "OBSERVATION" ? [{ occurredAt: new Date(cursor.occurredAt), id: { lt: cursor.id } }] : []),
     ] };
-    const [observations, completions] = await Promise.all([
+    const [observations, completions, skips] = await Promise.all([
       this.prisma.fieldObservation.findMany({
         where: {
           businessId: scope.businessId,
@@ -50,11 +51,15 @@ export class ObservationDiaryRepository {
       this.taskCompletions.readDiaryCandidates(identity, fieldId, seasonId, cursor ? {
         occurredAt: cursor.occurredAt, kind: cursor.kind, id: cursor.id,
       } : null, limit + 1),
+      this.taskSkips?.readDiaryCandidates(identity, fieldId, seasonId, cursor ? {
+        occurredAt: cursor.occurredAt, kind: cursor.kind, id: cursor.id,
+      } : null, limit + 1) ?? Promise.resolve([]),
     ]);
     const entries: DiaryEntry[] = [
       ...observations.map((row) => ({ kind: "OBSERVATION" as const, id: row.id, fieldId: row.fieldId,
         seasonId: row.seasonId, description: row.description, occurredAt: row.occurredAt.toISOString() })),
       ...completions.map((row) => ({ kind: "TASK_COMPLETION" as const, ...row })),
+      ...skips,
     ];
     const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor);
     return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone: resolveBusinessTimezone(field.business.timezone) };

@@ -27,6 +27,7 @@ export type TaskCompletionCommandStorage = Readonly<{
   recordConflict(accountId: string, completionId: string, conflictCode: string): Promise<void>;
   writeTodaySnapshot(accountId: string, snapshot: TodaySnapshot): Promise<void>;
   readTodaySnapshot(accountId: string): Promise<TodaySnapshot | null>;
+  deleteTodaySnapshot?(accountId: string): Promise<void>;
 }>;
 
 export function belongsToBusinessToday(snapshot: Pick<TodaySnapshot, "localDate" | "businessTimezone">, now: Date): boolean {
@@ -154,6 +155,10 @@ const sqliteStorage: TaskCompletionCommandStorage = {
     );
     return row ? parseSnapshot(row.snapshot_json) : null;
   },
+  async deleteTodaySnapshot(accountId) {
+    const db = await getDatabase();
+    await db.runAsync("DELETE FROM today_task_snapshot WHERE account_id = ?", accountId);
+  },
 };
 
 export function createTaskCompletionCommandStore(options: Readonly<{ storage?: TaskCompletionCommandStorage }> = {}) {
@@ -199,6 +204,18 @@ export function createTaskCompletionCommandStore(options: Readonly<{ storage?: T
     },
     async readTodaySnapshot(accountId: string): Promise<TodaySnapshot | null> {
       return storage.readTodaySnapshot(assertAccountId(accountId));
+    },
+    async pruneTodayTask(accountId: string, taskId: string): Promise<void> {
+      const account = assertAccountId(accountId);
+      if (!taskId.trim()) throw new Error("A task ID is required");
+      try {
+        const snapshot = await storage.readTodaySnapshot(account);
+        if (!snapshot || !snapshot.tasks.some((task) => task.id === taskId)) return;
+        await storage.writeTodaySnapshot(account, { ...snapshot, tasks: snapshot.tasks.filter((task) => task.id !== taskId) });
+      } catch (failure) {
+        await storage.deleteTodaySnapshot?.(account).catch(() => undefined);
+        throw failure;
+      }
     },
     belongsToBusinessToday(snapshot: TodaySnapshot, now: Date): boolean {
       return belongsToBusinessToday(snapshot, now);

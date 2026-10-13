@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient } from "../../../../../packages/api-client/src/index";
 import { readCalendar, readCalendarPage, type CalendarRead, type CalendarReadError, type CalendarTaskGroup } from "./calendar-client";
@@ -10,13 +10,17 @@ import { CalendarTaskDetail } from "./calendar-task-detail";
 import { createCalendarSavedViewStore } from "./calendar-saved-view-store";
 import type { CalendarSavedView } from "./calendar-saved-view-store";
 import { canUseCalendarSavedView } from "./calendar-offline-policy";
+import { createTaskCompletionCommandStore } from "../tasks/task-completion-command-store";
+import type { TaskCompletionCommandStore } from "../tasks/task-completion-command-store";
+import type { TaskSkipResult } from "../tasks/task-skip";
 
 type CalendarTask = CalendarComponents["schemas"]["CalendarTask"];
 type SavedViewStore = ReturnType<typeof createCalendarSavedViewStore>;
 const defaultSavedViewStore = createCalendarSavedViewStore();
 
-export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore }) {
+export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore, todayStore: suppliedTodayStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore; todayStore?: TaskCompletionCommandStore }) {
   const [data, setData] = useState<CalendarRead | null>(null);
+  const todayStore = useMemo(() => suppliedTodayStore ?? createTaskCompletionCommandStore(), [suppliedTodayStore]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ message: string; retryable: boolean } | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -204,13 +208,26 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
       {pageError && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}>{pageError}</Text>}
       <CalendarMonthOverview monthStart={data.monthStart} indicators={data.monthIndicators} selectedDate={data.selectedDate} onSelectDate={selectDate} onChangeMonth={changeMonth} />
     </View>}
-    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} client={client}
-      onAccepted={async () => {
-        setAdjustmentNotice("Görev tarihi değişikliği kaydedildi.");
+    {selectedTask && <CalendarTaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} saved={showingSavedView} client={client} businessTimezone={data?.businessTimezone}
+      onSkipConflict={async () => {
+        setAdjustmentNotice("Takvim yenilendi. Görevin güncel durumunu kontrol edin.");
         const selectedDate = data?.selectedDate;
         const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
         setSelectedTask(null);
         await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+      }}
+      onAccepted={async (result?: TaskSkipResult) => {
+        let projectionError: string | null = null;
+        if (result) {
+          setAdjustmentNotice("Görev atlandı.");
+          try { await todayStore.pruneTodayTask(accountId, result.taskId); }
+          catch { projectionError = "Görev atlandı; Bugün görünümündeki kayıt yenilenemedi."; }
+        } else setAdjustmentNotice("Görev tarihi değişikliği kaydedildi.");
+        const selectedDate = data?.selectedDate;
+        const fieldId = selectedFieldId ?? (data?.fieldScope.mode === "oneField" ? data.fieldScope.fieldId : undefined);
+        setSelectedTask(null);
+        await load({ ...(selectedDate ? { selectedDate } : {}), ...(fieldId ? { fieldId } : {}) });
+        if (projectionError) setPageError(projectionError);
       }} />}
   </ScrollView>;
 }

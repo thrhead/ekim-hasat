@@ -3,11 +3,14 @@ import { useMemo } from "react";
 import type { ApiClient, CalendarComponents } from "../../../../../packages/api-client/src/index";
 import { createTaskDateAdjustmentFlow } from "../tasks/task-date-adjustment";
 import { TaskDateAdjustmentView } from "../tasks/task-date-adjustment-view";
+import { createTaskSkipFlow, type TaskSkipResult } from "../tasks/task-skip";
+import { TaskSkipView } from "../tasks/task-skip-view";
 
 type Task = CalendarComponents["schemas"]["CalendarTask"];
 
-export function CalendarTaskDetail({ task, onClose, saved = false, client, onAccepted }: Readonly<{ task: Task; onClose: () => void; saved?: boolean; client: ApiClient; onAccepted: () => void | Promise<void> }>) {
+export function CalendarTaskDetail({ task, onClose, saved = false, client, onAccepted, onSkipConflict, businessTimezone }: Readonly<{ task: Task; onClose: () => void; saved?: boolean; client: ApiClient; onAccepted: (result?: TaskSkipResult) => void | Promise<void>; onSkipConflict?: () => void | Promise<void>; businessTimezone?: string }>) {
   const adjustmentFlow = useMemo(() => createTaskDateAdjustmentFlow({ client }), [client]);
+  const skipFlow = useMemo(() => createTaskSkipFlow({ client }), [client]);
   const season = parseContext(task.seasonContext);
   const plan = parseContext(task.planContext);
   const crop = stringAt(season, ["crop", "displayName"]) ?? stringAt(season, ["cropSnapshot", "displayName"]);
@@ -34,6 +37,8 @@ export function CalendarTaskDetail({ task, onClose, saved = false, client, onAcc
         <Text style={styles.context}>Bu görev takvimdeki planlanan tarihine göre gösterilir.</Text>
         <TaskDateAdjustmentView taskId={task.taskId} taskTitle={task.title} flow={adjustmentFlow} disabled={saved}
           label="Ertele veya yeniden planla" onAccepted={onAccepted} />
+        {!saved && task.taskVersion !== undefined && <TaskSkipView task={{ id: task.taskId, title: task.title, plannedLocalDate: task.plannedLocalDate, taskVersion: task.taskVersion }}
+          flow={skipFlow} businessTimezone={businessTimezone} onAccepted={async (result: TaskSkipResult) => { await onAccepted(result); }} onConflict={onSkipConflict} />}
       </ScrollView>
     </View>
   </Modal>;
