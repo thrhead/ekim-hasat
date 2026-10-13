@@ -18,6 +18,11 @@ const prisma = new PrismaClient({
 const scopeService = new MembershipScopeService(prisma);
 const runId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const provider = "calendar-t013-test";
+function shiftLocalDate(localDate: string, offsetDays: number): string {
+  const [year, month, day] = localDate.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! + offsetDays)).toISOString().slice(0, 10);
+}
+
 const userSubjects: string[] = [];
 const businessIds: string[] = [];
 const fieldIds: string[] = [];
@@ -97,6 +102,11 @@ test("Calendar authorization resolves through the caller's REPEATABLE READ trans
 });
 
 test("Calendar read capture returns one authorized read identity with overdue projection and original-date indicators", async () => {
+  const businessToday = businessLocalDate(new Date(), "Europe/Istanbul");
+  const firstOverdueDate = shiftLocalDate(businessToday, -5);
+  // A one-day offset remains selected work if the test crosses Business-local midnight before capture.
+  const selectedDate = shiftLocalDate(businessToday, 1);
+  const remainingOverdueDate = shiftLocalDate(businessToday, -3);
   const subject = `calendar-read-${runId}`;
   userSubjects.push(subject);
   const identity = { provider, subject };
@@ -120,13 +130,13 @@ test("Calendar read capture returns one authorized read identity with overdue pr
   const plan = await prisma.seasonPlan.create({ data: { seasonId: season.id, source: "MANUAL", sourceSnapshot: {}, status: "DRAFT" } });
   planIds.push(plan.id);
   const task = await prisma.plannedTask.create({
-    data: { seasonPlanId: plan.id, title: "Overdue fixture task", plannedLocalDate: new Date("2026-10-05T00:00:00.000Z") },
+    data: { seasonPlanId: plan.id, title: "Overdue fixture task", plannedLocalDate: new Date(`${firstOverdueDate}T00:00:00.000Z`) },
   });
   const selectedTask = await prisma.plannedTask.create({
-    data: { seasonPlanId: plan.id, title: "Selected date fixture task", plannedLocalDate: new Date("2026-10-10T00:00:00.000Z") },
+    data: { seasonPlanId: plan.id, title: "Selected date fixture task", plannedLocalDate: new Date(`${selectedDate}T00:00:00.000Z`) },
   });
   const remainingTask = await prisma.plannedTask.create({
-    data: { seasonPlanId: plan.id, title: "Remaining overdue fixture task", plannedLocalDate: new Date("2026-10-07T00:00:00.000Z") },
+    data: { seasonPlanId: plan.id, title: "Remaining overdue fixture task", plannedLocalDate: new Date(`${remainingOverdueDate}T00:00:00.000Z`) },
   });
   await prisma.seasonPlan.update({ where: { id: plan.id }, data: { status: "APPROVED" } });
   const activatedAt = new Date("2026-09-01T00:00:00.000Z");
@@ -165,30 +175,38 @@ test("Calendar read capture returns one authorized read identity with overdue pr
     },
   });
   const failingRepository = new CalendarReadRepository(failingPrisma as unknown as PrismaClient);
-  await assert.rejects(failingRepository.createRead(identity, { selectedDate: "2026-10-06" }), /injected projection write failure/);
+  await assert.rejects(failingRepository.createRead(identity, { selectedDate }), /injected projection write failure/);
   assert.equal(await prisma.calendarReadSnapshot.count({ where: { businessId: business.id } }), 0);
 
   const repository = new CalendarReadRepository(prisma);
-  const read = await repository.createRead(identity, { selectedDate: "2026-10-10" });
+  const read = await repository.createRead(identity, { selectedDate });
   calendarReadIds.push(read.readId);
-  assert.equal(read.selectedDate, "2026-10-10");
+  assert.equal(read.selectedDate, selectedDate);
   assert.ok(read.readId);
+  assert.equal(read.businessTimezone, "Europe/Istanbul");
+  assert.ok(firstOverdueDate < read.businessLocalToday);
+  assert.ok(remainingOverdueDate < read.businessLocalToday);
+  assert.ok(read.businessLocalToday <= selectedDate);
   assert.deepEqual(read.overdueTasksPage.items.map(({ taskId }) => taskId), [task.id, remainingTask.id]);
   assert.deepEqual(read.selectedDateTasksPage.items.map(({ taskId }) => taskId), [selectedTask.id]);
-  assert.equal(read.monthIndicators.find(({ date }) => date === "2026-10-05")?.hasWork, true);
-  assert.equal(read.monthIndicators.find(({ date }) => date === "2026-10-10")?.hasWork, true);
+  const initialIndicators = new Map(read.monthIndicators.map(({ date, hasWork }) => [date, hasWork]));
+  const isInSelectedMonth = (date: string) => date.startsWith(selectedDate.slice(0, 7));
+  assert.equal(initialIndicators.get(selectedDate), true);
+  assert.equal(initialIndicators.get(firstOverdueDate), isInSelectedMonth(firstOverdueDate) ? true : undefined);
+  assert.equal(initialIndicators.get(remainingOverdueDate), isInSelectedMonth(remainingOverdueDate) ? true : undefined);
 
   const skipRepository = new TaskSkipRepository(prisma);
   await skipRepository.skip(identity, task.id, 1, { skipId: randomUUID() });
   await skipRepository.skip(identity, selectedTask.id, 1, { skipId: randomUUID() });
-  const freshRead = await repository.createRead(identity, { selectedDate: "2026-10-10" });
+  const freshRead = await repository.createRead(identity, { selectedDate });
   calendarReadIds.push(freshRead.readId);
   assert.notEqual(freshRead.readId, read.readId);
   assert.deepEqual(freshRead.overdueTasksPage.items.map(({ taskId }) => taskId), [remainingTask.id]);
   assert.deepEqual(freshRead.selectedDateTasksPage.items, []);
-  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-05")?.hasWork, false);
-  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-10")?.hasWork, false);
-  assert.equal(freshRead.monthIndicators.find(({ date }) => date === "2026-10-07")?.hasWork, true);
+  const freshIndicators = new Map(freshRead.monthIndicators.map(({ date, hasWork }) => [date, hasWork]));
+  assert.equal(freshIndicators.get(firstOverdueDate), isInSelectedMonth(firstOverdueDate) ? false : undefined);
+  assert.equal(freshIndicators.get(selectedDate), false);
+  assert.equal(freshIndicators.get(remainingOverdueDate), isInSelectedMonth(remainingOverdueDate) ? true : undefined);
   const oldSnapshotTasks = await prisma.calendarReadSnapshotTask.findMany({ where: { readId: read.readId }, select: { taskId: true } });
   assert.deepEqual(oldSnapshotTasks.map(({ taskId }) => taskId).sort(), [task.id, remainingTask.id, selectedTask.id].sort());
 });
