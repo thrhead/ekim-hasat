@@ -18,6 +18,7 @@
     "check:diff": "git diff --check"
   },
   "devDependencies": {
+    "@nanonets/graft": "0.21.1",
     "eslint": "^10.11.0",
     "turbo": "^2.5.6",
     "typescript-eslint": "^8.70.1"

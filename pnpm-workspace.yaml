@@ -1,3 +1,18 @@
 packages:
   - "apps/*"
   - "packages/*"
+onlyBuiltDependencies:
+  - "@davisvaughan/tree-sitter-r"
+  - "@nanonets/graft"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
+  - tree-sitter
+  - tree-sitter-go
+  - tree-sitter-java
+  - tree-sitter-javascript
+  - tree-sitter-kotlin
+  - tree-sitter-php
+  - tree-sitter-python
+  - tree-sitter-swift
+  - tree-sitter-typescript

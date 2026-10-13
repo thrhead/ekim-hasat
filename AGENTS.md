@@ -366,9 +366,22 @@ Graft is development tooling for repository structure/context discovery.
 
 It must never become an Ekim Hasat runtime dependency.
 
+The root `packageManager` field pins pnpm to `10.17.1`. In a fresh Codex Cloud
+workspace, run `scripts/bootstrap-codex-cloud.sh`; it activates that exact
+Corepack version and installs the frozen workspace lockfile. Use the resulting
+repo-pinned toolchain rather than a different pnpm binary supplied on the
+environment PATH.
+
 The repository is initialized for Codex with:
 
 `graft init --agents agents`
+
+Use the repository-pinned Graft CLI through `pnpm exec graft` (or
+`corepack pnpm@10.17.1 exec graft` before dependencies are installed). Do not
+assume a Cloud-global `graft` command is present or use a different global
+version. `scripts/bootstrap-codex-cloud.sh` activates the repository's pinned
+pnpm, installs the frozen workspace dependencies, and checks local tooling and
+skill assets.
 
 Codex-specific MCP and hook integration may be installed by Graft at user level
 under `~/.codex/`.
@@ -414,6 +427,14 @@ Every feature spec should address where applicable:
 - tests.
 
 ## 25. Superpowers Workflow
+
+The official Superpowers skills are vendored under
+`.agents/skills/superpowers/` from `obra/superpowers` at the revision recorded
+in `.agents/skills/superpowers/UPSTREAM.md`. Codex repo-local discovery of
+`.agents/skills/` is the portability source of truth; do not rely on
+`~/.codex`, `~/.agents`, or a Cloud-installed plugin. The upstream skill files,
+references, and assets must remain intact; preserve their attribution and MIT
+license when refreshing the snapshot.
 
 Use Superpowers as an engineering execution discipline inside the approved product/spec boundary.
 
