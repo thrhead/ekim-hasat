@@ -30,10 +30,64 @@ it("retries the same command after a lost response and durably settles exact rep
   const coordinator = module!.createObservationDelivery({ store, getAuthorizationSession: () => ({ accountId: "account-a", client }) });
   await coordinator.deliver("account-a");
   expect(saved.state).toBe("PENDING");
+  // Recreate the coordinator to model process restart while retaining the durable store.
+  const restarted = module!.createObservationDelivery({ store, getAuthorizationSession: () => ({ accountId: "account-a", client }) });
+  await restarted.deliver("account-a");
+  expect(POST).toHaveBeenCalledTimes(2);
+  expect(POST.mock.calls[0]).toEqual(POST.mock.calls[1]);
+  expect(POST.mock.calls[0]![1].body).toEqual(POST.mock.calls[1]![1].body);
+  expect(saved).toMatchObject({ state: "ACCEPTED", acceptedResult: accepted });
+});
+
+it("does not deliver without a usable authenticated session", async () => {
+  const module = deliveryModule();
+  expect(module).not.toBeNull();
+  const POST = jest.fn();
+  const client = { POST } as unknown as ApiClient;
+  const store = { list: async () => [original], markAttempt: jest.fn(), finishAttempt: async () => {} } as unknown as ObservationCommandStore;
+  const coordinator = module!.createObservationDelivery({ store, getAuthorizationSession: () => null });
+  await coordinator.deliver("account-a");
+  expect(POST).not.toHaveBeenCalled();
+  expect(store.markAttempt).not.toHaveBeenCalled();
+});
+
+it("durably settles a first 201 acceptance before delivery completes", async () => {
+  const module = deliveryModule();
+  expect(module).not.toBeNull();
+  let saved: ObservationCommand = original;
+  const accepted = { id: original.observationId, fieldId: original.fieldId, seasonId: null,
+    description: original.description, occurredAt: original.occurredAt, businessTimezone: "Europe/Istanbul" };
+  const store = {
+    list: async () => [saved],
+    markAttempt: async () => { saved = { ...saved, attemptMayHaveCommitted: true }; },
+    finishAttempt: async () => {},
+    recordAccepted: async (_accountId: string, _id: string, result: unknown) => {
+      saved = { ...saved, state: "ACCEPTED", acceptedResult: result };
+    },
+  } as unknown as ObservationCommandStore;
+  const POST = jest.fn().mockResolvedValue({ response: { ok: true, status: 201 }, data: accepted });
+  const client = { POST } as unknown as ApiClient;
+  const coordinator = module!.createObservationDelivery({ store, getAuthorizationSession: () => ({ accountId: "account-a", client }) });
+  await coordinator.deliver("account-a");
+  expect(saved).toMatchObject({ state: "ACCEPTED", acceptedResult: accepted });
+});
+
+it("keeps a server-error delivery pending with its uncertainty marker for exact retry", async () => {
+  let saved: ObservationCommand = original;
+  const store = {
+    list: async () => [saved],
+    markAttempt: async () => { saved = { ...saved, attemptMayHaveCommitted: true }; },
+    finishAttempt: async () => {},
+  } as unknown as ObservationCommandStore;
+  const POST = jest.fn().mockResolvedValue({ response: { ok: false, status: 503 }, error: { error: { code: "UNEXPECTED" } } });
+  const client = { POST } as unknown as ApiClient;
+  const coordinator = deliveryModule()!.createObservationDelivery({ store,
+    getAuthorizationSession: () => ({ accountId: "account-a", client }) });
+  await coordinator.deliver("account-a");
+  expect(saved).toMatchObject({ state: "PENDING", attemptMayHaveCommitted: true });
   await coordinator.deliver("account-a");
   expect(POST).toHaveBeenCalledTimes(2);
   expect(POST.mock.calls[0]).toEqual(POST.mock.calls[1]);
-  expect(saved).toMatchObject({ state: "ACCEPTED", acceptedResult: accepted });
 });
 
 it("does not submit an old account command after the account switches during durable send marking", async () => {

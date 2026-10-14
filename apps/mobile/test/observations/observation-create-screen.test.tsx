@@ -67,6 +67,28 @@ describe("online observation create", () => {
     await act(async () => screen.unmount());
   });
 
+  it("notifies the observation flow only after the local command is durably enqueued", async () => {
+    let stored: unknown = null;
+    const enqueue = jest.fn(async (_accountId: string, command: unknown) => { stored = command; });
+    const onPending = jest.fn();
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<ObservationCreateScreen
+      client={{ GET: jest.fn().mockResolvedValue({ data: { businessTimezone: "Europe/Istanbul", items: [], nextCursor: null }, response: { ok: true, status: 200 } }) } as unknown as ApiClient}
+      accountId="account-1" fieldId="field-1" seasonId="season-1" now={now} createId={() => id}
+      offlineStore={{ getContext: jest.fn(), enqueue, saveContext: jest.fn() } as never} onPending={onPending} />); });
+    await fill(screen);
+    await press(screen);
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    expect(enqueue).toHaveBeenCalledWith("account-1", expect.objectContaining({
+      observationId: id, accountId: "account-1", fieldId: "field-1", seasonId: "season-1",
+      description: "Yapraklar sarardı", occurredAtLocal: "2026-10-05T12:00",
+      occurredAt: "2026-10-05T09:00:00.000Z", capturedBusinessTimezone: "Europe/Istanbul", state: "PENDING",
+    }));
+    expect(stored).not.toBeNull();
+    expect(onPending).toHaveBeenCalledTimes(1);
+    await act(async () => screen.unmount());
+  });
+
   it("retains exact UUID, note and time after network failure and accepts only after retry confirmation", async () => {
     const POST = jest.fn().mockRejectedValueOnce(new TypeError("Network request failed")).mockResolvedValueOnce({ data: observation, response: { ok: true, status: 200 } });
     const onCreated = jest.fn();

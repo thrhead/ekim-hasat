@@ -60,6 +60,10 @@ test("create route accepts optional captured Business timezone without changing 
       const response = await app.inject({ method: "POST", url: `/v1/fields/${fieldId}/observations`, headers: { authorization: "Bearer valid" }, payload: body });
       assert.equal(response.statusCode, 201);
     }
+    const invalidTimezone = await app.inject({ method: "POST", url: `/v1/fields/${fieldId}/observations`,
+      headers: { authorization: "Bearer valid" }, payload: { ...request, capturedBusinessTimezone: "Not/A-Timezone" } });
+    assert.equal(invalidTimezone.statusCode, 400);
+    assert.equal(invalidTimezone.json().error.code, "INVALID_REQUEST");
     assert.deepEqual(received, [request, { ...request, capturedBusinessTimezone: "Europe/Istanbul" }]);
   } finally { await app.close(); }
 });

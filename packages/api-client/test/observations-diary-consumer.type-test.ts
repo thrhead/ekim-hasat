@@ -1,7 +1,8 @@
 import {
   createApiClient,
   type ObservationDiaryComponents,
-  type operations,
+  type ObservationDiaryOperations,
+  type ObservationDiaryPaths,
   type paths,
 } from "@ekim-hasat/api-client";
 
@@ -40,13 +41,25 @@ type HasObservationPaths = Assert<
   "/fields/{fieldId}/observations" | "/fields/{fieldId}/diary" extends keyof paths ? true : false
 >;
 type HasObservationOperations = Assert<
-  "createFieldObservation" | "getFieldDiary" extends keyof operations ? true : false
+  "createFieldObservation" | "getFieldDiary" extends keyof ObservationDiaryOperations ? true : false
 >;
 type HasOptionalCapturedTimezone = Assert<
-  "capturedBusinessTimezone" extends keyof ObservationDiaryComponents["schemas"]["CreateObservationRequest"] ? true : false
+  "capturedBusinessTimezone" extends keyof ObservationDiaryComponents["schemas"]["CreateObservationRequest"]
+    ? {} extends Pick<ObservationDiaryComponents["schemas"]["CreateObservationRequest"], "capturedBusinessTimezone"> ? true : false
+    : false
 >;
-type ObservationResponse = operations["createFieldObservation"]["responses"][201]["content"]["application/json"];
-type DiaryResponse = operations["getFieldDiary"]["responses"][200]["content"]["application/json"];
+type HasOnlyExistingObservationOperations = Assert<
+  keyof ObservationDiaryOperations extends "createFieldObservation" | "getFieldDiary"
+    ? ("createFieldObservation" | "getFieldDiary") extends keyof ObservationDiaryOperations ? true : false
+    : false
+>;
+type HasOneObservationCreateRoute = Assert<
+  ObservationDiaryPaths["/fields/{fieldId}/observations"]["post"] extends ObservationDiaryOperations["createFieldObservation"]
+    ? true
+    : false
+>;
+type ObservationResponse = ObservationDiaryOperations["createFieldObservation"]["responses"][201]["content"]["application/json"];
+type DiaryResponse = ObservationDiaryOperations["getFieldDiary"]["responses"][200]["content"]["application/json"];
 type GeneratedObservation = Assert<
   ObservationResponse extends ObservationDiaryComponents["schemas"]["Observation"] ? true : false
 >;
@@ -69,14 +82,16 @@ type HasConflictCode = Assert<
     : false
 >;
 type HasStructuredErrors = Assert<
-  409 extends keyof operations["createFieldObservation"]["responses"]
-    ? 500 extends keyof operations["getFieldDiary"]["responses"] ? true : false
+  409 extends keyof ObservationDiaryOperations["createFieldObservation"]["responses"]
+    ? 500 extends keyof ObservationDiaryOperations["getFieldDiary"]["responses"] ? true : false
     : false
 >;
 
 void (0 as unknown as HasObservationPaths);
 void (0 as unknown as HasObservationOperations);
 void (0 as unknown as HasOptionalCapturedTimezone);
+void (0 as unknown as HasOnlyExistingObservationOperations);
+void (0 as unknown as HasOneObservationCreateRoute);
 void (0 as unknown as GeneratedObservation);
 void (0 as unknown as GeneratedDiary);
 void (0 as unknown as GeneratedSkippedDiary);
