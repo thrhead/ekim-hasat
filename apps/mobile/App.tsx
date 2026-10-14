@@ -13,6 +13,7 @@ import { FieldCreateScreen } from "./src/features/fields/field-create-screen";
 import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
+import { scheduleObservationRetry } from "./src/features/observations/observation-delivery";
 import { CalendarScreen } from "./src/features/calendar/calendar-screen";
 import { AuthScreen } from "./src/features/auth/auth-screen";
 
@@ -48,8 +49,17 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (state.auth.status !== "authenticated" || !state.accountId) return;
+    return scheduleObservationRetry(() => compositionRef.current?.deliverObservations() ?? Promise.resolve());
+  }, [state.auth.status, state.accountId]);
+
   if (state.auth.status === "loading") {
     return <OnboardingEntryView state="loading" />;
+  }
+
+  if (state.auth.status === "signed-out" && state.entry === "observation-create" && state.accountId && state.fieldId) {
+    return <View style={styles.appScreen}>{renderObservationContextRoute(state, compositionRef.current)}</View>;
   }
 
   if (state.auth.status === "signed-out") {
@@ -160,14 +170,18 @@ export function navigatePrimaryDestination(
 
 /** The production App renders the contextual observation and diary screens through this route seam. */
 export function renderObservationContextRoute(state: ProductionAppState, composition: ReturnType<typeof createAppComposition> | null) {
-  if (state.entry === "observation-create" && state.client && state.fieldId) return <ObservationCreateScreen
+  if (state.entry === "observation-create" && state.accountId && state.fieldId) return <ObservationCreateScreen
     key={`${state.accountId ?? ""}:${state.fieldId}:${state.observationSeasonId ?? "field"}`}
-    client={state.client} fieldId={state.fieldId} seasonId={state.observationSeasonId ?? undefined}
-    onBack={() => composition?.openField(state.fieldId!)}
+    client={state.client ?? undefined} accountId={state.accountId} offlineStore={composition?.observationStore}
+    fieldId={state.fieldId} seasonId={state.observationSeasonId ?? undefined}
+    onBack={state.client ? () => composition?.openField(state.fieldId!) : undefined}
+    onSignIn={!state.client ? () => composition?.showSignIn() : undefined}
+    onPending={() => { void composition?.deliverObservations(); }}
     onCreated={() => composition?.openField(state.fieldId!)} />;
   if (state.entry === "field-diary" && state.client && state.diaryFieldId) return <FieldDiaryScreen
     key={`${state.accountId ?? ""}:${state.diaryFieldId}:${state.diarySeasonId ?? "field"}`}
-    client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
+    client={state.client} accountId={state.accountId ?? undefined} observationStore={composition?.observationStore}
+    fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
     onBack={() => composition?.openField(state.diaryFieldId!)}
     onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)} />;
   return null;

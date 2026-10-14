@@ -45,7 +45,27 @@ export class ObservationCreateRepository {
         let description: string;
         try { description = canonicalizeObservationDescription(input.description); }
         catch { throw invalidRequest(); }
-        const { occurredAt, businessTimezone } = resolveBusinessObservationInstant(input.occurredAtLocal, input.occurredAt, field.business.timezone);
+        let businessTimezone: string;
+        try { businessTimezone = resolveBusinessTimezone(field.business.timezone); }
+        catch { throw invalidRequest(); }
+        const existing = await tx.fieldObservation.findFirst({ where: { businessId: scope.businessId, id: input.observationId } });
+        if (existing) {
+          let submittedInstant: string;
+          try {
+            submittedInstant = createFieldObservation({
+              id: input.observationId, businessId: scope.businessId, fieldId,
+              seasonId: input.seasonId ?? null, actorUserId: scope.userId,
+              actorMembershipId: scope.membershipId, description,
+              occurredAt: input.occurredAt, acceptedAt: existing.acceptedAt.toISOString(),
+            }).occurredAt;
+          } catch { throw invalidRequest(); }
+          if (existing.fieldId !== fieldId || existing.seasonId !== (input.seasonId ?? null)
+            || existing.actorUserId !== scope.userId || existing.actorMembershipId !== scope.membershipId
+            || existing.description !== description || existing.occurredAt.toISOString() !== submittedInstant) throw identityConflict();
+          return { kind: "replayed" as const, observation: this.toPublic(existing, businessTimezone) };
+        }
+        if (input.capturedBusinessTimezone && input.capturedBusinessTimezone !== businessTimezone) throw invalidRequest();
+        const { occurredAt } = resolveBusinessObservationInstant(input.occurredAtLocal, input.occurredAt, field.business.timezone);
         const acceptedAt = this.now();
         if (occurredAt.getTime() > acceptedAt.getTime()) throw invalidRequest();
         const canonical = createFieldObservation({

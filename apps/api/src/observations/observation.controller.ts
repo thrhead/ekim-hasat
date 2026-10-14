@@ -24,12 +24,18 @@ function parseCreateBody(value: unknown): CreateObservationRequest {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw invalidRequest();
   const body = value as Record<string, unknown>;
   const required = ["observationId", "description", "occurredAtLocal", "occurredAt"];
-  if (required.some((key) => !(key in body)) || Object.keys(body).some((key) => ![...required, "seasonId"].includes(key))) throw invalidRequest();
+  if (required.some((key) => !(key in body)) || Object.keys(body).some((key) => ![...required, "seasonId", "capturedBusinessTimezone"].includes(key))) throw invalidRequest();
   if (typeof body.observationId !== "string" || !uuid.test(body.observationId)
       || typeof body.description !== "string" || typeof body.occurredAtLocal !== "string" || typeof body.occurredAt !== "string"
-      || (body.seasonId !== undefined && (typeof body.seasonId !== "string" || !uuid.test(body.seasonId)))) throw invalidRequest();
+      || (body.seasonId !== undefined && (typeof body.seasonId !== "string" || !uuid.test(body.seasonId)))
+      || (body.capturedBusinessTimezone !== undefined && (typeof body.capturedBusinessTimezone !== "string" || !body.capturedBusinessTimezone))) throw invalidRequest();
+  if (body.capturedBusinessTimezone !== undefined) {
+    try { new Intl.DateTimeFormat("en", { timeZone: body.capturedBusinessTimezone as string }); }
+    catch { throw invalidRequest(); }
+  }
   return { observationId: body.observationId, description: body.description, occurredAtLocal: body.occurredAtLocal,
-    occurredAt: body.occurredAt, ...(typeof body.seasonId === "string" ? { seasonId: body.seasonId } : {}) };
+    occurredAt: body.occurredAt, ...(typeof body.seasonId === "string" ? { seasonId: body.seasonId } : {}),
+    ...(typeof body.capturedBusinessTimezone === "string" ? { capturedBusinessTimezone: body.capturedBusinessTimezone } : {}) };
 }
 
 function invalidRequest(): ApiError { return new ApiError(400, "INVALID_REQUEST", "Check the observation information and try again"); }

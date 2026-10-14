@@ -90,3 +90,19 @@ test("creation requires current active Business scope and a Season in that Field
   finally { await prisma.membership.update({ where: { id: existing.id }, data: { status: "ACTIVE" } }); }
   await assert.rejects(repository().create(identity, field, input({ seasonId: randomUUID() })), (error: unknown) => error instanceof ApiError && error.getStatus() === 404);
 });
+
+test("a revoked member cannot create or replay an offline observation", async () => {
+  const accepted = input({ capturedBusinessTimezone: "Europe/Istanbul" });
+  await repository().create(identity, field, accepted);
+  const denied = input({ capturedBusinessTimezone: "Europe/Istanbul" });
+  await prisma.membership.update({ where: { id: membership }, data: { status: "REVOKED" } });
+  try {
+    for (const command of [accepted, denied]) {
+      await assert.rejects(repository().create(identity, field, command),
+        (error: unknown) => error instanceof ApiError && error.getStatus() === 403);
+    }
+    assert.equal(await prisma.fieldObservation.count({ where: { id: denied.observationId } }), 0);
+  } finally {
+    await prisma.membership.update({ where: { id: membership }, data: { status: "ACTIVE" } });
+  }
+});

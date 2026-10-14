@@ -48,6 +48,22 @@ test("create route preserves shared coded errors and returns 201 for insert, 200
   } finally { await app.close(); }
 });
 
+test("create route accepts optional captured Business timezone without changing older bodies", async () => {
+  const received: unknown[] = [];
+  const app = await appWith(async (_identity, _fieldId, body) => {
+    received.push(body);
+    return { kind: "accepted", observation };
+  });
+  await app.init(); await app.getHttpAdapter().getInstance().ready();
+  try {
+    for (const body of [request, { ...request, capturedBusinessTimezone: "Europe/Istanbul" }]) {
+      const response = await app.inject({ method: "POST", url: `/v1/fields/${fieldId}/observations`, headers: { authorization: "Bearer valid" }, payload: body });
+      assert.equal(response.statusCode, 201);
+    }
+    assert.deepEqual(received, [request, { ...request, capturedBusinessTimezone: "Europe/Istanbul" }]);
+  } finally { await app.close(); }
+});
+
 test("create route keeps missing/cross-scope privacy and generic unexpected failures safe", async () => {
   const app = await appWith(async () => { throw new ApiError(404, "NOT_FOUND", "The requested item is not available"); });
   await app.init(); await app.getHttpAdapter().getInstance().ready();

@@ -44,3 +44,7 @@ Run focused PostgreSQL observation integration files only with the repository's 
 ## Expected boundary
 
 No generic offline sync, authorization lease, Field/Season browsing or mutation, attachment upload, categories, AI/risk, notifications, offline Skip/date adjustment, irrigation, finance, harvest/sales, or diary architecture redesign appears in the delivered feature. The existing online observation path and completion-specific offline queue continue to work.
+
+## Implementation evidence log
+
+- Baseline (2026-10-14): branch `work` at `2998f57907f354a1189b79dbf053a0d1d1f3fe31`, clean before implementation. Repository bootstrap succeeded with Corepack pnpm 10.17.1 and pinned Graft 0.21.1. Mobile baseline: 51 suites, 293 tests passed (`corepack pnpm --filter @ekim-hasat/mobile test`). PostgreSQL guard not yet verified.

@@ -17,6 +17,17 @@ const createResult = client.POST("/fields/{fieldId}/observations", {
   },
 });
 
+const offlineCreateResult = client.POST("/fields/{fieldId}/observations", {
+  params: { path: { fieldId: "8c6705c6-d80c-4b88-8722-b66cc32a6d4f" } },
+  body: {
+    observationId: "9c071bf4-5fa3-46d7-b015-1fd32dc8c33c",
+    description: "Check north row",
+    occurredAtLocal: "2026-10-05T09:30",
+    occurredAt: "2026-10-05T06:30:00Z",
+    capturedBusinessTimezone: "Europe/Istanbul",
+  },
+});
+
 const diaryResult = client.GET("/fields/{fieldId}/diary", {
   params: {
     path: { fieldId: "8c6705c6-d80c-4b88-8722-b66cc32a6d4f" },
@@ -30,6 +41,9 @@ type HasObservationPaths = Assert<
 >;
 type HasObservationOperations = Assert<
   "createFieldObservation" | "getFieldDiary" extends keyof operations ? true : false
+>;
+type HasOptionalCapturedTimezone = Assert<
+  "capturedBusinessTimezone" extends keyof ObservationDiaryComponents["schemas"]["CreateObservationRequest"] ? true : false
 >;
 type ObservationResponse = operations["createFieldObservation"]["responses"][201]["content"]["application/json"];
 type DiaryResponse = operations["getFieldDiary"]["responses"][200]["content"]["application/json"];
@@ -62,6 +76,7 @@ type HasStructuredErrors = Assert<
 
 void (0 as unknown as HasObservationPaths);
 void (0 as unknown as HasObservationOperations);
+void (0 as unknown as HasOptionalCapturedTimezone);
 void (0 as unknown as GeneratedObservation);
 void (0 as unknown as GeneratedDiary);
 void (0 as unknown as GeneratedSkippedDiary);
@@ -69,6 +84,7 @@ void (0 as unknown as SkippedDiaryKind);
 void (0 as unknown as HasConflictCode);
 void (0 as unknown as HasStructuredErrors);
 void createResult;
+void offlineCreateResult;
 void diaryResult;
 
 const skippedDiary: ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"] = {

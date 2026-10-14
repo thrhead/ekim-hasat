@@ -73,6 +73,37 @@ test("exact replay is 200-equivalent and changed canonical payload, actor, or au
     && error.getStatus() === 409 && error.presentation.code === "IDEMPOTENCY_KEY_REUSED");
 });
 
+test("offline exact replay survives a later Business timezone edit while first mismatched delivery creates nothing", async () => {
+  const acceptedId = randomUUID();
+  const acceptedPayload = { ...base(acceptedId), capturedBusinessTimezone: "Europe/Istanbul" };
+  const first = await repository().create(identity, field, acceptedPayload);
+  assert.equal(first.kind, "accepted");
+  await prisma.business.update({ where: { id: business }, data: { timezone: "Europe/Berlin" } });
+  try {
+    const replay = await repository().create(identity, field, acceptedPayload);
+    assert.equal(replay.kind, "replayed");
+    assert.equal(replay.observation.occurredAt, first.observation.occurredAt);
+    const pendingId = randomUUID();
+    await assert.rejects(repository().create(identity, field, { ...base(pendingId), capturedBusinessTimezone: "Europe/Istanbul" }),
+      (error: unknown) => error instanceof ApiError && error.getStatus() === 400);
+    assert.equal(await prisma.fieldObservation.count({ where: { id: pendingId } }), 0);
+  } finally {
+    await prisma.business.update({ where: { id: business }, data: { timezone: "Europe/Istanbul" } });
+  }
+});
+
+test("captured timezone precondition rejects a different zone even when the local instant still maps", async () => {
+  await prisma.business.update({ where: { id: business }, data: { timezone: "Europe/Moscow" } });
+  try {
+    const id = randomUUID();
+    await assert.rejects(repository().create(identity, field, { ...base(id), capturedBusinessTimezone: "Europe/Istanbul" }),
+      (error: unknown) => error instanceof ApiError && error.getStatus() === 400);
+    assert.equal(await prisma.fieldObservation.count({ where: { id } }), 0);
+  } finally {
+    await prisma.business.update({ where: { id: business }, data: { timezone: "Europe/Istanbul" } });
+  }
+});
+
 test("concurrent identical creates produce one inserted winner and one canonical replay", async () => {
   const id = randomUUID(), payload = base(id);
   const [left, right] = await Promise.all([
