@@ -9,6 +9,20 @@ function node(screen: TestRenderer, label: string) {
 }
 
 describe("offline observation capture", () => {
+  it("saves Field and Season context only after the authorized diary read succeeds", async () => {
+    const GET = jest.fn().mockResolvedValue({ data: { businessTimezone: "Europe/Istanbul", items: [], nextCursor: null }, response: { ok: true, status: 200 } });
+    const saveContext = jest.fn().mockResolvedValue(undefined);
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<ObservationCreateScreen client={{ GET } as unknown as ApiClient}
+      fieldId="field-1" seasonId="season-1" accountId="account-a"
+      offlineStore={{ saveContext } as never} now={now} />); });
+    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 1, seasonId: "season-1" } } });
+    expect(saveContext).toHaveBeenCalledWith("account-a", {
+      fieldId: "field-1", seasonId: "season-1", businessTimezone: "Europe/Istanbul",
+    });
+    await act(async () => screen.unmount());
+  });
+
   it("saves a note locally after retryable offline restore without making an API request", async () => {
     const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
     const POST = jest.fn();
@@ -31,6 +45,41 @@ describe("offline observation capture", () => {
     expect(onPending).toHaveBeenCalledTimes(1);
     expect(POST).not.toHaveBeenCalled();
     expect(node(screen, "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor").props.accessibilityLiveRegion).toBe("polite");
+    await act(async () => screen.unmount());
+  });
+
+  it("does not enqueue the same confirmation twice while the durable write is pending", async () => {
+    const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
+    let finishWrite!: () => void;
+    const enqueue = jest.fn(() => new Promise<void>((resolve) => { finishWrite = resolve; }));
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<ObservationCreateScreen fieldId="field-1" accountId="account-a"
+      offlineStore={{ getContext: async () => ({ fieldId: "field-1", seasonId: null, businessTimezone: "Europe/Istanbul" }), enqueue } as never}
+      now={now} createId={() => observationId} />); });
+    await act(async () => {
+      node(screen, "Gözlem notu").props.onChangeText("Soil is damp");
+      node(screen, "Gözlem tarihi ve saati").props.onChangeText("2026-10-14T12:00");
+    });
+    const confirm = node(screen, "Gözlemi kaydet").props.onPress;
+    await act(async () => { confirm(); confirm(); });
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    await act(async () => { finishWrite(); });
+    expect(node(screen, "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor")).toBeDefined();
+    await act(async () => screen.unmount());
+  });
+
+  it("refuses offline capture when no saved observation context is available", async () => {
+    const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
+    const getContext = jest.fn().mockResolvedValue(null);
+    const enqueue = jest.fn();
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<ObservationCreateScreen fieldId="field-1" accountId="account-a"
+      offlineStore={{ getContext, enqueue } as never} now={now} />); });
+    expect(getContext).toHaveBeenCalledWith("account-a", "field-1", null);
+    expect(node(screen, "Gözlemi kaydet").props.disabled).toBe(true);
+    expect(screen.root.findAll(({ props }) => props.accessibilityRole === "alert").map(({ props }) => props.children).join(" "))
+      .toContain("Tarla bilgileri yüklenemedi");
+    expect(enqueue).not.toHaveBeenCalled();
     await act(async () => screen.unmount());
   });
 
