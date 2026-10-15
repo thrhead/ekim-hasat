@@ -1,6 +1,6 @@
 # Data Model: Irrigation Record Capture
 
-**Feature**: [spec.md](./spec.md)  
+**Feature**: [spec.md](./spec.md)
 **Date**: 2026-10-15
 
 ## IrrigationRecord

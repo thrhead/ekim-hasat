@@ -1,6 +1,6 @@
 # Quickstart: Irrigation Record Capture
 
-**Feature**: [spec.md](./spec.md)  
+**Feature**: [spec.md](./spec.md)
 **Design**: [plan.md](./plan.md), [data-model.md](./data-model.md), [create contract](./contracts/irrigation-records.openapi.yaml)
 
 ## Prerequisites
