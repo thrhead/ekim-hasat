@@ -1,0 +1,203 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Irrigation Records API
+  version: 1.0.0
+  description: >-
+    Online-only server-authoritative irrigation record creation for an authorized Field.
+    Historical viewing is through the existing Field Diary contract; SPEC-011 extends
+    that contract additively rather than defining a duplicate diary endpoint.
+paths:
+  /fields/{fieldId}/irrigation-records:
+    post:
+      operationId: createIrrigationRecord
+      summary: Record irrigation for an authorized Field
+      description: >-
+        The API resolves the active Membership and Business from authentication and
+        validates the required Field and optional same-Field, same-Business Season.
+        Business identity is never accepted from the request. An exact retry replays
+        only for the same actor under current authorization; reusing the identity with
+        a different actor, payload, Field, or Season returns 409. The server resolves
+        occurredAtLocal in the current Business timezone, or Europe/Istanbul when
+        unset, and requires it to map uniquely to occurredAt. Future, ambiguous,
+        nonexistent, or mismatched local times are rejected. Reusing irrigationRecordId
+        with the exact same payload and currently authorized context replays the accepted
+        record; changed payload or context returns 409. This endpoint does not queue
+        offline work.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fieldId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIrrigationRecordRequest'
+      responses:
+        '201':
+          description: Irrigation record accepted and committed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IrrigationRecord'
+        '200':
+          description: Exact retry replayed the previously accepted record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IrrigationRecord'
+        '400':
+          description: Invalid payload, association, or occurrence time
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication is missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: The current membership does not authorize this operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: The Field or optional Season is unavailable in this authorized context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Record identity was reused with a changed payload or context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '5XX':
+          description: Unexpected server failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CreateIrrigationRecordRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - irrigationRecordId
+        - occurredAtLocal
+        - occurredAt
+        - capturedBusinessTimezone
+      properties:
+        irrigationRecordId:
+          type: string
+          format: uuid
+          description: Stable identity for this online create attempt and exact retry.
+        seasonId:
+          type: string
+          format: uuid
+          description: Optional Season; it must belong to the path Field and authorized Business.
+        occurredAtLocal:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$'
+          description: Farmer-entered local date/time without a timezone offset, defaulted to now in Business time.
+        occurredAt:
+          type: string
+          format: date-time
+          description: Absolute instant corresponding to occurredAtLocal; validated by the server.
+        capturedBusinessTimezone:
+          type: string
+          description: Business timezone used to compose occurredAtLocal and occurredAt; it must match the current server-resolved timezone.
+        method:
+          type: string
+          maxLength: 120
+          description: Optional farmer-entered irrigation method; no catalog is used.
+        durationMinutes:
+          type: integer
+          minimum: 1
+          description: Optional positive duration in whole minutes.
+        waterVolumeCubicMetres:
+          type: string
+          pattern: '^(?=.*[1-9])[0-9]{1,15}(?:\.[0-9])?$'
+          description: Optional positive water volume in cubic metres, with at most one decimal place; transmitted as a decimal string.
+        note:
+          type: string
+          maxLength: 2000
+          description: Optional farmer note, trimmed and limited to the existing observation text length.
+    IrrigationRecord:
+      type: object
+      required:
+        - id
+        - fieldId
+        - seasonId
+        - occurredAt
+        - businessTimezone
+        - method
+        - durationMinutes
+        - waterVolumeCubicMetres
+        - note
+        - recordedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        fieldId:
+          type: string
+          format: uuid
+        seasonId:
+          type: string
+          format: uuid
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+          description: Original absolute occurrence instant.
+        businessTimezone:
+          type: string
+          description: Authorized Business timezone used to display occurredAt.
+        method:
+          type: string
+          nullable: true
+        durationMinutes:
+          type: integer
+          nullable: true
+          description: Optional positive duration in whole minutes.
+        waterVolumeCubicMetres:
+          type: string
+          nullable: true
+          description: Optional positive cubic-metre volume with at most one decimal place, transmitted as a decimal string.
+        note:
+          type: string
+          nullable: true
+        recordedAt:
+          type: string
+          format: date-time
+          description: Server UTC time when the record was accepted.
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, IDEMPOTENCY_KEY_REUSED, UNEXPECTED]
+            message:
+              type: string
+            requestId:
+              type: string
