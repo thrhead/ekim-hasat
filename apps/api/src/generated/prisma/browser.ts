@@ -128,6 +128,11 @@ export type TaskDateAdjustment = Prisma.TaskDateAdjustmentModel
  */
 export type FieldObservation = Prisma.FieldObservationModel
 /**
+ * Model IrrigationRecord
+ *
+ */
+export type IrrigationRecord = Prisma.IrrigationRecordModel
+/**
  * Model CalendarReadSnapshot
  *
  */

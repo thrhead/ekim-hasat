@@ -419,6 +419,7 @@ export const ModelName = {
   TaskSkip: 'TaskSkip',
   TaskDateAdjustment: 'TaskDateAdjustment',
   FieldObservation: 'FieldObservation',
+  IrrigationRecord: 'IrrigationRecord',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
   CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
   CalendarReadCursor: 'CalendarReadCursor',
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "irrigationRecord" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2022,6 +2023,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    IrrigationRecord: {
+      payload: Prisma.$IrrigationRecordPayload<ExtArgs>
+      fields: Prisma.IrrigationRecordFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IrrigationRecordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IrrigationRecordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        findFirst: {
+          args: Prisma.IrrigationRecordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IrrigationRecordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        findMany: {
+          args: Prisma.IrrigationRecordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>[]
+        }
+        create: {
+          args: Prisma.IrrigationRecordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        createMany: {
+          args: Prisma.IrrigationRecordCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IrrigationRecordCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>[]
+        }
+        delete: {
+          args: Prisma.IrrigationRecordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        update: {
+          args: Prisma.IrrigationRecordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        deleteMany: {
+          args: Prisma.IrrigationRecordDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IrrigationRecordUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IrrigationRecordUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>[]
+        }
+        upsert: {
+          args: Prisma.IrrigationRecordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IrrigationRecordPayload>
+        }
+        aggregate: {
+          args: Prisma.IrrigationRecordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIrrigationRecord>
+        }
+        groupBy: {
+          args: Prisma.IrrigationRecordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IrrigationRecordGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IrrigationRecordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IrrigationRecordCountAggregateOutputType> | number
+        }
+      }
+    }
     CalendarReadSnapshot: {
       payload: Prisma.$CalendarReadSnapshotPayload<ExtArgs>
       fields: Prisma.CalendarReadSnapshotFieldRefs
@@ -2683,6 +2758,24 @@ export const FieldObservationScalarFieldEnum = {
 export type FieldObservationScalarFieldEnum = (typeof FieldObservationScalarFieldEnum)[keyof typeof FieldObservationScalarFieldEnum]
 
 
+export const IrrigationRecordScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  occurredAt: 'occurredAt',
+  recordedAt: 'recordedAt',
+  method: 'method',
+  durationMinutes: 'durationMinutes',
+  waterVolumeCubicMetres: 'waterVolumeCubicMetres',
+  note: 'note'
+} as const
+
+export type IrrigationRecordScalarFieldEnum = (typeof IrrigationRecordScalarFieldEnum)[keyof typeof IrrigationRecordScalarFieldEnum]
+
+
 export const CalendarReadSnapshotScalarFieldEnum = {
   readId: 'readId',
   userId: 'userId',
@@ -2900,6 +2993,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
 
 
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3073,6 +3180,7 @@ export type GlobalOmitConfig = {
   taskSkip?: Prisma.TaskSkipOmit
   taskDateAdjustment?: Prisma.TaskDateAdjustmentOmit
   fieldObservation?: Prisma.FieldObservationOmit
+  irrigationRecord?: Prisma.IrrigationRecordOmit
   calendarReadSnapshot?: Prisma.CalendarReadSnapshotOmit
   calendarReadSnapshotTask?: Prisma.CalendarReadSnapshotTaskOmit
   calendarReadCursor?: Prisma.CalendarReadCursorOmit
