@@ -8,7 +8,7 @@ describe("observation command store", () => {
     state: "PENDING" } satisfies ObservationCommand;
 
   function load() {
-    try { return require(modulePath) as typeof import("../../src/features/observations/observation-command-store"); }
+    try { return jest.requireActual<typeof import("../../src/features/observations/observation-command-store")>(modulePath); }
     catch { return null; }
   }
 

@@ -3,6 +3,16 @@ import * as diary from "../../src/features/observations/field-diary-screen";
 import type { ObservationCommand } from "../../src/features/observations/observation-command-store";
 import type { DiaryEntry } from "../../src/features/observations/diary-client";
 
+function isAccessibleObservationNode(candidate: { props: Record<string, unknown> }, description: string) {
+  const node = candidate as unknown as {
+    type: unknown;
+    props: { accessible?: unknown; style?: { borderWidth?: number }; accessibilityLabel?: unknown };
+  };
+  return node.type === "View" && node.props.accessible === true && node.props.style?.borderWidth === 1
+    && typeof node.props.accessibilityLabel === "string"
+    && node.props.accessibilityLabel.startsWith(`Gözlem, ${description}`);
+}
+
 const command: ObservationCommand = { accountId: "a", observationId: "observation-a", fieldId: "field-a", seasonId: null,
   description: "Damp soil", occurredAtLocal: "2026-10-14T12:00", occurredAt: "2026-10-14T09:00:00Z",
   capturedBusinessTimezone: "Europe/Istanbul", state: "ACCEPTED",
@@ -38,18 +48,12 @@ it("keeps a durable accepted result visible after refresh failure and when page 
 
   await act(async () => { screen = create(<diary.FieldDiaryScreen {...props} />); });
   expect(screen.root.findAll(({ props: nodeProps }) => nodeProps.accessibilityRole === "alert")).not.toHaveLength(0);
-  expect(screen.root.findAll(({ type, props: nodeProps }) => type === "View" && nodeProps.accessible && nodeProps.style?.borderWidth === 1
-    && typeof nodeProps.accessibilityLabel === "string"
-    && nodeProps.accessibilityLabel.startsWith("Gözlem, Damp soil"))).toHaveLength(1);
+  expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, "Damp soil"))).toHaveLength(1);
   await act(async () => screen.unmount());
 
   await act(async () => { screen = create(<diary.FieldDiaryScreen {...props} />); });
   expect(store.list).toHaveBeenCalledTimes(2);
-  expect(screen.root.findAll(({ type, props: nodeProps }) => type === "View" && nodeProps.accessible && nodeProps.style?.borderWidth === 1
-    && typeof nodeProps.accessibilityLabel === "string"
-    && nodeProps.accessibilityLabel.startsWith("Gözlem, Damp soil"))).toHaveLength(1);
-  expect(screen.root.findAll(({ type, props: nodeProps }) => type === "View" && nodeProps.accessible && nodeProps.style?.borderWidth === 1
-    && typeof nodeProps.accessibilityLabel === "string"
-    && nodeProps.accessibilityLabel.startsWith("Gözlem, Earlier field note"))).toHaveLength(1);
+  expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, "Damp soil"))).toHaveLength(1);
+  expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, "Earlier field note"))).toHaveLength(1);
   await act(async () => screen.unmount());
 });

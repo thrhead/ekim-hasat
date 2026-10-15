@@ -5,7 +5,14 @@ import { ObservationCreateScreen } from "../../src/features/observations/observa
 const observationId = "123e4567-e89b-42d3-a456-426614174000";
 const now = () => new Date("2026-10-14T12:00:00.000Z");
 function node(screen: TestRenderer, label: string) {
-  return screen.root.findAll(({ props }) => props.accessibilityLabel === label)[0]! as unknown as { props: { onChangeText: (value: string) => void; onPress: () => void; accessibilityLiveRegion: string } };
+  return screen.root.findAll(({ props }) => props.accessibilityLabel === label)[0]! as unknown as {
+    props: {
+      onChangeText: (value: string) => void;
+      onPress: () => void;
+      accessibilityLiveRegion: string;
+      disabled?: boolean;
+    };
+  };
 }
 
 describe("offline observation capture", () => {
@@ -24,7 +31,6 @@ describe("offline observation capture", () => {
   });
 
   it("saves a note locally after retryable offline restore without making an API request", async () => {
-    const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
     const POST = jest.fn();
     const enqueue = jest.fn().mockResolvedValue(undefined);
     const onPending = jest.fn();
@@ -49,7 +55,6 @@ describe("offline observation capture", () => {
   });
 
   it("does not enqueue the same confirmation twice while the durable write is pending", async () => {
-    const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
     let finishWrite!: () => void;
     const enqueue = jest.fn(() => new Promise<void>((resolve) => { finishWrite = resolve; }));
     let screen!: TestRenderer;
@@ -69,7 +74,6 @@ describe("offline observation capture", () => {
   });
 
   it("refuses offline capture when no saved observation context is available", async () => {
-    const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
     const getContext = jest.fn().mockResolvedValue(null);
     const enqueue = jest.fn();
     let screen!: TestRenderer;

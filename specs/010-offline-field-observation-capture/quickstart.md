@@ -1,13 +1,15 @@
 # Quickstart Validation Guide: Offline Field Observation Capture
 
-This guide describes checks for a later implementation phase. Nothing below was executed or passed during `$speckit-plan`.
+## Original validation plan (historical)
+
+At initial `$speckit-plan` authoring, the checks below had not run. The environment notes in this original plan are historical; dated recovery evidence later in this document is the current verification record and supersedes those availability notes.
 
 ## Prerequisites
 
-- Repository dependencies installed using the exact pinned pnpm 10.17.1 when that runtime is available. In this Codex Cloud session the executable is not proven; do not use pnpm 11 results as pinned-toolchain evidence.
-- Guarded disposable PostgreSQL/PostGIS test database `ekim_hasat_test` for API integration scenarios. Verify the database guard and migration state before running destructive test fixtures.
+- Repository dependencies installed using the exact pinned pnpm 10.17.1; never substitute a different pnpm version for pinned-toolchain evidence.
+- Guarded disposable PostgreSQL/PostGIS test database `ekim_hasat_test` for API integration scenarios. Verify the exact target before writable checks; do not reset or recreate the database.
 - Test identity/provider adapter and mobile test storage isolated from production accounts. A physical device/emulator is optional for authored automated suites but required before claiming device E2E evidence.
-- Graft is a platform-exception gap unless the repo-pinned command genuinely runs; do not claim `graft check` passed. Never run `graft build --deep`.
+- Use repository-pinned Graft through `pnpm exec graft`; record unavailable commands as UNAVAILABLE. Never run `graft build --deep`.
 
 ## Commands for the later implementation phase
 
@@ -24,7 +26,7 @@ pnpm lint
 pnpm check:diff
 ```
 
-Run focused PostgreSQL observation integration files only with the repository's disposable-database guard (`ekim_hasat_test`) and serial execution where tests share mutable database state; do not substitute an unguarded broad integration invocation. Re-run focused existing SPEC-006 observation/diary and SPEC-003 completion suites after the new observation tests. If the existing OpenAPI wire shape changes, regenerate through repository tooling and check generated-client reproducibility. These commands are a validation plan, not a record of execution.
+Run focused PostgreSQL observation integration files only with the repository's disposable-database guard (`ekim_hasat_test`) and serial execution where tests share mutable database state; do not substitute an unguarded broad integration invocation. Re-run focused existing SPEC-006 observation/diary and SPEC-003 completion suites after the new observation tests. If the existing OpenAPI wire shape changes, regenerate through repository tooling and check generated-client reproducibility. This list is the original planned command set; actual run status appears in the dated evidence sections below.
 
 ## Acceptance scenarios
 
@@ -66,3 +68,122 @@ No generic offline sync, authorization lease, Field/Season browsing or mutation,
   - T035 focused mobile command `pnpm --filter @ekim-hasat/mobile exec jest --runInBand --runTestsByPath test/observations/observation-uncertain-outcome.test.ts test/observations/observation-needs-attention.test.tsx test/observations/observation-access-boundary.test.tsx test/observations/observation-delivery.test.ts test/observations/observation-create-screen.test.tsx test/observations/field-diary-screen.test.tsx test/observations/observation-diary-reconciliation.test.tsx` passed **7 suites / 50 tests**. It covers uncertain 403/404, first-attempt definitive 400/403/404/409 responses, original command/time retention, explicit corrected note/time with a new ID, sign-out/account-switch privacy, access-denied messaging, accessible unconfirmed status, and existing delivery/diary behavior.
   - Migrated T031–T033 behavior passed fresh verification without historical RED; no RED was fabricated. A new account-switch test produced genuine T030 RED: with the same API client instance, changing accounts did not reload the diary (`GET` remained at one call), leaving prior-account state mounted. Including account ID in the FieldDiaryScreen and ObservationCreateScreen component keys clears that state; the T030/T035 mobile suites then passed. Test selector/count corrections during authoring were harness mistakes, not product RED. No UI layout or copy redesign was made, so Impeccable was not invoked.
   - PostgreSQL writes were limited to generated fixtures, scoped updates, and ID-scoped cleanup by the integration tests. **No global reset, drop, truncate, or database recreation was performed.** Physical-device/emulator and hosted-provider validation remain unverified.
+
+### T036 — full quickstart scenario matrix (2026-10-15)
+
+Fresh focused evidence:
+
+- Mobile command: `pnpm --filter @ekim-hasat/mobile exec jest --runInBand --runTestsByPath test/auth/supabase-auth.adapter.test.ts test/observations/observation-account-context.test.ts test/observations/observation-command-store.test.ts test/observations/observation-command-builder.test.ts test/observations/observation-offline-capture.test.tsx test/observations/observation-offline-accessibility.test.tsx test/observations/observation-offline-composition.test.ts test/observations/observation-delivery.test.ts test/observations/observation-uncertain-outcome.test.ts test/observations/observation-needs-attention.test.tsx test/observations/observation-access-boundary.test.tsx test/observations/observation-diary-reconciliation.test.tsx test/observations/field-diary-screen.test.tsx test/observations/observation-create-screen.test.tsx` — **14 suites / 90 tests passed**. These are Jest/mobile simulations, not device-runtime evidence.
+- PostgreSQL safety gate, immediately before the writable integration leg: `node -e 'const value=process.env.DATABASE_URL;if(!value)throw Error("DATABASE_URL is unset");const url=new URL(value);console.log(`PostgreSQL target: host=${url.hostname} port=${url.port||"5432"} database=${url.pathname.slice(1)}`);if(url.pathname.slice(1)!=="ekim_hasat_test")throw Error("refusing writable verification outside ekim_hasat_test")'` — printed `PostgreSQL target: host=127.0.0.1 port=5432 database=ekim_hasat_test` and exited 0.
+- Guarded writable PostgreSQL command: `pnpm --filter @ekim-hasat/api exec node --import tsx --test --test-concurrency=1 test/observations/observation-offline-timezone.integration.spec.ts test/observations/observation-offline-authorization.integration.spec.ts test/observations/observation-create-authorization.integration.spec.ts test/observations/observation-create-idempotency.integration.spec.ts` — **4 files / 15 tests passed**. PostgreSQL is `127.0.0.1:5432/ekim_hasat_test`, PostGIS 3.5.2. Tests assert the disposable database target and PostGIS before fixture writes. Only test-owned fixture inserts, scoped updates, and ID-scoped cleanup occurred; no global reset, drop, truncate, or database recreation.
+
+| Scenario | Status | Exact supporting evidence |
+|---|---|---|
+| Offline text capture, durable local save, failed local save is not reported as saved | PASS | Mobile command above; `observation-offline-capture.test.tsx`, `observation-command-store.test.ts` |
+| Process/store recreation preserves the same pending command and identity | PASS | Mobile command above; `observation-command-store.test.ts`, `observation-delivery.test.ts` |
+| Real app restart with OS-backed storage | UNAVAILABLE | No physical device/emulator was run; Jest store recreation is not OS process-restart evidence. |
+| Retryable/offline auth restoration permits same-account local capture without token/API delivery | PASS | Mobile command above; `supabase-auth.adapter.test.ts`, `observation-account-context.test.ts`, `observation-offline-composition.test.ts` |
+| Definitive no-session and explicit sign-out do not reactivate the former account namespace | PASS | Mobile command above; `supabase-auth.adapter.test.ts`, `observation-account-context.test.ts`, `observation-offline-composition.test.ts`, `observation-access-boundary.test.tsx` |
+| Account switch hides prior-account context/diary and prevents cross-account submission | PASS | Mobile command above; `observation-access-boundary.test.tsx`, `field-diary-screen.test.tsx`, `observation-create-screen.test.tsx` |
+| Durable account-scoped context and marker are distinct from authentication authority | PASS | Mobile command above; `observation-account-context.test.ts`, `observation-command-store.test.ts`, `observation-offline-composition.test.ts` |
+| Lost server response retries unchanged body and unchanged observationId; 201/200 settlement | PASS | Mobile command above; `observation-delivery.test.ts`. PostgreSQL command above; `observation-create-idempotency.integration.spec.ts` confirms one 201/200 pair for exact replay/race. |
+| Current authorization is required for create and replay | PASS | PostgreSQL command above; `observation-offline-timezone.integration.spec.ts`, `observation-offline-authorization.integration.spec.ts`, `observation-create-authorization.integration.spec.ts`, `observation-create-idempotency.integration.spec.ts` |
+| First-delivery Business timezone mismatch is rejected before acceptance | PASS | PostgreSQL command above; `observation-offline-timezone.integration.spec.ts`, `observation-create-idempotency.integration.spec.ts` |
+| Accepted exact replay after a later Business timezone change | PASS | PostgreSQL command above; `observation-offline-timezone.integration.spec.ts`, `observation-create-idempotency.integration.spec.ts` |
+| Original absolute occurredAt remains immutable across replay/timezone change | PASS | PostgreSQL command above; `observation-offline-timezone.integration.spec.ts`, `observation-create-idempotency.integration.spec.ts` |
+| Empty/overlong text, future time, and Business-timezone DST gap/fold inputs are rejected before queueing | PASS | Mobile command above; `observation-command-builder.test.ts`, `observation-offline-capture.test.tsx` |
+| Diary page-one absence does not downgrade an accepted result; accepted-result/canonical same-ID de-duplication | PASS | Mobile command above; `observation-diary-reconciliation.test.tsx`, `field-diary-screen.test.tsx`. This verifies screen/store reconciliation through test fixtures, not physical paging runtime. |
+| Revoked membership and foreign Business/Field/Season are denied without protected disclosure/history | PASS | PostgreSQL command above; `observation-offline-authorization.integration.spec.ts`, `observation-create-authorization.integration.spec.ts` |
+| Possibly committed send followed by denial remains outcome-unconfirmed | PASS | Mobile command above; `observation-uncertain-outcome.test.ts` |
+| Needs-attention conflict recovery preserves original command; corrected submission uses a new logical observationId | PASS | Mobile command above; `observation-needs-attention.test.tsx`, `observation-command-builder.test.ts` |
+| Sign-out/account-switch privacy and token-bearing access boundary | PASS | Mobile command above; `observation-access-boundary.test.tsx`, `observation-account-context.test.ts`, `observation-delivery.test.ts` |
+| Accessible status semantics distinguish pending, accepted, needs attention, and unconfirmed without color alone | PASS | Mobile command above; `observation-offline-accessibility.test.tsx`, `observation-uncertain-outcome.test.ts`, `observation-needs-attention.test.tsx` |
+| Airplane-mode capture and real TalkBack/VoiceOver announcements | UNAVAILABLE | No device/emulator or real accessibility service was run. |
+
+No missing automated scenario required a new test leg. Physical app restart, airplane-mode behavior, and accessibility-service behavior remain explicitly unavailable; no device PASS is inferred from Jest.
+
+### T037 — SPEC-006 contract and generated client (2026-10-15)
+
+- `rg -n "operationId: createFieldObservation" specs --glob '*.yaml'` returned exactly one result: `specs/006-field-observations-basic-diary/contracts/observations-diary.openapi.yaml:17`. SPEC-006 is the single canonical contract owner.
+- `pnpm --filter @ekim-hasat/api-client test:contract` passed: generated-output check (`openapi-generator.config.ts --check`), package build, and consumer contract typecheck. Older request bodies omitting `capturedBusinessTimezone`, new bodies supplying it, and existing SPEC-006 consumers compile.
+- `pnpm --filter @ekim-hasat/api exec node --import tsx --test test/observations/observations-diary.contract.spec.ts` passed **1 file / 2 tests**. It verifies one create operation, optional timezone field, omitted-field compatibility, and additive 201/200/409 semantics.
+- No generated or contract discrepancy; the canonical operation remains the only public create operation, and no manual generated-file edits were made.
+
+### T038 — focused SPEC-003/006/007/009 regressions (2026-10-15)
+
+Parent reran each focused regression command after the read-only owner's report:
+
+- PostgreSQL preflight: same-run URL parser printed `host=127.0.0.1 port=5432 database=ekim_hasat_test`; writable suites assert disposable target and use generated fixtures with scoped cleanup.
+- `pnpm --filter @ekim-hasat/api exec node --import tsx --test --test-concurrency=1 test/tasks/task-completion.integration.spec.ts test/tasks/task-history.integration.spec.ts test/tasks/task-skip.integration.spec.ts test/observations/field-diary.integration.spec.ts test/calendar/calendar-read.integration.spec.ts test/calendar/calendar-pages.integration.spec.ts` — **6 files / 24 tests passed**.
+- `pnpm --filter @ekim-hasat/api exec node --import tsx --test test/observations/diary-query.spec.ts test/observations/observations-diary.contract.spec.ts test/tasks/task-completion.contract.spec.ts test/tasks/task-history.contract.spec.ts test/tasks/task-skip.contract.spec.ts test/tasks/task-skip-composition.contract.spec.ts test/calendar/calendar-date.spec.ts test/calendar/calendar.dto.spec.ts test/calendar/calendar-read.contract.spec.ts test/calendar/calendar-read.repository.spec.ts test/calendar/calendar-pages.contract.spec.ts test/calendar/calendar-pages.service.spec.ts test/calendar/calendar-http.contract.spec.ts test/calendar/calendar.openapi.contract.spec.ts` — **14 files / 50 tests passed**.
+- `pnpm --filter @ekim-hasat/domain exec node --import tsx --test test/tasks/task-skip.spec.ts` — **1 file / 5 tests passed**.
+- `pnpm --filter @ekim-hasat/mobile exec jest --runInBand --runTestsByPath test/tasks/task-completion-history.test.tsx test/observations/field-diary-screen.test.tsx test/calendar/calendar-screen-races.test.tsx test/calendar/calendar-screen-task-adjustment.test.tsx` — **4 suites / 23 tests passed**.
+- Results: no regression observed in SPEC-003 Task Completion/history, SPEC-006 observations/diary, SPEC-007 Calendar, or SPEC-009 Skip. PostgreSQL emitted existing `pg` client query deprecation warnings; all tests passed. No destructive database operation occurred.
+
+### T039 — final repository/toolchain quality gates (2026-10-15)
+
+Verified versions:
+
+- `node --version` → `v22.23.3`
+- `pnpm --version` → `10.17.1`
+- `pnpm exec graft --version` → `0.21.1`
+
+Final repository gates:
+
+- `pnpm lint` — **PASS**, all 4 configured package lint tasks succeeded. The first run found branch-added type-test and mobile-test lint violations. Replacing the empty-object optionality check with a `Pick`/`Required<Pick>` comparison, using `jest.requireActual`, removing unused mocks, and replacing an unused ternary expression resolved those lint errors. The final full lint run passed.
+- `pnpm typecheck` — **PASS**, all 4 configured package typecheck tasks succeeded. The first run exposed test-only typing errors in observation diary row matching and a button helper; the corrected predicate preserves the host-node filter and the helper includes the asserted `disabled` prop. Focused mobile tests passed 11/11 after correction, then the full typecheck passed.
+- `pnpm build` — **PASS**, all 3 configured build tasks (domain, API client, API) succeeded.
+- `pnpm test:contract` — **PASS**. API client generated-output check and consumer typecheck passed; API contract suite passed **72 tests**.
+- `pnpm test` — **PASS**. API unit suite passed **172 tests**; domain suite passed **105 tests** (also captured by `pnpm --filter @ekim-hasat/domain test`).
+- `pnpm test:mobile` — **PASS**, **62 suites / 354 tests**.
+- PostgreSQL safety preflight immediately before the writable run: `node -e 'const value=process.env.DATABASE_URL;if(!value)throw Error("DATABASE_URL is unset");const url=new URL(value);console.log(`PostgreSQL target: host=${url.hostname} port=${url.port||"5432"} database=${url.pathname.slice(1)}`);if(url.pathname.slice(1)!=="ekim_hasat_test")throw Error("refusing writable verification outside ekim_hasat_test")'` → `host=127.0.0.1 port=5432 database=ekim_hasat_test`.
+- Guarded PostgreSQL command: `pnpm --filter @ekim-hasat/api exec node --import tsx --test --test-concurrency=1 test/observations/observation-offline-timezone.integration.spec.ts test/observations/observation-offline-authorization.integration.spec.ts test/observations/observation-create-authorization.integration.spec.ts test/observations/observation-create-idempotency.integration.spec.ts test/tasks/task-completion.integration.spec.ts test/tasks/task-history.integration.spec.ts test/tasks/task-skip.integration.spec.ts test/observations/field-diary.integration.spec.ts test/calendar/calendar-read.integration.spec.ts test/calendar/calendar-pages.integration.spec.ts` — **10 files / 39 tests passed** against `ekim_hasat_test`, PostGIS 3.5.2. Suites assert the disposable target before fixture writes. Writes were limited to test-owned fixtures, scoped updates, and ID-scoped cleanup.
+- `pnpm exec graft build` — **PASS**, graph refreshed; 372 indexed files, 5,730 nodes, 8,934 edges. `graft/` remains ignored.
+- `pnpm exec graft check` — **PASS**, “wiring graph is in sync with the code.” Deep layer was not built; `graft build --deep` was not run.
+- `pnpm check:diff` — **PASS**; `git diff --check` — **PASS**.
+
+No unrelated broad database suite was run. No database reset, drop, truncate, recreation, or disposable-database guard bypass occurred. The initial lint/typecheck failures were attributable to SPEC-010 test edits and are corrected above; final gates are green.
+
+### T040 — FR/SC conformance audit (2026-10-15)
+
+Verification references below point to the exact focused suites recorded in T036/T038/T039. Status evaluates current implementation and those results, not task checkboxes.
+
+| Requirement | Implementation / evidence location | Verification evidence | Status |
+|---|---|---|---|
+| FR-001 — account continuity marker and saved context; definitive no-session/sign-out/account switch do not activate old account | `apps/mobile/src/auth/auth-port.ts`, `supabase-auth.adapter.ts`, `observation-command-store.ts` (`getLocalCaptureAccount`, context methods), `apps/mobile/src/app-composition.ts` | T036 mobile 14/90: auth adapter, account context, store, composition, access-boundary tests | SATISFIED |
+| FR-002 — one durable observation-specific pending command before local success | `apps/mobile/src/features/observations/observation-command-store.ts` (`observation_commands`, `enqueue`); create screen enqueues before callback | T036 mobile 14/90: command-store, offline-capture and delivery tests; T039 full mobile 62/354 | SATISFIED |
+| FR-003 — stable identity, account/Field/Season, text, absolute/local time and timezone retained and validated | Observation command type/store; observation command builder; SPEC-006 contract | T036 mobile command-builder/store tests; T037 API/client contract and backward-compat checks | SATISFIED |
+| FR-004 — pending, accepted, unconfirmed, needs-attention and local-save failure are distinct; local rows are not canonical history | Observation create screen and diary reconciliation | T036 mobile capture, uncertain-outcome, needs-attention, diary-reconciliation and accessibility tests | SATISFIED |
+| FR-005 — transient/unknown outcomes retry the unchanged logical command; uncertain sends are not called rejected | `observation-delivery.ts`, observation command store uncertainty fields | T036 mobile delivery/uncertain-outcome tests; T036 PostgreSQL idempotency tests | SATISFIED |
+| FR-006 — delivery requires a matching authenticated session; API rechecks current Membership/Business/Field/Season | auth adapter, delivery session gate, API observation controller/repository | T036 PostgreSQL 4/15: authorization before create/replay, revoked/foreign scope denial; mobile token/session-boundary tests | SATISFIED |
+| FR-007 — exact retry has one canonical observation; changed actor/payload conflicts | API observation repository and canonical SPEC-006 OpenAPI | T036 PostgreSQL idempotency tests (201/200, race, conflicts); T037 generated/contract verification | SATISFIED |
+| FR-008 — captured absolute instant and association remain immutable; later timezone changes do not rebase accepted records | API observation repository and diary timezone display | T036 PostgreSQL timezone/idempotency tests; mobile command-builder and diary tests | SATISFIED |
+| FR-009 — pending ends only after durable acceptance; page-one omission and same-ID canonical row do not downgrade/duplicate | observation command store `recordAccepted`; `field-diary-screen.tsx` reconciliation | T036 mobile delivery and diary-reconciliation tests, including failed refresh/page-one absence; T036 PostgreSQL replay evidence | SATISFIED |
+| FR-010 — terminal denial/conflict retains original; uncertain denial stays unconfirmed; correction creates a new ID | observation delivery, needs-attention screen, command builder | T036 mobile uncertain-outcome, needs-attention and builder tests; PostgreSQL revoked/foreign denial tests | SATISFIED |
+| FR-011 — pending and failed records isolated by authenticated account | observation command store account-keyed records; account-keyed diary/create screen identity | T036 mobile account-context, access-boundary and screen tests | SATISFIED |
+| FR-012 — existing online observation, diary, completion-specific offline, completion history and Skip semantics preserved | Existing API/mobile/domain paths; no changes to those domain behaviors | T038 focused SPEC-003/006/007/009 regressions: DB 6/24, API 14/50, domain 1/5, mobile 4/23, all pass | SATISFIED |
+| FR-013 — understandable and accessible loading/save/delivery/result states; unconfirmed never announced accepted/rejected | observation create/diary screens and accessible state text | T036 mobile offline-accessibility, uncertain-outcome and needs-attention suites; T039 full mobile suite | SATISFIED |
+| FR-014 — behavior remains observation-specific and listed exclusions stay absent | Branch diff is limited to observation/auth-adapter integration, generated SPEC-006 client/contract, focused tests, SPEC-010 artifacts and ignored Graft config; local persistence tables are observation-specific | Reviewed whole branch path list and changed implementation surfaces; no general sync/lease, field/season catalog, attachments, AI/risk, notification or task mutation implementation was introduced | SATISFIED |
+| FR-015 — first acceptance timezone mismatch needs attention; uncertain mismatch remains unconfirmed; correction is explicit/new ID | API observation repository, mobile delivery and needs-attention flow | T036 PostgreSQL timezone tests and mobile uncertain/needs-attention/builder tests | SATISFIED |
+| SC-001 — same pending text/time/association remains available to original account after actual app/process restart in 100% of acceptance cases | Observation command store and mobile simulated store-recreation tests | T036 mobile command-store/capture tests pass, but they do not exercise OS-backed SQLite across a real app/process restart | UNAVAILABLE — physical app restart/storage leg was not run |
+| SC-002 — reconnect/retry/lost response yields one canonical and one farmer-facing diary row; page-one absence does not downgrade | observation delivery/store and diary reconciliation; API idempotency | T036 mobile delivery/reconciliation plus guarded PostgreSQL idempotency tests; 201/200 and canonical de-duplication cases pass | SATISFIED |
+| SC-003 — revoked/foreign scope creates no new canonical record or disclosure; uncertain attempts are not falsely classified | API observation authorization and mobile uncertain-outcome handling | T036 PostgreSQL authorization tests and mobile uncertain-outcome tests pass | SATISFIED |
+| SC-004 — temporary failures preserve exact retry; definitive denial differs from acceptance | observation delivery/store and needs-attention state | T036 mobile delivery/uncertain/needs-attention tests pass | SATISFIED |
+| SC-005 — mobile acceptance test on a disconnected/restarted device demonstrates capture and clear pending state | observation create screen and offline capture flow | T036/T039 Jest coverage simulates offline state; no physical device/emulator acceptance run occurred | UNAVAILABLE — device acceptance leg was not run |
+| SC-006 — accepted history retains original absolute instant/association and displays via authorized Business timezone convention | API observation repository and field diary row renderer | T036 PostgreSQL timezone/replay tests plus mobile diary reconciliation/rendering tests pass | SATISFIED |
+
+Frozen exclusions confirmed absent: generic offline sync, generic auth/offline authorization lease, broad offline Field/Season browsing or mutation, offline Field/Season create/edit, attachments/photos/deferred upload, categories, AI/risk inference, notifications, offline Skip/date adjustment, irrigation, finance, harvest/sales, and diary architecture redesign. No unrelated service, datastore, queue, migration, or runtime dependency was added.
+
+### T041 — physical/runtime evidence (2026-10-15)
+
+The following runtime evidence was **UNAVAILABLE / NOT EXECUTED** in this checkpoint:
+
+- Physical Android device
+- Physical iOS device
+- Android emulator
+- App/process restart against real device SQLite storage
+- Airplane-mode capture
+- Real accessibility service (TalkBack or VoiceOver)
+- Hosted Supabase auth/provider behavior
+
+Jest/Expo test simulations and API contract/PostgreSQL tests are recorded separately above; none are represented as physical-device, accessibility-service, or hosted-provider evidence.

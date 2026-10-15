@@ -45,7 +45,11 @@ type HasObservationOperations = Assert<
 >;
 type HasOptionalCapturedTimezone = Assert<
   "capturedBusinessTimezone" extends keyof ObservationDiaryComponents["schemas"]["CreateObservationRequest"]
-    ? {} extends Pick<ObservationDiaryComponents["schemas"]["CreateObservationRequest"], "capturedBusinessTimezone"> ? true : false
+    ? (Pick<ObservationDiaryComponents["schemas"]["CreateObservationRequest"], "capturedBusinessTimezone"> extends Required<
+        Pick<ObservationDiaryComponents["schemas"]["CreateObservationRequest"], "capturedBusinessTimezone">
+      >
+        ? false
+        : true)
     : false
 >;
 type HasOnlyExistingObservationOperations = Assert<

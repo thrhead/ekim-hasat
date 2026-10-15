@@ -10,8 +10,8 @@
 
 **Purpose**: Establish a safe baseline and identify the exact existing boundaries without creating new infrastructure.
 
-- [ ] T001 Record the current Git state, repository-pinned Node/pnpm requirement, Graft availability, and test-database guard prerequisites in `specs/010-offline-field-observation-capture/quickstart.md`; do not claim exact pnpm 10.17.1 or Graft passed unless proven.
-- [ ] T002 Inventory the SPEC-006 create/diary API, mobile observation flow, auth lifecycle, generated-client source, and SPEC-003 SQLite completion pattern against `specs/010-offline-field-observation-capture/plan.md`; record any actual contract or file-path drift before implementation (depends on T001).
+- [x] T001 Record the current Git state, repository-pinned Node/pnpm requirement, Graft availability, and test-database guard prerequisites in `specs/010-offline-field-observation-capture/quickstart.md`; do not claim exact pnpm 10.17.1 or Graft passed unless proven.
+- [x] T002 Inventory the SPEC-006 create/diary API, mobile observation flow, auth lifecycle, generated-client source, and SPEC-003 SQLite completion pattern against `specs/010-offline-field-observation-capture/plan.md`; record any actual contract or file-path drift before implementation (depends on T001).
 
 ---
 
@@ -109,12 +109,12 @@
 
 **Purpose**: Reconcile the whole feature and preserve earlier SPEC boundaries.
 
-- [ ] T036 Run the full SPEC-010 quickstart scenario matrix, including restart, lost response, timezone change, diary pagination, and account switch, then record exact pass/fail/unavailable evidence in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T014, T026, T035).
-- [ ] T037 Recheck the generated observation client and canonical additive SPEC-006 contract for older installed mobile compatibility in `packages/api-client/src/generated/observations-diary-api.ts` and `specs/006-field-observations-basic-diary/contracts/observations-diary.openapi.yaml`; verify one public `createFieldObservation` operation (depends on T036).
-- [ ] T038 Run focused existing SPEC-003 completion, SPEC-006 observation/diary, SPEC-007 Calendar, and SPEC-009 Skip regressions and record unchanged semantics in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T036).
-- [ ] T039 Run applicable lint, typecheck, contract, mobile, guarded real-PostgreSQL, and diff checks with the exact repo-pinned toolchain if available; separately record Graft and pnpm 10.17.1 as unverified when unavailable in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T037, T038; never claim an unavailable leg passed).
-- [ ] T040 Review SPEC-010 FR-001–FR-015 and SC-001–SC-006 against the delivered behavior and frozen exclusions in `specs/010-offline-field-observation-capture/spec.md`, `plan.md`, and `quickstart.md`; do not add generic sync/lease, broad offline Field/Season access, attachments, risk/AI, notifications, or other excluded work (depends on T039).
-- [ ] T041 Record physical-device/emulator and hosted-auth evidence only if actually run; otherwise mark that runtime evidence unavailable in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T040).
+- [x] T036 Run the full SPEC-010 quickstart scenario matrix, including restart, lost response, timezone change, diary pagination, and account switch, then record exact pass/fail/unavailable evidence in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T014, T026, T035).
+- [x] T037 Recheck the generated observation client and canonical additive SPEC-006 contract for older installed mobile compatibility in `packages/api-client/src/generated/observations-diary-api.ts` and `specs/006-field-observations-basic-diary/contracts/observations-diary.openapi.yaml`; verify one public `createFieldObservation` operation (depends on T036).
+- [x] T038 Run focused existing SPEC-003 completion, SPEC-006 observation/diary, SPEC-007 Calendar, and SPEC-009 Skip regressions and record unchanged semantics in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T036).
+- [x] T039 Run applicable lint, typecheck, contract, mobile, guarded real-PostgreSQL, and diff checks with the exact repo-pinned toolchain if available; separately record Graft and pnpm 10.17.1 as unverified when unavailable in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T037, T038; never claim an unavailable leg passed).
+- [x] T040 Review SPEC-010 FR-001–FR-015 and SC-001–SC-006 against the delivered behavior and frozen exclusions in `specs/010-offline-field-observation-capture/spec.md`, `plan.md`, and `quickstart.md`; do not add generic sync/lease, broad offline Field/Season access, attachments, risk/AI, notifications, or other excluded work (depends on T039).
+- [x] T041 Record physical-device/emulator and hosted-auth evidence only if actually run; otherwise mark that runtime evidence unavailable in `specs/010-offline-field-observation-capture/quickstart.md` (depends on T040).
 
 ---
 

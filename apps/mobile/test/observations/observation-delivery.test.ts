@@ -6,7 +6,7 @@ const original: ObservationCommand = { accountId: "account-a", observationId: "1
   occurredAt: "2026-10-14T09:00:00.000Z", capturedBusinessTimezone: "Europe/Istanbul", state: "PENDING" };
 
 function deliveryModule() {
-  try { return require("../../src/features/observations/observation-delivery") as typeof import("../../src/features/observations/observation-delivery"); }
+  try { return jest.requireActual<typeof import("../../src/features/observations/observation-delivery")>("../../src/features/observations/observation-delivery"); }
   catch { return null; }
 }
 
@@ -43,7 +43,6 @@ it("does not deliver without a usable authenticated session", async () => {
   const module = deliveryModule();
   expect(module).not.toBeNull();
   const POST = jest.fn();
-  const client = { POST } as unknown as ApiClient;
   const store = { list: async () => [original], markAttempt: jest.fn(), finishAttempt: async () => {} } as unknown as ObservationCommandStore;
   const coordinator = module!.createObservationDelivery({ store, getAuthorizationSession: () => null });
   await coordinator.deliver("account-a");

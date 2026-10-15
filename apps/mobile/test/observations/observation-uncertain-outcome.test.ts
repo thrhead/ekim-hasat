@@ -19,7 +19,10 @@ function setup(responses: Array<unknown>, initial: ObservationCommand = original
     clearAttemptUncertainty: async () => { saved = { ...saved, attemptMayHaveCommitted: false }; },
   } as unknown as ObservationCommandStore;
   const POST = jest.fn();
-  for (const response of responses) response instanceof Error ? POST.mockRejectedValueOnce(response) : POST.mockResolvedValueOnce(response);
+  for (const response of responses) {
+    if (response instanceof Error) POST.mockRejectedValueOnce(response);
+    else POST.mockResolvedValueOnce(response);
+  }
   const client = { POST } as unknown as ApiClient;
   const delivery = createObservationDelivery({ store, getAuthorizationSession: () => ({ accountId: "a", client }) });
   return { delivery, POST, getSaved: () => saved };
