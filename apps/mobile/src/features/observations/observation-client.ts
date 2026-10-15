@@ -1,10 +1,14 @@
 import type { ApiClient, ObservationDiaryComponents } from "../../../../../packages/api-client/src/index";
+import type { ObservationCommand } from "./observation-command-store";
 export type ObservationRequest = ObservationDiaryComponents["schemas"]["CreateObservationRequest"];
 export type Observation = ObservationDiaryComponents["schemas"]["Observation"];
 const timeCorrection = "Başka bir geçerli tarih ve saat seçin. Saatin tek bir zamanı belirtmesi gerekir.";
+export function canonicalObservationNote(note: string): string {
+  return note.replace(/^[\p{White_Space}\ufeff]+|[\p{White_Space}\ufeff]+$/gu, "");
+}
 
 export function validateObservationNote(note: string): string | null {
-  const length = Array.from(note.trim()).length;
+  const length = Array.from(canonicalObservationNote(note)).length;
   return length === 0 ? "Gözlem notunu yazın." : length > 2000 ? "Gözlem notu en fazla 2000 karakter olabilir." : null;
 }
 
@@ -30,6 +34,27 @@ export function localObservationInstant(local: string, timezone: string): string
   const candidates = [...offsets].map((offset) => wall - offset).filter((instant) => observationLocalTime(new Date(instant), timezone).slice(0, 16) === local);
   if (candidates.length !== 1) throw new Error(timeCorrection);
   return new Date(candidates[0]!).toISOString();
+}
+
+/** Creates one immutable local intent; server validation and authorization remain authoritative. */
+export function buildObservationCommand(input: Readonly<{
+  accountId: string; observationId: string; fieldId: string; seasonId: string | null;
+  description: string; occurredAtLocal: string; capturedBusinessTimezone: string; now: Date;
+}>): ObservationCommand {
+  if (!input.accountId?.trim() || !input.fieldId?.trim()
+    || !/^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(input.observationId)) {
+    throw new Error("Observation identity or context is invalid");
+  }
+  const invalidNote = validateObservationNote(input.description);
+  if (invalidNote) throw new Error(invalidNote);
+  const occurredAt = localObservationInstant(input.occurredAtLocal, input.capturedBusinessTimezone);
+  if (Date.parse(occurredAt) > input.now.getTime()) throw new Error("Gözlem zamanı gelecekte olamaz.");
+  return {
+    accountId: input.accountId, observationId: input.observationId, fieldId: input.fieldId,
+    seasonId: input.seasonId, description: canonicalObservationNote(input.description),
+    occurredAtLocal: input.occurredAtLocal, occurredAt,
+    capturedBusinessTimezone: input.capturedBusinessTimezone, state: "PENDING",
+  };
 }
 
 function apiFailure(status: number, code?: string): Error {

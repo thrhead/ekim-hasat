@@ -11,6 +11,8 @@ import { readSeason } from "./features/seasons/season-setup-screen";
 import { createTaskCompletionCommandStore, type TaskCompletionCommandStore } from "./features/tasks/task-completion-command-store";
 import { createTaskCompletionCoordinator } from "./features/tasks/task-completion";
 import type { FieldDetail } from "./features/fields/fields-client";
+import { createObservationCommandStore, type ObservationCommandStore } from "./features/observations/observation-command-store";
+import { createObservationDelivery } from "./features/observations/observation-delivery";
 
 type FirstFieldSummary = components["schemas"]["FirstFieldSummary"];
 type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
@@ -47,6 +49,7 @@ export function createAppComposition(
     draftLifecycle?: ReturnType<typeof createOnboardingDraftLifecycle>;
     seasonCreateStore?: ReturnType<typeof createSeasonCreateCommandStore>;
     taskCompletionStore?: TaskCompletionCommandStore;
+    observationStore?: ObservationCommandStore;
   }> = {},
 ) {
   const draftLifecycle = options.draftLifecycle ?? createOnboardingDraftLifecycle({
@@ -54,6 +57,9 @@ export function createAppComposition(
   });
   const seasonCreateStore = options.seasonCreateStore ?? createSeasonCreateCommandStore();
   const taskCompletionStore = options.taskCompletionStore ?? createTaskCompletionCommandStore();
+  const observationStore = options.observationStore ?? createObservationCommandStore();
+  const observationDelivery = createObservationDelivery({ store: observationStore,
+    getAuthorizationSession: () => controller.getAuthenticatedApiSession() });
   let taskCompletionCoordinator: ReturnType<typeof createTaskCompletionCoordinator> | null = null;
   let state: ProductionAppState = {
     auth: controller.getState(),
@@ -145,10 +151,31 @@ export function createAppComposition(
       }
       const commands = await taskCompletionStore.list(accountId);
       if (revision !== statusRevision) return;
-      publish({ ...state, entry: commands.some((command) => command.state === "PENDING") ? "today" : "status-error", client, accountId });
+      if (commands.some((command) => command.state === "PENDING")) {
+        publish({ ...state, entry: "today", client, accountId });
+      } else {
+        const recovered = await recoverSavedObservationEntry(client, accountId, revision);
+        if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+        if (!recovered) publish({ ...state, entry: "status-error", client, accountId });
+      }
     } catch {
-      if (revision === statusRevision) publish({ ...state, entry: "status-error", client });
+      if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+      const recovered = await recoverSavedObservationEntry(client, accountId, revision);
+      if (revision === statusRevision && state.auth.status === "authenticated" && state.auth.accountId === accountId && !recovered) {
+        publish({ ...state, entry: "status-error", client, accountId });
+      }
     }
+  }
+
+  async function recoverSavedObservationEntry(client: ApiClient, accountId: string, revision: number): Promise<boolean> {
+    try {
+      const context = await observationStore.getLastContext(accountId);
+      if (!context || revision !== statusRevision || state.auth.status !== "authenticated"
+        || state.auth.accountId !== accountId) return false;
+      publish({ ...state, entry: "observation-create", client, accountId, fieldId: context.fieldId,
+        observationSeasonId: context.seasonId });
+      return true;
+    } catch { return false; }
   }
 
   function applyAuth(auth: MobileAuthState) {
@@ -161,6 +188,11 @@ export function createAppComposition(
         : draftLifecycle.signOut(previousAccountId);
       void cleanup.catch(() => {});
     }
+    if (!nextAccountId && controller.getRestorationOutcome() === "definitive-no-session") {
+      void observationStore.clearActiveAccount().catch(() => {});
+    }
+    if (nextAccountId) void observationStore.setAuthenticatedAccount(nextAccountId)
+      .then(() => observationDelivery.deliver(nextAccountId)).catch(() => {});
     statusRevision += 1;
     if (auth.status === "authenticated" && client) {
       publish({ auth, entry: "loading", client, accountId: nextAccountId, fieldId: null, seasonRequest: null, seasonResult: null, seasonDraft: null, historyFieldId: null, historySeasonId: null, observationSeasonId: null, diaryFieldId: null, diarySeasonId: null });
@@ -171,10 +203,34 @@ export function createAppComposition(
   }
 
   const unsubscribe = controller.subscribe(applyAuth);
-  void controller.start();
+  void controller.start().then(async () => {
+    if (disposed || controller.getState().status !== "signed-out") return;
+    const outcome = controller.getRestorationOutcome();
+    if (outcome === "definitive-no-session") {
+      await observationStore.clearActiveAccount();
+      return;
+    }
+    if (outcome !== "retryable-unavailable") return;
+    const accountId = await observationStore.getLocalCaptureAccount(outcome);
+    if (!accountId || disposed || controller.getState().status !== "signed-out") return;
+    const context = await observationStore.getLastContext(accountId);
+    if (!context || disposed || controller.getState().status !== "signed-out") return;
+    publish({ ...state, entry: "observation-create", accountId, fieldId: context.fieldId,
+      observationSeasonId: context.seasonId, client: null });
+  }).catch(() => {});
 
   return {
     taskCompletionStore,
+    observationStore,
+    showSignIn() {
+      statusRevision += 1;
+      publish({ ...state, entry: "loading", client: null, accountId: null, fieldId: null,
+        observationSeasonId: null, diaryFieldId: null, diarySeasonId: null });
+    },
+    deliverObservations() {
+      const authenticated = controller.getAuthenticatedApiSession();
+      return authenticated ? observationDelivery.deliver(authenticated.accountId) : Promise.resolve();
+    },
     getTaskCompletionCoordinator() {
       taskCompletionCoordinator ??= createTaskCompletionCoordinator({
         store: taskCompletionStore,

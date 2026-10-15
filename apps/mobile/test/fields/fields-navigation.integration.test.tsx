@@ -7,7 +7,7 @@ import { renderObservationContextRoute } from "../../App";
 import { ObservationCreateScreen } from "../../src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "../../src/features/observations/field-diary-screen";
 
-function setup() {
+function setup(observationStore?: unknown) {
   const listeners = new Set<(state: { status: "authenticated"; accountId: string }) => void>();
   const client = { GET: jest.fn().mockResolvedValue({ data: { firstFieldOnboardingNeeded: false }, error: undefined, response: { ok: true } }) };
   const getState = () => ({ status: "authenticated" as const, accountId: "account-1" });
@@ -18,7 +18,7 @@ function setup() {
     getAuthenticatedApiClient: () => client,
     getAuthenticatedApiSession: () => ({ accountId: "account-1", client }),
   } as never;
-  return createAppComposition(controller);
+  return createAppComposition(controller, observationStore ? { observationStore: observationStore as never } : undefined);
 }
 
 describe("production Tarlalar navigation", () => {
@@ -72,6 +72,26 @@ describe("production Tarlalar navigation", () => {
     const diary = renderObservationContextRoute({ entry: "field-diary", client, diaryFieldId: "field-1", accountId: "account-1", diarySeasonId: null } as never, app as never);
     expect(diary?.type).toBe(FieldDiaryScreen);
     expect(diary?.props).toMatchObject({ fieldId: "field-1", seasonId: undefined });
+    app.dispose();
+  });
+
+  it("delivers after local capture and passes the authenticated client/store to the diary route", async () => {
+    const list = jest.fn().mockResolvedValue([]);
+    const observationStore = { setAuthenticatedAccount: jest.fn().mockResolvedValue(undefined), list };
+    const app = setup(observationStore);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const create = renderObservationContextRoute({ entry: "observation-create", client: app.getState().client,
+      fieldId: "field-1", accountId: "account-1", observationSeasonId: "season-1" } as never, app as never);
+    expect(create?.props.offlineStore).toBe(observationStore);
+    const deliveryCallsBeforeCapture = list.mock.calls.length;
+    await create?.props.onPending();
+    expect(list).toHaveBeenCalledTimes(deliveryCallsBeforeCapture + 1);
+    expect(list).toHaveBeenLastCalledWith("account-1");
+
+    app.showFieldDiary("field-1", "season-1");
+    const diary = renderObservationContextRoute({ entry: "field-diary", client: app.getState().client,
+      diaryFieldId: "field-1", diarySeasonId: "season-1", accountId: "account-1" } as never, app as never);
+    expect(diary?.props).toMatchObject({ client: app.getState().client, accountId: "account-1", observationStore });
     app.dispose();
   });
 });

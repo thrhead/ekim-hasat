@@ -25,10 +25,13 @@ export type MobileAuthState =
   | Readonly<{ status: "signed-out" }>
   | Readonly<{ status: "authenticated"; accountId: string }>;
 
+export type RestorationOutcome = "loading" | "authenticated" | "definitive-no-session" | "retryable-unavailable" | "unknown-error";
+
 export type AuthenticatedApiSession = Readonly<{ accountId: string; client: ApiClient }>;
 
 export type MobileAuthController = Readonly<{
   getState(): MobileAuthState;
+  getRestorationOutcome(): RestorationOutcome;
   subscribe(listener: (state: MobileAuthState) => void): () => void;
   start(): Promise<void>;
   signIn(email: string, password: string): Promise<AuthOperationResult<void>>;
@@ -48,13 +51,15 @@ export function createMobileAuthController(
 ): MobileAuthController {
   let session: AuthSession | null = null;
   let state: MobileAuthState = { status: "loading" };
+  let restorationOutcome: RestorationOutcome = "loading";
   let started = false;
   let eventRevision = 0;
   let stopObserving: (() => void) | null = null;
   const listeners = new Set<(state: MobileAuthState) => void>();
 
-  function updateSession(next: AuthSession | null) {
+  function updateSession(next: AuthSession | null, outcome?: RestorationOutcome) {
     session = next;
+    restorationOutcome = outcome ?? (next ? "authenticated" : "definitive-no-session");
     state = next ? { status: "authenticated", accountId: next.accountId } : { status: "signed-out" };
     for (const listener of listeners) listener(state);
   }
@@ -79,6 +84,7 @@ export function createMobileAuthController(
 
   return {
     getState: () => state,
+    getRestorationOutcome: () => restorationOutcome,
     subscribe(listener) {
       listeners.add(listener);
       listener(state);
@@ -96,8 +102,11 @@ export function createMobileAuthController(
       try {
         const restored = await auth.restoreSession();
         if (eventRevision === revisionAtStart) updateSession(restored);
-      } catch {
-        if (eventRevision === revisionAtStart) updateSession(null);
+      } catch (error) {
+        if (eventRevision === revisionAtStart) {
+          updateSession(null, error && typeof error === "object" && "code" in error && error.code === "UNAVAILABLE"
+            ? "retryable-unavailable" : "unknown-error");
+        }
       }
     },
     signIn: (email, password) => auth.signIn(email, password),

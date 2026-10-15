@@ -11,13 +11,18 @@ test("SPEC-006 contract defines create and bounded diary operations with shared 
   const diary = /  \/fields\/\{fieldId\}\/diary:\n    get:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0];
   assert.ok(create, "observation POST exists");
   assert.ok(diary, "Field diary GET exists");
+  assert.equal((contract.match(/^      operationId: createFieldObservation$/gm) ?? []).length, 1,
+    "SPEC-006 owns exactly one public createFieldObservation operation");
   assert.match(create, /operationId: createFieldObservation/);
   const requestSchema = /CreateObservationRequest:[\s\S]*?(?=\n    Observation:)/.exec(contract)?.[0] ?? "";
   assert.match(requestSchema, /occurredAtLocal/);
   assert.match(requestSchema, /occurredAt/);
-  assert.match(create, /'201':/);
-  assert.match(create, /'200':/);
-  assert.match(create, /'409':[\s\S]*?ApiError/);
+  assert.match(requestSchema, /capturedBusinessTimezone:[\s\S]*?Optional offline-capture precondition/);
+  assert.doesNotMatch(requestSchema, /required: \[[^\]]*capturedBusinessTimezone/);
+  assert.match(requestSchema, /Omission preserves older online-client behavior/);
+  assert.match(create, /'201':\n\s+description: Observation accepted and committed/);
+  assert.match(create, /'200':\n\s+description: Exact retry replayed the previously committed observation/);
+  assert.match(create, /'409':\n\s+description: Observation identity exists with changed canonical payload, actor, or authorized context[\s\S]*?ApiError/);
   assert.match(diary, /operationId: getFieldDiary/);
   assert.match(diary, /default: 50/);
   assert.match(diary, /maximum: 100/);

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ApiClient } from "../../../../../packages/api-client/src/index";
-import { localObservationInstant, observationLocalTime, readObservationTimezone, submitObservation, validateObservationNote, type Observation, type ObservationRequest } from "./observation-client";
+import { buildObservationCommand, canonicalObservationNote, localObservationInstant, observationLocalTime, readObservationTimezone, submitObservation, validateObservationNote, type Observation, type ObservationRequest } from "./observation-client";
+import type { ObservationCommand, ObservationCommandStore } from "./observation-command-store";
 
 const currentTime = () => new Date();
 function observationId(): string {
@@ -13,22 +14,26 @@ function observationId(): string {
 }
 
 export type ObservationCreateScreenProps = {
-  client: ApiClient;
+  client?: ApiClient;
+  accountId?: string;
+  offlineStore?: Pick<ObservationCommandStore, "getContext" | "enqueue"> & Partial<Pick<ObservationCommandStore, "saveContext" | "list" | "subscribe" | "retryUnconfirmed">>;
   fieldId: string;
   fieldName?: string;
   seasonId?: string;
   seasonName?: string;
   onCreated?: (observation: Observation) => void;
+  onPending?: () => void;
+  onSignIn?: () => void;
   onBack?: () => void;
   now?: () => Date;
   createId?: () => string;
 };
 
 export function ObservationCreateScreen(props: ObservationCreateScreenProps) {
-  return <ObservationCreateForm key={`${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
+  return <ObservationCreateForm key={`${props.accountId ?? ""}:${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
 }
 
-function ObservationCreateForm({ client, fieldId, fieldName, seasonId, seasonName, onCreated, onBack, now = currentTime, createId = observationId }: ObservationCreateScreenProps) {
+function ObservationCreateForm({ client, accountId, offlineStore, fieldId, fieldName, seasonId, seasonName, onCreated, onPending, onBack, onSignIn, now = currentTime, createId = observationId }: ObservationCreateScreenProps) {
   const [timezone, setTimezone] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(0);
@@ -39,6 +44,8 @@ function ObservationCreateForm({ client, fieldId, fieldName, seasonId, seasonNam
   const [attempt, setAttempt] = useState<ObservationRequest | null>(null);
   const [saving, setSaving] = useState(false);
   const [accepted, setAccepted] = useState<Observation | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [savedCommands, setSavedCommands] = useState<ObservationCommand[]>([]);
   const inFlight = useRef(false);
   const mounted = useRef(true);
 
@@ -49,19 +56,67 @@ function ObservationCreateForm({ client, fieldId, fieldName, seasonId, seasonNam
 
   useEffect(() => {
     let current = true;
+    const refresh = () => { if (accountId) void offlineStore?.list?.(accountId).then((commands) => {
+      if (current) setSavedCommands(commands.filter((command) => command.fieldId === fieldId
+        && command.seasonId === (seasonId ?? null)));
+    }).catch(() => {}); };
+    refresh();
+    const unsubscribe = offlineStore?.subscribe?.(refresh);
+    return () => { current = false; unsubscribe?.(); };
+  }, [accountId, offlineStore, fieldId, seasonId]);
+
+  useEffect(() => {
+    let current = true;
     setLoading(true); setTimezone(null); setContextError(null);
-    void readObservationTimezone(client, fieldId, seasonId).then((value) => {
+    void (client ? readObservationTimezone(client, fieldId, seasonId) : Promise.reject(new Error("Offline"))).then(async (value) => {
       if (!current) return;
+      if (accountId) await offlineStore?.saveContext?.(accountId, { fieldId, seasonId: seasonId ?? null, businessTimezone: value });
       setTimezone(value);
       setLocal((entered) => entered || observationLocalTime(now(), value).slice(0, 16));
-    }).catch(() => {
-      if (current) setContextError("Tarla bilgileri yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.");
+    }).catch(async (failure: unknown) => {
+      const status = failure && typeof failure === "object" && "status" in failure
+        ? Number(failure.status) : undefined;
+      const mayUseSavedContext = !client || failure instanceof TypeError || status === 429 || (status !== undefined && status >= 500);
+      const context = mayUseSavedContext && accountId
+        ? await offlineStore?.getContext(accountId, fieldId, seasonId ?? null).catch(() => null) : null;
+      if (current && context) {
+        setTimezone(context.businessTimezone);
+        setLocal((entered) => entered || observationLocalTime(now(), context.businessTimezone).slice(0, 16));
+      } else if (current) setContextError(mayUseSavedContext
+        ? "Tarla bilgileri yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin."
+        : "Bu tarlaya erişiminiz doğrulanamadı. Yeniden bağlanıp erişiminizi kontrol edin.");
     }).finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
-  }, [client, fieldId, seasonId, now, reload]);
+  }, [client, accountId, offlineStore, fieldId, seasonId, now, reload]);
+
+  async function saveLocal() {
+    if (inFlight.current || !timezone || !accountId || !offlineStore) return;
+    inFlight.current = true; setSaving(true); setError(null);
+    try {
+      const command = buildObservationCommand({ accountId, observationId: createId(), fieldId,
+        seasonId: seasonId ?? null, description: note, occurredAtLocal: local,
+        capturedBusinessTimezone: timezone, now: now() });
+      await offlineStore.enqueue(accountId, command);
+      if (mounted.current) { setPendingId(command.observationId); onPending?.(); }
+    } catch (failure) {
+      if (mounted.current) setError(failure instanceof Error && failure.message.startsWith("Gözlem")
+        ? failure.message : "Not cihazda kaydedilemedi. Yeniden deneyin.");
+    } finally { inFlight.current = false; if (mounted.current) setSaving(false); }
+  }
+
+  async function retryUnconfirmed(observationId: string) {
+    if (!accountId || !offlineStore?.retryUnconfirmed || saving) return;
+    setSaving(true);
+    try {
+      await offlineStore.retryUnconfirmed(accountId, observationId);
+      if (mounted.current) { setPendingId(observationId); onPending?.(); }
+    } catch {
+      if (mounted.current) setError("Gözlem sonucu yeniden denetlenemedi. Daha sonra tekrar deneyin.");
+    } finally { if (mounted.current) setSaving(false); }
+  }
 
   async function submit(request: ObservationRequest) {
-    if (inFlight.current || !timezone) return;
+    if (inFlight.current || !timezone || !client) return;
     inFlight.current = true; setSaving(true); setError(null);
     try {
       const saved = await submitObservation(client, fieldId, request);
@@ -77,23 +132,51 @@ function ObservationCreateForm({ client, fieldId, fieldName, seasonId, seasonNam
 
   function save() {
     if (!timezone || saving || attempt) return;
+    if (accountId && offlineStore) { void saveLocal(); return; }
     const invalidNote = validateObservationNote(note);
     if (invalidNote) { setError(invalidNote); return; }
     try {
       const occurredAt = localObservationInstant(local, timezone);
       if (Date.parse(occurredAt) > now().getTime()) { setError("Gözlem zamanı gelecekte olamaz. Tarih ve saati kontrol edin."); return; }
-      void submit({ observationId: createId(), description: note.trim(), occurredAtLocal: local, occurredAt, ...(seasonId ? { seasonId } : {}) });
+      void submit({ observationId: createId(), description: canonicalObservationNote(note), occurredAtLocal: local, occurredAt, ...(seasonId ? { seasonId } : {}) });
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Tarih ve saati kontrol edin."); }
   }
 
-  const locked = saving || attempt !== null;
+  const pendingCommand = savedCommands.find((command) => command.observationId === pendingId);
+  const pending = pendingId !== null && (!pendingCommand || pendingCommand.state === "PENDING");
+  const locked = saving || attempt !== null || pending;
   const disabled = !timezone || loading || locked;
   return <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
     {onBack && <Pressable accessibilityRole="button" accessibilityLabel="Tarlaya dön" onPress={onBack} style={styles.button}><Text>Tarlaya dön</Text></Pressable>}
+    {!client && onSignIn && <Pressable accessibilityRole="button" accessibilityLabel="Oturum aç" onPress={onSignIn} style={styles.button}><Text>Oturum aç</Text></Pressable>}
     <Text accessibilityRole="header" style={styles.title}>Gözlem ekle</Text>
     <Text>Tarla: {fieldName ?? "Seçili tarla"}</Text>
     {seasonId && <Text>Sezon: {seasonName ?? "Seçili sezon"}</Text>}
-    {accepted ? <>
+    {savedCommands.map((command) => {
+      const label = command.state === "UNCONFIRMED" ? "Gözlem sonucu doğrulanamadı"
+        : command.state === "NEEDS_ATTENTION" ? "Gözlem için düzeltme gerekiyor"
+          : command.state === "ACCEPTED" ? "Gözlem sunucuda kabul edildi"
+            : command.retrying ? "Gözlem yeniden gönderiliyor" : "Gözlem gönderilmeyi bekliyor";
+      return <View key={command.observationId}>
+        <Text accessibilityLabel={label} accessibilityLiveRegion="polite">{label}: {command.description}</Text>
+        {command.state === "NEEDS_ATTENTION" && <Pressable accessibilityRole="button"
+          accessibilityLabel="Düzeltilmiş yeni gözlem oluştur" onPress={() => {
+            setNote(command.description); setLocal(command.occurredAtLocal);
+            setError(null);
+          }} style={styles.button}><Text>Düzeltilmiş yeni gözlem oluştur</Text></Pressable>}
+        {command.state === "UNCONFIRMED" && offlineStore?.retryUnconfirmed && <Pressable accessibilityRole="button"
+          accessibilityLabel="Aynı gözlem sonucunu yeniden denetle" accessibilityState={{ disabled: saving, busy: saving }} disabled={saving}
+          onPress={() => { void retryUnconfirmed(command.observationId); }} style={styles.button}><Text>Aynı gözlem sonucunu yeniden denetle</Text></Pressable>}
+      </View>;
+    })}
+    {pending ? <>
+      <Text accessibilityRole="text" accessibilityLabel={pendingCommand?.retrying ? "Gözlem yeniden gönderiliyor" : "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor"} accessibilityLiveRegion="polite">{pendingCommand?.retrying ? "Gözlem yeniden gönderiliyor" : "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor"}</Text>
+      <Text>{note.trim()}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Yeni gözlem ekle" onPress={() => {
+        setPendingId(null); setNote(""); setError(null);
+        if (timezone) setLocal(observationLocalTime(now(), timezone).slice(0, 16));
+      }} style={styles.button}><Text>Yeni gözlem ekle</Text></Pressable>
+    </> : accepted ? <>
       <Text accessibilityRole="text" accessibilityLabel="Gözlem kaydedildi" accessibilityLiveRegion="polite">Gözlem kaydedildi</Text>
       <Text>{accepted.description}</Text>
     </> : <>

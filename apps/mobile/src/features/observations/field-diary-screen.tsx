@@ -2,9 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient } from "../../../../../packages/api-client/src/index";
 import { readFieldDiary, type DiaryPage, type DiaryEntry, type DiaryReadError } from "./diary-client";
+import type { ObservationCommand, ObservationCommandStore } from "./observation-command-store";
 
 export type FieldDiaryScreenProps = {
   client: ApiClient;
+  accountId?: string;
+  observationStore?: Pick<ObservationCommandStore, "list"> & Partial<Pick<ObservationCommandStore, "subscribe">>;
   fieldId: string;
   fieldName?: string;
   seasonId?: string;
@@ -15,11 +18,27 @@ export type FieldDiaryScreenProps = {
 };
 
 export function FieldDiaryScreen(props: FieldDiaryScreenProps) {
-  return <FieldDiaryContent key={`${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
+  return <FieldDiaryContent key={`${props.accountId ?? ""}:${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
 }
 
-function FieldDiaryContent({ client, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation }: FieldDiaryScreenProps) {
+export function reconcileObservationRows(entries: DiaryEntry[], local: ObservationCommand[]): DiaryEntry[] {
+  const known = new Set(entries.filter((entry) => entry.kind === "OBSERVATION").map((entry) => entry.id));
+  const retained = local.filter((command) => command.state === "ACCEPTED" && command.acceptedResult
+    && !known.has(command.observationId)).map((command): DiaryEntry => ({
+      kind: "OBSERVATION", id: command.observationId, fieldId: command.fieldId,
+      seasonId: command.seasonId, description: command.description, occurredAt: command.occurredAt,
+    }));
+  return [...entries, ...retained].sort((left, right) => {
+    const leftAt = left.kind === "TASK_SKIPPED" ? left.skippedAt : left.occurredAt;
+    const rightAt = right.kind === "TASK_SKIPPED" ? right.skippedAt : right.occurredAt;
+    return rightAt.localeCompare(leftAt) || right.id.localeCompare(left.id);
+  });
+}
+
+function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation }: FieldDiaryScreenProps) {
   const [data, setData] = useState<DiaryPage | null>(null);
+  const [localCommands, setLocalCommands] = useState<ObservationCommand[]>([]);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,12 +56,14 @@ function FieldDiaryContent({ client, fieldId, fieldName, seasonId, seasonName, o
     try {
       const page = await readFieldDiary(client, fieldId, { ...(seasonId ? { seasonId } : {}), ...(cursor ? { cursor } : {}) });
       if (generation.current !== request) return;
+      setAccessDenied(false);
       setData((current) => cursor && current ? { ...page, items: [...current.items, ...page.items] } : page);
       setRetryCursor(undefined);
     } catch (failure) {
       if (generation.current !== request) return;
       const status = (failure as DiaryReadError)?.status;
       const accessDenied = [401, 403, 404].includes(status ?? 0);
+      setAccessDenied(accessDenied);
       if (accessDenied) setData(null);
       setRetryCursor(accessDenied ? undefined : cursor);
       setError(accessDenied ? "Bu günlüğe erişiminiz doğrulanamadı. Yeniden bağlanıp erişiminizi kontrol edin."
@@ -58,6 +79,22 @@ function FieldDiaryContent({ client, fieldId, fieldName, seasonId, seasonName, o
     return () => { generation.current += 1; };
   }, [load]);
 
+  useEffect(() => {
+    let current = true;
+    const refresh = () => {
+      if (accountId && observationStore) void observationStore.list(accountId).then((commands) => {
+        if (current) setLocalCommands(commands.filter((command) => command.fieldId === fieldId
+          && (!seasonId || command.seasonId === seasonId)));
+      }).catch(() => {});
+    };
+    refresh();
+    const unsubscribe = observationStore?.subscribe?.(refresh);
+    return () => { current = false; unsubscribe?.(); };
+  }, [accountId, observationStore, fieldId, seasonId]);
+
+  const visibleRows = accessDenied ? [] : reconcileObservationRows(data?.items ?? [], localCommands);
+  const displayTimezone = data?.businessTimezone ?? localCommands.find((command) => command.state === "ACCEPTED")?.capturedBusinessTimezone;
+
   return <ScrollView contentContainerStyle={styles.content} accessibilityLabel="Tarla günlüğü">
     {onBack && <Pressable accessibilityRole="button" accessibilityLabel="Tarlaya dön" onPress={onBack} style={styles.button}><Text>Tarlaya dön</Text></Pressable>}
     <Text accessibilityRole="header" style={styles.title}>Tarla günlüğü</Text>
@@ -71,10 +108,12 @@ function FieldDiaryContent({ client, fieldId, fieldName, seasonId, seasonName, o
     {!loading && data && <>
       {!error && <Text accessibilityRole="text" accessibilityLabel="Günlük yüklendi" accessibilityLiveRegion="polite">{data.items.length ? `${data.items.length} kayıt gösteriliyor` : "Günlük boş"}</Text>}
       {data.items.length === 0 && !error && <Text accessibilityLabel="Henüz kayıt yok" accessibilityLiveRegion="polite">{seasonId ? "Bu sezonda henüz kayıt yok." : "Bu tarlada henüz kayıt yok."}</Text>}
-      {data.items.map((item) => <DiaryRow key={`${item.kind}:${item.id}`} item={item} timezone={data.businessTimezone} />)}
+      {visibleRows.map((item) => <DiaryRow key={`${item.kind}:${item.id}`} item={item} timezone={displayTimezone ?? data.businessTimezone} />)}
       {loadingMore && <Text accessibilityRole="progressbar" accessibilityLabel="Eski kayıtlar yükleniyor" accessibilityLiveRegion="polite">Eski kayıtlar yükleniyor…</Text>}
       {data.nextCursor && !error && <Pressable accessibilityRole="button" accessibilityLabel="Daha eski kayıtları yükle" accessibilityState={{ disabled: loadingMore, busy: loadingMore }} disabled={loadingMore} onPress={() => void load(data.nextCursor ?? undefined)} style={styles.button}><Text>Daha eski kayıtlar</Text></Pressable>}
     </>}
+    {!data && !accessDenied && displayTimezone && visibleRows.map((item) =>
+      <DiaryRow key={`${item.kind}:${item.id}`} item={item} timezone={displayTimezone} />)}
     {onAddObservation && <Pressable accessibilityRole="button" accessibilityLabel="Gözlem ekle" onPress={onAddObservation} style={styles.button}><Text>Gözlem ekle</Text></Pressable>}
   </ScrollView>;
 }

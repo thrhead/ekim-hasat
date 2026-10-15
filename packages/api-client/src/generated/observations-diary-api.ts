@@ -52,6 +52,8 @@ export type components = {
             };
         };
         CreateObservationRequest: {
+            /** @description Optional offline-capture precondition. On first acceptance the server requires this saved Business timezone to equal the current authoritative Business timezone. An already accepted exact replay remains valid under current authorization after a later timezone change. Omission preserves older online-client behavior. */
+            capturedBusinessTimezone?: string;
             /** @description Raw submitted text. The server trims leading/trailing Unicode whitespace before validating and persisting; canonical description must contain 1..2000 Unicode code points, not UTF-8 bytes or UTF-16 code units. No unrelated Unicode normalization or internal whitespace/content modification is performed. Do not apply maxLength to the untrimmed raw string; server validation is authoritative and mobile may mirror it for UX. */
             description: string;
             /**

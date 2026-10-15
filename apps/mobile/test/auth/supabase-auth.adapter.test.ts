@@ -9,6 +9,34 @@ import { createSupabaseAuthPort } from "../../src/auth/supabase-auth.adapter";
 describe("Supabase mobile auth adapter", () => {
   afterEach(() => jest.restoreAllMocks());
 
+  it("classifies retryable restoration failure without treating it as no session", async () => {
+    const fakeClient = { auth: {
+      getSession: jest.fn(async () => ({ data: { session: null }, error: { name: "AuthRetryableFetchError" } })),
+      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      signOut: jest.fn(), startAutoRefresh: jest.fn(), stopAutoRefresh: jest.fn(),
+    } };
+    const auth = createSupabaseAuthPort({ supabaseUrl: "https://project.supabase.co", publishableKey: "test" }, () => fakeClient);
+    await expect(auth.restoreSession()).rejects.toMatchObject({ code: "UNAVAILABLE" });
+    auth.dispose();
+  });
+
+  it("does not turn a null INITIAL_SESSION event into a definitive sign-out before restoration resolves", async () => {
+    const fakeClient = { auth: {
+      getSession: jest.fn(async () => ({ data: { session: null }, error: { name: "AuthRetryableFetchError" } })),
+      onAuthStateChange: jest.fn((listener: (event: string, session: null) => void) => {
+        listener("INITIAL_SESSION", null);
+        return { data: { subscription: { unsubscribe: jest.fn() } } };
+      }),
+      signOut: jest.fn(), startAutoRefresh: jest.fn(), stopAutoRefresh: jest.fn(),
+    } };
+    const auth = createSupabaseAuthPort({ supabaseUrl: "https://project.supabase.co", publishableKey: "test" }, () => fakeClient);
+    const onSession = jest.fn();
+    auth.onSessionChange(onSession);
+    expect(onSession).not.toHaveBeenCalled();
+    await expect(auth.restoreSession()).rejects.toMatchObject({ code: "UNAVAILABLE" });
+    auth.dispose();
+  });
+
   it("maps password operations to safe outcomes without exposing provider payloads", async () => {
     const subscription = { unsubscribe: jest.fn() };
     const providerSession = { access_token: "must-not-escape", user: { id: "account-1" } };
@@ -62,6 +90,8 @@ describe("Supabase mobile auth adapter", () => {
   it.each([
     [{ code: "invalid_credentials", message: "provider private message" }, "INVALID_CREDENTIALS"],
     [{ name: "AuthRetryableFetchError", message: "network private message" }, "UNAVAILABLE"],
+    [new TypeError("network unavailable"), "UNAVAILABLE"],
+    [{ status: 429, message: "rate limited" }, "UNAVAILABLE"],
     [{ code: "unexpected_provider_error", message: "provider private message" }, "UNKNOWN"],
   ] as const)("normalizes provider failure %j into %s without leaking the message", async (providerError, expectedCode) => {
     const fakeClient = {

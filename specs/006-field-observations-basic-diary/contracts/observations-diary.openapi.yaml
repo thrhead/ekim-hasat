@@ -116,6 +116,9 @@ components:
           type: string
           format: date-time
           description: Offset-aware RFC 3339 absolute instant corresponding to occurredAtLocal. The API verifies the local value has exactly one valid mapping and that it matches this instant; future instants are rejected. Server acceptance time is separate.
+        capturedBusinessTimezone:
+          type: string
+          description: Optional offline-capture precondition. On first acceptance the server requires this saved Business timezone to equal the current authoritative Business timezone. An already accepted exact replay remains valid under current authorization after a later timezone change. Omission preserves older online-client behavior.
     Observation:
       type: object
       required: [id, fieldId, seasonId, description, occurredAt, businessTimezone]

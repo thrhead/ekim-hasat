@@ -27,9 +27,10 @@ type SupabaseAuthClient = {
 
 function normalizeAuthError(error: unknown): AuthOperationErrorCode {
   if (!error || typeof error !== "object") return "UNKNOWN";
+  if (error instanceof TypeError) return "UNAVAILABLE";
   const providerError = error as { code?: unknown; name?: unknown; status?: unknown };
   if (providerError.code === "invalid_credentials") return "INVALID_CREDENTIALS";
-  if (providerError.name === "AuthRetryableFetchError" || (typeof providerError.status === "number" && providerError.status >= 500)) {
+  if (providerError.name === "AuthRetryableFetchError" || (typeof providerError.status === "number" && (providerError.status === 429 || providerError.status >= 500))) {
     return "UNAVAILABLE";
   }
   return "UNKNOWN";
@@ -96,11 +97,15 @@ export function createSupabaseAuthPort(
   return {
     async restoreSession() {
       const { data, error } = await client.auth.getSession();
-      if (error) throw new Error("Unable to restore authentication session");
+      if (error) {
+        const classified = normalizeAuthError(error);
+        throw Object.assign(new Error("Unable to restore authentication session"), { code: classified });
+      }
       return toAuthSession(data.session);
     },
     onSessionChange(listener) {
-      const { data } = client.auth.onAuthStateChange((_event, session) => {
+      const { data } = client.auth.onAuthStateChange((event, session) => {
+        if (event === "INITIAL_SESSION") return;
         listener(toAuthSession(session));
       });
       return () => data.subscription.unsubscribe();
