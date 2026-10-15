@@ -63,6 +63,10 @@
     "./observations/field-observation": {
       "types": "./dist/observations/field-observation.d.ts",
       "import": "./dist/observations/field-observation.js"
+    },
+    "./operations/irrigation-record": {
+      "types": "./dist/operations/irrigation-record.d.ts",
+      "import": "./dist/operations/irrigation-record.js"
     }
   },
   "scripts": {
