@@ -4,6 +4,7 @@ import { after, before, test } from "node:test";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
 import { ObservationDiaryRepository } from "../../src/observations/observation-diary.repository.js";
+import { createObservationApp } from "../../src/observations/observation.controller.js";
 import { ObservationCreateRepository } from "../../src/observations/observation.repository.js";
 import { decodeDiaryCursor } from "../../src/observations/diary-query.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
@@ -15,7 +16,9 @@ const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl! }) });
 const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomUUID(), userId = randomUUID(), foreignUserId = randomUUID(), fieldId = randomUUID(), foreignFieldId = randomUUID(), seasonId = randomUUID();
+const otherSeasonId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID(), completionId = randomUUID(), skipId = randomUUID();
+const irrigationRecordId = randomUUID(), matchingSeasonIrrigationId = randomUUID(), otherSeasonIrrigationId = randomUUID();
 const identity = { provider: "spec006-diary", subject: run };
 const foreignIdentity = { provider: "spec006-diary", subject: `${run}-foreign` };
 const taskCompletions = new TaskCompletionRepository(prisma);
@@ -49,6 +52,8 @@ before(async () => {
         { id: skipTaskId, title: "Skip irrigation check", plannedLocalDate: new Date("2026-10-03T00:00:00.000Z"), sourceTemplateTaskKey: "skip-check", version: 1 },
       ] } } } } });
   await new SeasonActivationRepository(prisma).activate(identity, seasonId, 1, randomUUID());
+  await prisma.season.create({ data: { id: otherSeasonId, businessId, fieldId, cropKey: `diary-${run}`, cropDefinitionVersionId: cropId,
+    actualPlantingDate: new Date("2026-09-01T00:00:00.000Z"), status: "DRAFT", version: 1 } });
   await taskCompletions.complete(identity, taskId, 1, { completionId, occurredAt: tieAt });
   await taskSkips.skip(identity, skipTaskId, 1, { skipId });
 
@@ -65,6 +70,15 @@ before(async () => {
   await prisma.fieldObservation.create({ data: { id: tieId, businessId, fieldId, seasonId,
     actorUserId: userId, actorMembershipId: membership.id, description: "At completion time", occurredAt: new Date(tieAt),
     acceptedAt: new Date("2026-10-05T10:00:00.000Z"), payloadFingerprint: randomUUID().replaceAll("-", "") } });
+  await prisma.irrigationRecord.create({ data: { id: irrigationRecordId, businessId, fieldId, seasonId: null,
+    actorUserId: userId, actorMembershipId: membership.id, occurredAt: new Date(tieAt),
+    recordedAt: new Date("2026-10-05T10:00:00.000Z"), method: "Drip", durationMinutes: 30 } });
+  await prisma.irrigationRecord.createMany({ data: [
+    { id: matchingSeasonIrrigationId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      occurredAt: new Date("2026-10-04T09:31:00.000Z"), recordedAt: new Date("2026-10-05T10:00:00.000Z"), method: "Drip" },
+    { id: otherSeasonIrrigationId, businessId, fieldId, seasonId: otherSeasonId, actorUserId: userId, actorMembershipId: membership.id,
+      occurredAt: new Date("2026-10-04T09:32:00.000Z"), recordedAt: new Date("2026-10-05T10:00:00.000Z"), method: "Drip" },
+  ] });
 });
 
 after(async () => { await prisma.$disconnect(); });
@@ -117,6 +131,66 @@ test("strict continuation omits later insertions before the cursor and may inclu
 test("diary reads remain within the verified Business and Field scope", async () => {
   await assert.rejects(diary.read(identity, foreignFieldId), (error: unknown) => (error as { getStatus?: () => number }).getStatus?.() === 404);
   await assert.rejects(diary.read(foreignIdentity, fieldId), (error: unknown) => (error as { getStatus?: () => number }).getStatus?.() === 404);
+});
+
+test("irrigation history is opt-in and returned as its distinct canonical record event", async () => {
+  assert.equal(await prisma.irrigationRecord.count({ where: { businessId, id: irrigationRecordId } }), 1);
+  const defaultPage = await diary.read(identity, fieldId);
+  assert.equal(defaultPage.items.some(({ id }) => id === irrigationRecordId), false);
+  const filters = { includeIrrigation: true, limit: 100 };
+  const firstPage = await diary.read(identity, fieldId, filters);
+  assert.ok(firstPage.nextCursor);
+  const includedPage = await diary.read(identity, fieldId, { ...filters, cursor: firstPage.nextCursor! });
+  const item = includedPage.items.find(({ id }) => id === irrigationRecordId);
+  assert.ok(item);
+  assert.equal(item.kind, "IRRIGATION");
+  if (item.kind !== "IRRIGATION") return;
+  assert.equal(item.fieldId, fieldId);
+  assert.equal(item.seasonId, null);
+  assert.equal(item.occurredAt, tieAt);
+  assert.equal(item.businessTimezone, "Asia/Tokyo");
+  assert.equal("description" in item, false);
+});
+
+test("Season-filtered irrigation diary projection includes only irrigation records from that Season", async () => {
+  const fieldIrrigationIds: string[] = [];
+  let fieldPage = await diary.read(identity, fieldId, { includeIrrigation: true, limit: 100 });
+  while (true) {
+    fieldIrrigationIds.push(...fieldPage.items.filter((item) => item.kind === "IRRIGATION").map(({ id }) => id));
+    if (!fieldPage.nextCursor) break;
+    fieldPage = await diary.read(identity, fieldId, { includeIrrigation: true, limit: 100, cursor: fieldPage.nextCursor });
+  }
+  assert.deepEqual(new Set(fieldIrrigationIds), new Set([irrigationRecordId, matchingSeasonIrrigationId, otherSeasonIrrigationId]));
+
+  const seasonIrrigationIds: string[] = [];
+  let seasonPage = await diary.read(identity, fieldId, { includeIrrigation: true, seasonId, limit: 100 });
+  while (true) {
+    seasonIrrigationIds.push(...seasonPage.items.filter((item) => item.kind === "IRRIGATION").map(({ id }) => id));
+    if (!seasonPage.nextCursor) break;
+    seasonPage = await diary.read(identity, fieldId, { includeIrrigation: true, seasonId, limit: 100, cursor: seasonPage.nextCursor });
+  }
+  assert.deepEqual(seasonIrrigationIds, [matchingSeasonIrrigationId]);
+});
+
+test("Field Diary HTTP query forwards the includeIrrigation opt-in", async () => {
+  const app = await createObservationApp({
+    verify: async (token) => token === "diary-token" ? identity : null,
+    create: (who, requestedFieldId, request) => observationCreates.create(who, requestedFieldId, request),
+    readDiary: (who, requestedFieldId, filters) => diary.read(who, requestedFieldId, filters),
+  });
+  await app.init();
+  await app.getHttpAdapter().getInstance().ready();
+  try {
+    const response = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeIrrigation=true&limit=100`,
+      headers: { authorization: "Bearer diary-token" } });
+    assert.equal(response.statusCode, 200);
+    const first = response.json() as { items: Array<{ id: string }>; nextCursor: string | null };
+    assert.ok(first.nextCursor);
+    const next = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeIrrigation=true&limit=100&cursor=${encodeURIComponent(first.nextCursor)}`,
+      headers: { authorization: "Bearer diary-token" } });
+    assert.equal(next.statusCode, 200);
+    assert.ok((next.json() as { items: Array<{ id: string }> }).items.some(({ id }) => id === irrigationRecordId));
+  } finally { await app.close(); }
 });
 
 test("quickstart journey creates, reads back, exactly replays, and paginates with an accepted completion", async () => {

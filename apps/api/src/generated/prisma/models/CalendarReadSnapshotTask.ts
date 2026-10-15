@@ -596,14 +596,6 @@ export type CalendarReadSnapshotTaskUncheckedUpdateManyWithoutSnapshotNestedInpu
   deleteMany?: Prisma.CalendarReadSnapshotTaskScalarWhereInput | Prisma.CalendarReadSnapshotTaskScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type CalendarReadSnapshotTaskCreateWithoutSnapshotInput = {
   id?: string
   group: string

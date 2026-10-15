@@ -19,7 +19,7 @@ export class ObservationDiaryRepository {
   async read(identity: VerifiedSubject, fieldId: string, filters: ObservationDiaryFilters = {}): Promise<ObservationDiaryPage> {
     const limit = diaryLimit(filters.limit);
     const seasonId = filters.seasonId;
-    const cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null);
+    const cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true);
     let scope;
     try { scope = await this.membershipScope.resolveDefaultBusinessScope(identity); }
     catch (error) { if (error instanceof ForbiddenException) throw forbidden(); throw error; }
@@ -34,9 +34,12 @@ export class ObservationDiaryRepository {
 
     const observationAfter = !cursor ? {} : { OR: [
       { occurredAt: { lt: new Date(cursor.occurredAt) } },
-      ...(cursor.kind === "OBSERVATION" ? [{ occurredAt: new Date(cursor.occurredAt), id: { lt: cursor.id } }] : []),
+      ...(cursor.kind === "IRRIGATION" || cursor.kind === "OBSERVATION"
+        ? [{ occurredAt: new Date(cursor.occurredAt), ...(cursor.kind === "OBSERVATION" ? { id: { lt: cursor.id } } : {}) }]
+        : []),
     ] };
-    const [observations, completions, skips] = await Promise.all([
+    const businessTimezone = resolveBusinessTimezone(field.business.timezone);
+    const [observations, completions, skips, irrigationRecords] = await Promise.all([
       this.prisma.fieldObservation.findMany({
         where: {
           businessId: scope.businessId,
@@ -54,15 +57,30 @@ export class ObservationDiaryRepository {
       this.taskSkips?.readDiaryCandidates(identity, fieldId, seasonId, cursor ? {
         occurredAt: cursor.occurredAt, kind: cursor.kind, id: cursor.id,
       } : null, limit + 1) ?? Promise.resolve([]),
+      filters.includeIrrigation ? this.prisma.irrigationRecord.findMany({
+        where: { businessId: scope.businessId, fieldId,
+          field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } },
+          ...(seasonId ? { seasonId } : {}),
+          ...(cursor ? { OR: [{ occurredAt: { lt: new Date(cursor.occurredAt) } },
+            ...(cursor.kind === "IRRIGATION" ? [{ occurredAt: new Date(cursor.occurredAt), id: { lt: cursor.id } }] : [])] } : {}) },
+        orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
+        select: { id: true, fieldId: true, seasonId: true, occurredAt: true, recordedAt: true,
+          method: true, durationMinutes: true, waterVolumeCubicMetres: true, note: true },
+      }) : Promise.resolve([]),
     ]);
     const entries: DiaryEntry[] = [
       ...observations.map((row) => ({ kind: "OBSERVATION" as const, id: row.id, fieldId: row.fieldId,
         seasonId: row.seasonId, description: row.description, occurredAt: row.occurredAt.toISOString() })),
       ...completions.map((row) => ({ kind: "TASK_COMPLETION" as const, ...row })),
       ...skips,
+      ...irrigationRecords.map((row) => ({ kind: "IRRIGATION" as const, id: row.id, fieldId: row.fieldId,
+        seasonId: row.seasonId, occurredAt: row.occurredAt.toISOString(), businessTimezone,
+        method: row.method, durationMinutes: row.durationMinutes,
+        waterVolumeCubicMetres: row.waterVolumeCubicMetres?.toFixed(1) ?? null,
+        note: row.note, recordedAt: row.recordedAt.toISOString() })),
     ];
-    const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor);
-    return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone: resolveBusinessTimezone(field.business.timezone) };
+    const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor, filters.includeIrrigation === true);
+    return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone };
   }
 }
 

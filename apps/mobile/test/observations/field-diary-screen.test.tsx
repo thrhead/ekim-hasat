@@ -7,6 +7,7 @@ type Page = ObservationDiaryComponents["schemas"]["DiaryPage"];
 const observation: Page["items"][number] = { kind: "OBSERVATION", id: "observation-1", fieldId: "field-1", seasonId: null, description: "Yapraklar sarardı", occurredAt: "2026-10-05T09:00:00Z" };
 const completion: Page["items"][number] = { kind: "TASK_COMPLETION", id: "completion-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-1", title: "Sulamayı kontrol et", occurredAt: "2026-10-04T09:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
 const skipped: Page["items"][number] = { kind: "TASK_SKIPPED", id: "skip-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-2", title: "Sürmeyi atla", skippedAt: "2026-10-04T10:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1", skipId: "skip-1" };
+const irrigation: Page["items"][number] = { kind: "IRRIGATION", id: "irrigation-1", fieldId: "field-1", seasonId: "season-1", method: "Damlama", durationMinutes: 15, waterVolumeCubicMetres: "2.5", note: "Sabah sulaması", occurredAt: "2026-10-05T09:00:00Z", recordedAt: "2026-10-05T09:05:00Z", businessTimezone: "Europe/Istanbul" };
 function page(items: Page["items"] = [], nextCursor: string | null = null): Page { return { items, nextCursor, businessTimezone: "Europe/Istanbul" }; }
 function success(data: Page) { return { data, response: { ok: true, status: 200 } }; }
 function deferred<T>() {
@@ -22,9 +23,9 @@ function node(screen: TestRenderer, label: string) {
 function text(screen: TestRenderer) {
   return screen.root.findAll(({ props }) => typeof props.children === "string" || Array.isArray(props.children)).flatMap(({ props }) => [props.children].flat().filter((child) => typeof child === "string")).join(" ");
 }
-async function mount(GET: jest.Mock, onAddObservation?: () => void) {
+async function mount(GET: jest.Mock, onAddObservation?: () => void, observationStore?: { list: jest.Mock }, onAddIrrigation?: () => void) {
   let screen!: TestRenderer;
-  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} />); });
+  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} onAddIrrigation={onAddIrrigation} accountId={observationStore ? "account-1" : undefined} observationStore={observationStore as never} />); });
   return screen;
 }
 async function press(screen: TestRenderer, label: string) {
@@ -37,7 +38,7 @@ describe("Field/Season diary", () => {
     const GET = jest.fn().mockResolvedValue(success(data));
     expect(await readFieldDiary({ GET } as unknown as ApiClient, "field-1", { seasonId: "season-1", cursor: "opaque" })).toEqual(data);
     expect(GET).toHaveBeenCalledTimes(1);
-    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", cursor: "opaque" } } });
+    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", cursor: "opaque", includeIrrigation: true } } });
   });
 
   it("keeps structured permission failures privacy safe", async () => {
@@ -70,6 +71,20 @@ describe("Field/Season diary", () => {
     expect(rendered).not.toContain("Tamamlanan iş"); expect(rendered).not.toContain("Sezonda tamamlanan iş");
   });
 
+  it("renders irrigation as a distinct Business-timezone event outside observation reconciliation", async () => {
+    const acceptedObservation = { accountId: "account-1", observationId: "observation-local", fieldId: "field-1", seasonId: "season-1", description: "Yerelde kabul edilen gözlem", occurredAtLocal: "2026-10-05T12:00", occurredAt: "2026-10-05T09:00:00Z", capturedBusinessTimezone: "Europe/Istanbul", state: "ACCEPTED", acceptedResult: { id: "observation-local" } };
+    const store = { list: jest.fn().mockResolvedValue([acceptedObservation]) };
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([irrigation]))), undefined, store);
+    const rendered = text(screen);
+    expect(rendered).toContain("Sulama kaydı"); expect(rendered).toContain("Damlama");
+    expect(rendered).toContain("2,5 m³"); expect(rendered).toContain("15 dakika");
+    expect(rendered).toContain("12:00"); expect(rendered).toContain("Europe/Istanbul");
+    expect(rendered).toContain("Yerelde kabul edilen gözlem");
+    expect(rendered).not.toContain("Tamamlanan iş"); expect(rendered).not.toContain("Planlanan gün");
+    expect(node(screen, "Günlük yüklendi").props.children).toBe("1 kayıt gösteriliyor");
+    await act(async () => screen.unmount());
+  });
+
   it("announces loading then an empty state with the permitted create action", async () => {
     const pending = deferred<ReturnType<typeof success>>();
     const onAdd = jest.fn();
@@ -80,6 +95,14 @@ describe("Field/Season diary", () => {
     await act(async () => { pending.resolve(success(page())); });
     expect(node(screen, "Henüz kayıt yok").props.accessibilityLiveRegion).toBe("polite");
     await press(screen, "Gözlem ekle"); expect(onAdd).toHaveBeenCalledTimes(1);
+    await act(async () => screen.unmount());
+  });
+
+  it("opens irrigation capture from the diary when the entry action is supplied", async () => {
+    const onAddIrrigation = jest.fn();
+    const screen = await mount(jest.fn().mockResolvedValue(success(page())), undefined, undefined, onAddIrrigation);
+    await press(screen, "Sulama kaydı ekle");
+    expect(onAddIrrigation).toHaveBeenCalledTimes(1);
     await act(async () => screen.unmount());
   });
 

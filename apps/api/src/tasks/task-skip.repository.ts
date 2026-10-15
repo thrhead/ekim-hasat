@@ -19,7 +19,7 @@ export type TaskSkipPublic = Readonly<{
   skippedAt: string;
 }>;
 export type TaskSkipOutcome = Readonly<{ kind: "accepted" | "replayed"; skip: TaskSkipPublic }>;
-export type TaskSkipDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
+export type TaskSkipDiaryAfter = Readonly<{ occurredAt: string; kind: "IRRIGATION" | "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
 export type TaskSkipDiaryCandidate = Readonly<{
   kind: "TASK_SKIPPED"; id: string; skipId: string; taskId: string; seasonId: string; fieldId: string; title: string;
   plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;

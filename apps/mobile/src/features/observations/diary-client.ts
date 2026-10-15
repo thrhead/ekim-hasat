@@ -5,7 +5,7 @@ export type DiaryReadError = Error & { status?: number; code?: string };
 
 export async function readFieldDiary(client: ApiClient, fieldId: string, filters: Readonly<{ seasonId?: string; cursor?: string }> = {}): Promise<DiaryPage> {
   const result = await client.GET("/fields/{fieldId}/diary", {
-    params: { path: { fieldId }, query: { limit: 50, ...(filters.seasonId ? { seasonId: filters.seasonId } : {}), ...(filters.cursor ? { cursor: filters.cursor } : {}) } },
+    params: { path: { fieldId }, query: { limit: 50, includeIrrigation: true, ...(filters.seasonId ? { seasonId: filters.seasonId } : {}), ...(filters.cursor ? { cursor: filters.cursor } : {}) } },
   });
   if (!result.response.ok || result.error || !result.data) {
     const status = result.response.status;

@@ -89,6 +89,32 @@ describe("production app composition", () => {
     expect(app.getState().entry).toBe("calendar");
   });
 
+  it("opens irrigation capture from the Field Diary and returns to the same diary context", () => {
+    const { app } = setup();
+    app.showFieldDiary("field-1", "season-1");
+
+    expect("showIrrigationCreate" in app).toBe(true);
+    expect("returnToFieldDiary" in app).toBe(true);
+    const navigation = app as typeof app & {
+      showIrrigationCreate: () => void;
+      returnToFieldDiary: () => void;
+    };
+
+    navigation.showIrrigationCreate();
+    expect(app.getState()).toMatchObject({
+      entry: "irrigation-create",
+      diaryFieldId: "field-1",
+      diarySeasonId: "season-1",
+    });
+
+    navigation.returnToFieldDiary();
+    expect(app.getState()).toMatchObject({
+      entry: "field-diary",
+      diaryFieldId: "field-1",
+      diarySeasonId: "season-1",
+    });
+  });
+
   it("routes an activated season into the read-only Today surface", () => {
     const { app } = setup();
     app.showToday();
