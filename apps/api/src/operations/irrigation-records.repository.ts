@@ -65,10 +65,6 @@ export class IrrigationRecordsRepository {
           select: { id: true, businessId: true, business: { select: { timezone: true } } },
         });
         if (!field) throw notFound();
-        if (input.seasonId && !await tx.season.findFirst({
-          where: { id: input.seasonId, fieldId, businessId: scope.businessId }, select: { id: true },
-        })) throw notFound();
-
         let businessTimezone: string;
         try { businessTimezone = resolveBusinessTimezone(field.business.timezone); }
         catch { throw invalidRequest(); }
@@ -96,6 +92,9 @@ export class IrrigationRecordsRepository {
             || existing.note !== submitted.note) throw identityConflict();
           return { kind: "replayed" as const, record: this.toPublic(existing, businessTimezone) };
         }
+        if (input.seasonId && !await tx.season.findFirst({
+          where: { id: input.seasonId, fieldId, businessId: scope.businessId }, select: { id: true },
+        })) throw notFound();
         if (input.capturedBusinessTimezone !== businessTimezone) throw invalidRequest();
         const { occurredAt } = resolveBusinessObservationInstant(input.occurredAtLocal, input.occurredAt, field.business.timezone);
         const recordedAt = this.now();

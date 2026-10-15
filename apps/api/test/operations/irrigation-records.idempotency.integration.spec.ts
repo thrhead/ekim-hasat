@@ -100,7 +100,7 @@ test("changed Season conflicts, current authorization is rechecked, and a foreig
   await assert.rejects(repository().create(identity, field, { ...payload, seasonId: alternateSeason }),
     (error: unknown) => error instanceof ApiError && error.getStatus() === 409 && error.presentation.code === "IDEMPOTENCY_KEY_REUSED");
   await assert.rejects(repository().create(identity, field, { ...payload, seasonId: foreignSeason }),
-    (error: unknown) => error instanceof ApiError && error.getStatus() === 404 && error.presentation.code === "NOT_FOUND");
+    (error: unknown) => error instanceof ApiError && error.getStatus() === 409 && error.presentation.code === "IDEMPOTENCY_KEY_REUSED");
 
   await prisma.membership.update({ where: { id: membership }, data: { status: "REVOKED" } });
   try {
