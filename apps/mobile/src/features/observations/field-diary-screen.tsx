@@ -18,7 +18,7 @@ export type FieldDiaryScreenProps = {
 };
 
 export function FieldDiaryScreen(props: FieldDiaryScreenProps) {
-  return <FieldDiaryContent key={`${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
+  return <FieldDiaryContent key={`${props.accountId ?? ""}:${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
 }
 
 export function reconcileObservationRows(entries: DiaryEntry[], local: ObservationCommand[]): DiaryEntry[] {

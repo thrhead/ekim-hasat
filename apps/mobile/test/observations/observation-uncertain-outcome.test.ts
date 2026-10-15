@@ -3,7 +3,7 @@ import type { ObservationCommand, ObservationCommandStore } from "../../src/feat
 import { createObservationDelivery } from "../../src/features/observations/observation-delivery";
 
 const original: ObservationCommand = { accountId: "a", observationId: "123e4567-e89b-42d3-a456-426614174000",
-  fieldId: "f", seasonId: null, description: "Original note", occurredAtLocal: "2026-10-14T12:00",
+  fieldId: "f", seasonId: "season-a", description: "Original note", occurredAtLocal: "2026-10-14T12:00",
   occurredAt: "2026-10-14T09:00:00.000Z", capturedBusinessTimezone: "Europe/Istanbul", state: "PENDING" };
 
 function setup(responses: Array<unknown>, initial: ObservationCommand = original) {
@@ -32,9 +32,26 @@ it("keeps an unknown crash/lost response unconfirmed after a later authorization
   await fixture.delivery.deliver("a");
   expect(fixture.getSaved()).toMatchObject({ state: "PENDING", attemptMayHaveCommitted: true });
   await fixture.delivery.deliver("a");
-  expect(fixture.getSaved()).toMatchObject({ state: "UNCONFIRMED", description: "Original note" });
+  expect(fixture.getSaved()).toMatchObject({ ...original, state: "UNCONFIRMED" });
   await fixture.delivery.deliver("a");
   expect(fixture.POST).toHaveBeenCalledTimes(2);
+});
+
+it("keeps an unknown send unconfirmed after a later 404 without retrying or changing its command", async () => {
+  const fixture = setup([new TypeError("connection lost"), failure(404, "NOT_FOUND")]);
+  await fixture.delivery.deliver("a");
+  await fixture.delivery.deliver("a");
+  expect(fixture.getSaved()).toMatchObject({ ...original, state: "UNCONFIRMED" });
+  await fixture.delivery.deliver("a");
+  expect(fixture.POST).toHaveBeenCalledTimes(2);
+});
+
+it.each([[400, "INVALID_REQUEST"], [403, "FORBIDDEN"], [404, "NOT_FOUND"], [409, "IDEMPOTENCY_KEY_REUSED"]] as const)("stops after a first-attempt definitive %s response while retaining the original command", async (status, code) => {
+  const fixture = setup([failure(status, code)]);
+  await fixture.delivery.deliver("a");
+  expect(fixture.getSaved()).toMatchObject({ ...original, state: "NEEDS_ATTENTION" });
+  await fixture.delivery.deliver("a");
+  expect(fixture.POST).toHaveBeenCalledTimes(1);
 });
 
 it("holds a first-delivery timezone mismatch for attention without changing captured time", async () => {

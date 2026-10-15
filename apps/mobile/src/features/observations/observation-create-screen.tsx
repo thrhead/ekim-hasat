@@ -30,7 +30,7 @@ export type ObservationCreateScreenProps = {
 };
 
 export function ObservationCreateScreen(props: ObservationCreateScreenProps) {
-  return <ObservationCreateForm key={`${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
+  return <ObservationCreateForm key={`${props.accountId ?? ""}:${props.fieldId}:${props.seasonId ?? ""}`} {...props} />;
 }
 
 function ObservationCreateForm({ client, accountId, offlineStore, fieldId, fieldName, seasonId, seasonName, onCreated, onPending, onBack, onSignIn, now = currentTime, createId = observationId }: ObservationCreateScreenProps) {
