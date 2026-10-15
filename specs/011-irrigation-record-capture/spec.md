@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Draft — frozen scope, clarified; ready for planning review
+**Status**: Implemented — frozen scope, clarified, and verified
 
 **Input**: Irrigation record capture for a Field and optional Season. The feature is server-authoritative and online-only. It creates and displays irrigation records for authorized Fields and optionally associates a valid Season in that Field and Business context. Records are preserved as historical operational data.
 
