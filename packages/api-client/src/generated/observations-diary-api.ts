@@ -8,7 +8,7 @@ export type paths = {
         };
         /**
          * Read an authorized Field or Season diary page
-         * @description Returns a unified projection of canonical accepted observations, task completions, and task skips. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations, completions, and skips and is validated against the authorized Field and Business. Deterministic keyset order is event time DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Existing version-1 cursors for OBSERVATION and TASK_COMPLETION remain valid. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
+         * @description Returns a unified projection of canonical accepted observations, task completions, and task skips. Irrigation history is included only when includeIrrigation=true. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations, completions, and skips and is validated against the authorized Field and Business. Deterministic keyset order is event time DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Existing version-1 cursors for OBSERVATION and TASK_COMPLETION remain valid. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
          */
         get: operations["getFieldDiary"];
         put?: never;
@@ -76,8 +76,34 @@ export type components = {
         };
         DiaryPage: {
             businessTimezone: string;
-            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"])[];
+            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["IrrigationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"])[];
             nextCursor: string | null;
+        };
+        /** @description Projection of an accepted IrrigationRecord; it retains its own identity and is not an observation. */
+        IrrigationDiaryEntry: {
+            businessTimezone: string;
+            durationMinutes: number | null;
+            /** Format: uuid */
+            fieldId: string;
+            /**
+             * Format: uuid
+             * @description Stable irrigation record ID used for ordering and pagination.
+             */
+            id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "IRRIGATION";
+            method: string | null;
+            note: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: date-time */
+            recordedAt: string;
+            /** Format: uuid */
+            seasonId: string | null;
+            waterVolumeCubicMetres: string | null;
         };
         Observation: {
             /** @description Resolved authorized Business timezone used for display. */
@@ -231,6 +257,8 @@ export interface operations {
             query?: {
                 /** @description Opaque continuation token returned by the prior page. */
                 cursor?: string;
+                /** @description Include accepted irrigation records as distinct IRRIGATION diary entries. */
+                includeIrrigation?: boolean;
                 limit?: number;
                 /** @description Limit entries to this Season belonging to the requested authorized Field. */
                 seasonId?: string;

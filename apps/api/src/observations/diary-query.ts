@@ -1,7 +1,10 @@
 import { ApiError } from "../observability/api-error.filter.js";
 
-export type DiaryKind = "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED";
+export type DiaryKind = "IRRIGATION" | "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED";
 export type DiaryEntry = Readonly<{
+  kind: "IRRIGATION"; id: string; fieldId: string; seasonId: string | null; occurredAt: string; businessTimezone: string;
+  method: string | null; durationMinutes: number | null; waterVolumeCubicMetres: string | null; note: string | null; recordedAt: string;
+}> | Readonly<{
   kind: "OBSERVATION"; id: string; fieldId: string; seasonId: string | null; description: string; occurredAt: string;
 }> | Readonly<{
   kind: "TASK_COMPLETION"; id: string; taskId: string; seasonId: string; fieldId: string; title: string;
@@ -10,7 +13,7 @@ export type DiaryEntry = Readonly<{
   kind: "TASK_SKIPPED"; id: string; skipId: string; taskId: string; seasonId: string; fieldId: string; title: string;
   plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
 }>;
-export type DiarySortKey = Readonly<{ version: 1; fieldId: string; seasonId: string | null; occurredAt: string; kind: DiaryKind; id: string }>;
+export type DiarySortKey = Readonly<{ version: 1; fieldId: string; seasonId: string | null; includeIrrigation: boolean; occurredAt: string; kind: DiaryKind; id: string }>;
 export type DiaryPage = Readonly<{ items: readonly DiaryEntry[]; nextCursor: string | null }>;
 
 const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
@@ -40,7 +43,7 @@ export function encodeDiaryCursor(cursor: DiarySortKey): string {
   return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
 }
 
-export function decodeDiaryCursor(value: string | undefined, fieldId: string, seasonId: string | null | undefined): DiarySortKey | null {
+export function decodeDiaryCursor(value: string | undefined, fieldId: string, seasonId: string | null | undefined, includeIrrigation = false): DiarySortKey | null {
   if (value === undefined) return null;
   try {
     if (!/^[A-Za-z0-9_-]+$/.test(value)) throw invalidRequest();
@@ -48,10 +51,11 @@ export function decodeDiaryCursor(value: string | undefined, fieldId: string, se
     if (bytes.toString("base64url") !== value) throw invalidRequest();
     const decoded = JSON.parse(bytes.toString("utf8")) as Partial<DiarySortKey>;
     if (decoded.version !== 1 || decoded.fieldId !== fieldId || decoded.seasonId !== (seasonId ?? null)
+        || (decoded.includeIrrigation ?? false) !== includeIrrigation
         || typeof decoded.occurredAt !== "string" || !Number.isFinite(Date.parse(decoded.occurredAt))
-        || (decoded.kind !== "OBSERVATION" && decoded.kind !== "TASK_COMPLETION" && decoded.kind !== "TASK_SKIPPED")
+        || (decoded.kind !== "IRRIGATION" && decoded.kind !== "OBSERVATION" && decoded.kind !== "TASK_COMPLETION" && decoded.kind !== "TASK_SKIPPED")
         || typeof decoded.id !== "string" || !uuid.test(decoded.id)) throw invalidRequest();
-    return decoded as DiarySortKey;
+    return { ...decoded, includeIrrigation: decoded.includeIrrigation ?? false } as DiarySortKey;
   } catch { throw invalidRequest(); }
 }
 
@@ -62,12 +66,14 @@ export function entryIsAfterCursor(entry: DiaryOrderEntry, cursor: DiarySortKey)
 /** Merge already bounded source candidates and return an opaque strict-after cursor. */
 export function pageDiaryCandidates<T extends DiaryEntry>(
   candidates: readonly T[], limit: number, fieldId: string, seasonId: string | null, after: DiarySortKey | null = null,
+  includeIrrigation = false,
 ): DiaryPage {
-  const ordered = sortDiaryEntries(candidates).filter((entry) => !after || entryIsAfterCursor(entry, after));
+  const visible = includeIrrigation ? candidates : candidates.filter((entry) => entry.kind !== "IRRIGATION");
+  const ordered = sortDiaryEntries(visible).filter((entry) => !after || entryIsAfterCursor(entry, after));
   const items = ordered.slice(0, limit);
   const last = items.at(-1);
   const nextCursor = ordered.length > limit && last
-    ? encodeDiaryCursor({ version: 1, fieldId, seasonId, occurredAt: eventAt(last), kind: last.kind, id: last.id })
+    ? encodeDiaryCursor({ version: 1, fieldId, seasonId, includeIrrigation, occurredAt: eventAt(last), kind: last.kind, id: last.id })
     : null;
   return { items, nextCursor };
 }

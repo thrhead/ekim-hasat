@@ -47,3 +47,20 @@ test("Field Diary contract projects Task Skipped as its own accepted event kind"
   assert.match(skipped, /skippedAt/);
   assert.match(skipped, /no duplicate diary record is persisted/);
 });
+
+test("Field Diary contract requires opt-in irrigation history with a distinct IRRIGATION event shape", async () => {
+  const contract = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
+  const diary = /  \/fields\/\{fieldId\}\/diary:\n    get:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0] ?? "";
+  const page = /DiaryPage:[\s\S]*?(?=\n    ObservationDiaryEntry:)/.exec(contract)?.[0] ?? "";
+  const irrigation = /IrrigationDiaryEntry:[\s\S]*?(?=\n    ApiError:)/.exec(contract)?.[0] ?? "";
+  assert.match(diary, /name: includeIrrigation[\s\S]*?in: query[\s\S]*?required: false[\s\S]*?type: boolean[\s\S]*?default: false/);
+  assert.match(page, /IRRIGATION/);
+  assert.match(page, /IrrigationDiaryEntry/);
+  assert.match(irrigation, /kind: \{ type: string, const: IRRIGATION \}/);
+  assert.match(irrigation, /id/);
+  assert.match(irrigation, /fieldId/);
+  assert.match(irrigation, /seasonId/);
+  assert.match(irrigation, /occurredAt/);
+  assert.match(irrigation, /businessTimezone/);
+  assert.doesNotMatch(irrigation, /observationId:/);
+});

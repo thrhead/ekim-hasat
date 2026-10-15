@@ -19,7 +19,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | "irrigation-create" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -277,6 +277,14 @@ export function createAppComposition(
     },
     showFieldDiary(fieldId: string, seasonId?: string) {
       publish({ ...state, entry: "field-diary", diaryFieldId: fieldId, diarySeasonId: seasonId ?? null, seasonDraft: null });
+    },
+    showIrrigationCreate() {
+      if (!state.diaryFieldId) return;
+      publish({ ...state, entry: "irrigation-create", seasonDraft: null });
+    },
+    returnToFieldDiary() {
+      if (!state.diaryFieldId) return;
+      publish({ ...state, entry: "field-diary", seasonDraft: null });
     },
     startFieldCreate() { publish({ ...state, entry: "field-create", editingField: null, seasonDraft: null }); },
     editField(field: FieldDetail) { publish({ ...state, entry: "field-edit", fieldId: field.id, editingField: field, seasonDraft: null }); },

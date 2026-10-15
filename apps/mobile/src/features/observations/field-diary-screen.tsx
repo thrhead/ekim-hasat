@@ -15,6 +15,8 @@ export type FieldDiaryScreenProps = {
   onBack?: () => void;
   /** Supplied only when creation is permitted in the current navigation context. */
   onAddObservation?: () => void;
+  /** Supplied only when irrigation capture is available from this diary. */
+  onAddIrrigation?: () => void;
 };
 
 export function FieldDiaryScreen(props: FieldDiaryScreenProps) {
@@ -35,7 +37,7 @@ export function reconcileObservationRows(entries: DiaryEntry[], local: Observati
   });
 }
 
-function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation }: FieldDiaryScreenProps) {
+function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation, onAddIrrigation }: FieldDiaryScreenProps) {
   const [data, setData] = useState<DiaryPage | null>(null);
   const [localCommands, setLocalCommands] = useState<ObservationCommand[]>([]);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -92,7 +94,15 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
     return () => { current = false; unsubscribe?.(); };
   }, [accountId, observationStore, fieldId, seasonId]);
 
-  const visibleRows = accessDenied ? [] : reconcileObservationRows(data?.items ?? [], localCommands);
+  const serverEntries = data?.items ?? [];
+  const visibleRows = accessDenied ? [] : [
+    ...reconcileObservationRows(serverEntries.filter((entry) => entry.kind === "OBSERVATION"), localCommands),
+    ...serverEntries.filter((entry) => entry.kind !== "OBSERVATION"),
+  ].sort((left, right) => {
+    const leftAt = left.kind === "TASK_SKIPPED" ? left.skippedAt : left.occurredAt;
+    const rightAt = right.kind === "TASK_SKIPPED" ? right.skippedAt : right.occurredAt;
+    return rightAt.localeCompare(leftAt) || right.id.localeCompare(left.id);
+  });
   const displayTimezone = data?.businessTimezone ?? localCommands.find((command) => command.state === "ACCEPTED")?.capturedBusinessTimezone;
 
   return <ScrollView contentContainerStyle={styles.content} accessibilityLabel="Tarla günlüğü">
@@ -115,24 +125,33 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
     {!data && !accessDenied && displayTimezone && visibleRows.map((item) =>
       <DiaryRow key={`${item.kind}:${item.id}`} item={item} timezone={displayTimezone} />)}
     {onAddObservation && <Pressable accessibilityRole="button" accessibilityLabel="Gözlem ekle" onPress={onAddObservation} style={styles.button}><Text>Gözlem ekle</Text></Pressable>}
+    {onAddIrrigation && <Pressable accessibilityRole="button" accessibilityLabel="Sulama kaydı ekle" onPress={onAddIrrigation} style={styles.button}><Text>Sulama kaydı ekle</Text></Pressable>}
   </ScrollView>;
 }
 
 function DiaryRow({ item, timezone }: { item: DiaryEntry; timezone: string }) {
-  const isTask = item.kind !== "OBSERVATION";
+  const isTask = item.kind === "TASK_COMPLETION" || item.kind === "TASK_SKIPPED";
+  const irrigation = item.kind === "IRRIGATION";
   const skipped = item.kind === "TASK_SKIPPED";
-  const happenedAt = item.kind === "OBSERVATION" ? item.occurredAt : skipped ? item.skippedAt : item.occurredAt;
+  const happenedAt = skipped ? item.skippedAt : item.occurredAt;
   const occurred = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(new Date(happenedAt));
-  const title = item.kind === "OBSERVATION" ? "Gözlem" : skipped ? "Görev atlandı" : "Tamamlanan iş";
-  const description = item.kind === "OBSERVATION" ? item.description : item.title;
+  const title = item.kind === "OBSERVATION" ? "Gözlem" : irrigation ? "Sulama kaydı" : skipped ? "Görev atlandı" : "Tamamlanan iş";
+  const description = item.kind === "OBSERVATION" ? item.description : irrigation ? item.method ?? "Yöntem belirtilmedi" : item.title;
   const planned = isTask ? new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.plannedLocalDate}T12:00:00Z`)) : null;
-  const provenance = item.kind === "OBSERVATION" ? item.seasonId ? "Sezona bağlı gözlem" : "Tarla gözlemi" : item.sourceKind === "MANUAL" ? "Elle eklenen iş" : "Onaylı plana göre";
-  return <View accessible accessibilityLabel={`${title}, ${description}, ${skipped ? "atlandı" : "gerçekleşti"} ${occurred}, ${timezone}${planned ? `, planlanan ${planned}` : ""}, ${provenance}`} style={styles.row}>
+  const provenance = item.kind === "OBSERVATION" ? item.seasonId ? "Sezona bağlı gözlem" : "Tarla gözlemi" : isTask ? item.sourceKind === "MANUAL" ? "Elle eklenen iş" : "Onaylı plana göre" : null;
+  const irrigationDetails = irrigation ? [
+    item.durationMinutes === null ? null : `${item.durationMinutes} dakika`,
+    item.waterVolumeCubicMetres === null ? null : `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 }).format(Number(item.waterVolumeCubicMetres))} m³`,
+    item.note,
+  ].filter((detail): detail is string => Boolean(detail)) : [];
+  const accessibleDetails = [description, skipped ? "atlandı" : "gerçekleşti", ...irrigationDetails, provenance].filter(Boolean).join(", ");
+  return <View accessible accessibilityLabel={`${title}, ${accessibleDetails} ${occurred}, ${timezone}${planned ? `, planlanan ${planned}` : ""}`} style={styles.row}>
     <Text accessibilityRole="header" style={styles.rowTitle}>{title}</Text>
     <Text style={styles.body}>{description}</Text>
     <Text style={styles.body}>{skipped ? "Atlanma zamanı" : "Gerçekleşti"}: {occurred} · {timezone}</Text>
     {planned && <Text style={styles.body}>Planlanan gün: {planned}</Text>}
-    <Text style={styles.body}>{provenance}</Text>
+    {irrigationDetails.map((detail) => <Text key={detail} style={styles.body}>{detail}</Text>)}
+    {provenance && <Text style={styles.body}>{provenance}</Text>}
     {item.kind === "TASK_COMPLETION" && <Text style={styles.body}>Sezonda tamamlanan iş</Text>}
   </View>;
 }

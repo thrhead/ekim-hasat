@@ -23,7 +23,7 @@ export type TaskOutcomeHistoryEntry = Readonly<{
   plannedLocalDate: string; skippedAt: string; sourceKind: "MANUAL" | "VALIDATED_TEMPLATE"; templateVersionId: string | null;
 }>;
 export type TaskOutcomeHistoryPage = Readonly<{ items: readonly TaskOutcomeHistoryEntry[]; businessTimezone: string; nextCursor: string | null }>;
-export type TaskCompletionDiaryAfter = Readonly<{ occurredAt: string; kind: "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
+export type TaskCompletionDiaryAfter = Readonly<{ occurredAt: string; kind: "IRRIGATION" | "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 const instantPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i;
@@ -252,7 +252,7 @@ export class TaskCompletionRepository {
     if (after && (!Number.isFinite(boundary!.getTime()) || !uuidPattern.test(after.id))) throw new TaskCompletionError("INVALID_REQUEST");
     const afterFilter = !after ? {} : { OR: [
       { occurredAt: { lt: boundary } },
-      ...(after.kind === "OBSERVATION" ? [{ occurredAt: boundary }]
+      ...(after.kind === "IRRIGATION" || after.kind === "OBSERVATION" ? [{ occurredAt: boundary }]
         : after.kind === "TASK_COMPLETION" ? [{ occurredAt: boundary, id: { lt: after.id } }] : []),
     ] };
     const rows = await this.prisma.taskCompletion.findMany({

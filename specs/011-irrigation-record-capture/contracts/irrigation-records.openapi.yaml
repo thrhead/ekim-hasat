@@ -131,8 +131,8 @@ components:
           description: Optional positive duration in whole minutes.
         waterVolumeCubicMetres:
           type: string
-          pattern: '^(?=.*[1-9])[0-9]{1,15}(?:\.[0-9])?$'
-          description: Optional positive water volume in cubic metres, with at most one decimal place; transmitted as a decimal string.
+          pattern: '^(?=.*[1-9])[0-9]{1,11}(?:\.[0-9])?$'
+          description: Optional positive water volume in cubic metres, with at most one decimal place and at most 11 integer digits; transmitted as a decimal string.
         note:
           type: string
           maxLength: 2000

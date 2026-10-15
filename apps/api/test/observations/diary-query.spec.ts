@@ -10,6 +10,9 @@ const seasonId = "22222222-2222-4222-8222-222222222222";
 const obs = (id: string, occurredAt: string, description = id) => ({ kind: "OBSERVATION" as const, id, fieldId, seasonId: null, description, occurredAt });
 const completion = (id: string, occurredAt: string) => ({ kind: "TASK_COMPLETION" as const, id, taskId: id, seasonId, fieldId, title: "Cultivate", plannedLocalDate: "2026-10-04", occurredAt, sourceKind: "MANUAL" as const, templateVersionId: null });
 const skipped = (id: string, skippedAt: string) => ({ kind: "TASK_SKIPPED" as const, id, skipId: id, taskId: id, seasonId, fieldId, title: "Cultivate", plannedLocalDate: "2026-10-04", skippedAt, sourceKind: "MANUAL" as const, templateVersionId: null });
+const irrigation = (id: string, occurredAt: string) => ({ kind: "IRRIGATION" as const, id, fieldId, seasonId: null,
+  occurredAt, businessTimezone: "Europe/Istanbul", method: "Drip", durationMinutes: 30,
+  waterVolumeCubicMetres: null, note: null, recordedAt: "2026-10-05T10:00:00.000Z" });
 const queryModule = () => import("../../src/observations/diary-query.js");
 const base64urlAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
@@ -73,7 +76,7 @@ test("bounded page defaults to 50, caps at 100, and continues strictly after the
   assert.ok(cursor);
   assert.equal((JSON.parse(Buffer.from(page.nextCursor!, "base64url").toString("utf8")) as { version?: number }).version, 1);
   assert.equal((cursor as unknown as { version?: number }).version, 1);
-  assert.deepEqual(cursor, { version: 1, fieldId, seasonId: null, occurredAt: items[1]!.occurredAt, kind: items[1]!.kind, id: items[1]!.id });
+  assert.deepEqual(cursor, { version: 1, fieldId, seasonId: null, includeIrrigation: false, occurredAt: items[1]!.occurredAt, kind: items[1]!.kind, id: items[1]!.id });
   assert.deepEqual(pageDiaryCandidates(items, 2, fieldId, null, cursor).items.map(({ id }) => id), [items[2]!.id]);
   const encoded = encodeDiaryCursor({ version: 1, fieldId, seasonId, occurredAt: items[0]!.occurredAt, kind: items[0]!.kind, id: items[0]!.id });
   assert.throws(() => decodeDiaryCursor(encoded, fieldId, null), (error: unknown) => error instanceof ApiError && error.getStatus() === 400);
@@ -90,7 +93,7 @@ test("cursor decoder round-trips the application's canonical unpadded base64url 
   const canonical = encodeDiaryCursor({ version: 1, fieldId, seasonId: null,
     occurredAt: "2026-10-05T09:00:00Z", kind: "OBSERVATION", id: "22222222-2222-4222-8222-222222222222" });
   assert.deepEqual(decodeDiaryCursor(canonical, fieldId, null), {
-    version: 1, fieldId, seasonId: null, occurredAt: "2026-10-05T09:00:00Z",
+    version: 1, fieldId, seasonId: null, includeIrrigation: false, occurredAt: "2026-10-05T09:00:00Z",
     kind: "OBSERVATION", id: "22222222-2222-4222-8222-222222222222",
   });
 });
@@ -133,4 +136,41 @@ test("strict-after traversal excludes records before its consumed cursor and per
   const cursor = (await queryModule()).decodeDiaryCursor(first.nextCursor!, fieldId, null)!;
   const next = pageDiaryCandidates([beforeCursor, afterCursor], 10, fieldId, null, cursor);
   assert.deepEqual(next.items.map(({ id }) => id), [afterCursor.id]);
+});
+
+test("irrigation uses deterministic kind and descending ID tie-breaks and continues across cursors", async () => {
+  const { sortDiaryEntries, pageDiaryCandidates, decodeDiaryCursor } = await queryModule();
+  const instant = "2026-10-05T09:00:00.000Z";
+  const entries = [obs("cccccccc-cccc-4ccc-8ccc-cccccccccccc", instant),
+    irrigation("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", instant),
+    irrigation("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", instant)];
+  const sorted = sortDiaryEntries(entries);
+  assert.deepEqual(sorted.map(({ kind, id }) => [kind, id]), [
+    ["IRRIGATION", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"],
+    ["IRRIGATION", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+    ["OBSERVATION", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"],
+  ]);
+  const firstPage = pageDiaryCandidates(entries, 1, fieldId, null, null, true);
+  assert.equal(firstPage.items[0]?.id, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  assert.ok(firstPage.nextCursor);
+  const cursor = decodeDiaryCursor(firstPage.nextCursor, fieldId, null, true);
+  assert.equal(cursor?.kind, "IRRIGATION");
+  const nextPage = pageDiaryCandidates(entries, 10, fieldId, null, cursor, true);
+  assert.deepEqual(nextPage.items.map(({ id }) => id), ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"]);
+});
+
+test("irrigation diary entries are excluded by default and included only by opt-in", async () => {
+  const { pageDiaryCandidates } = await queryModule();
+  const entries = [obs("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05T09:00:00.000Z"),
+    irrigation("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05T10:00:00.000Z")];
+  assert.deepEqual(pageDiaryCandidates(entries, 10, fieldId, null).items.map(({ kind }) => kind), ["OBSERVATION"]);
+  assert.deepEqual(pageDiaryCandidates(entries, 10, fieldId, null, null, true).items.map(({ kind }) => kind), ["IRRIGATION", "OBSERVATION"]);
+});
+
+test("diary cursor is bound to the includeIrrigation projection", async () => {
+  const { encodeDiaryCursor, decodeDiaryCursor } = await queryModule();
+  const cursor = encodeDiaryCursor({ version: 1, fieldId, seasonId: null, includeIrrigation: true,
+    occurredAt: "2026-10-05T09:00:00Z", kind: "IRRIGATION", id: "22222222-2222-4222-8222-222222222222" });
+  assert.throws(() => decodeDiaryCursor(cursor, fieldId, null, false), isInvalidCursor);
+  assert.equal(decodeDiaryCursor(cursor, fieldId, null, true)?.includeIrrigation, true);
 });

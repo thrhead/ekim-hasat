@@ -50,7 +50,7 @@ test("accepts positive cubic-metre volumes with at most one decimal place", () =
   for (const waterVolumeCubicMetres of ["0.1", "2", "3.0"]) {
     assert.equal(createIrrigationRecord({ ...validInput, waterVolumeCubicMetres }).waterVolumeCubicMetres, waterVolumeCubicMetres);
   }
-  for (const waterVolumeCubicMetres of ["0", "0.0", "-0.1", "1.23", "1.", "not-a-number"]) {
+  for (const waterVolumeCubicMetres of ["0", "0.0", "-0.1", "1.23", "1.", "not-a-number", "100000000000.0"]) {
     assert.throws(() => createIrrigationRecord({ ...validInput, waterVolumeCubicMetres }), TypeError);
   }
 });

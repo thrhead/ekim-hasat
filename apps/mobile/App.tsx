@@ -13,6 +13,7 @@ import { FieldCreateScreen } from "./src/features/fields/field-create-screen";
 import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
+import { IrrigationRecordCreateScreen } from "./src/features/operations/irrigation-record-create-screen";
 import { scheduleObservationRetry } from "./src/features/observations/observation-delivery";
 import { CalendarScreen } from "./src/features/calendar/calendar-screen";
 import { AuthScreen } from "./src/features/auth/auth-screen";
@@ -183,7 +184,13 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
     client={state.client} accountId={state.accountId ?? undefined} observationStore={composition?.observationStore}
     fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
     onBack={() => composition?.openField(state.diaryFieldId!)}
-    onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)} />;
+    onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)}
+    onAddIrrigation={() => composition?.showIrrigationCreate()} />;
+  if (state.entry === "irrigation-create" && state.client && state.diaryFieldId) return <IrrigationRecordCreateScreen
+    key={`${state.accountId ?? ""}:${state.diaryFieldId}:irrigation`}
+    client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
+    onBack={() => composition?.returnToFieldDiary()}
+    onCreated={() => composition?.returnToFieldDiary()} />;
   return null;
 }
 

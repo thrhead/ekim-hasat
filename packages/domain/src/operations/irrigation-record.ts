@@ -38,7 +38,7 @@ export function createIrrigationRecord(input: CreateIrrigationRecordInput): Irri
   }
   if (input.waterVolumeCubicMetres !== undefined && input.waterVolumeCubicMetres !== null
     && (typeof input.waterVolumeCubicMetres !== "string"
-      || !/^\d+(?:\.\d)?$/.test(input.waterVolumeCubicMetres)
+      || !/^\d{1,11}(?:\.\d)?$/.test(input.waterVolumeCubicMetres)
       || !/[1-9]/.test(input.waterVolumeCubicMetres))) {
     throw new TypeError("waterVolumeCubicMetres must be a positive decimal with at most one decimal place");
   }

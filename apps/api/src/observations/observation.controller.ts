@@ -10,7 +10,7 @@ import { authenticateSeasonRequest, configureSeasonApiObservability } from "../s
 export type CreateObservationRequest = ObservationDiaryComponents["schemas"]["CreateObservationRequest"];
 export type ObservationPublic = ObservationDiaryComponents["schemas"]["Observation"];
 export type ObservationCreateOutcome = Readonly<{ kind: "accepted" | "replayed"; observation: ObservationPublic }>;
-export type ObservationDiaryFilters = Readonly<{ seasonId?: string; cursor?: string; limit?: number }>;
+export type ObservationDiaryFilters = Readonly<{ seasonId?: string; cursor?: string; limit?: number; includeIrrigation?: boolean }>;
 export type ObservationDiaryPage = ObservationDiaryComponents["schemas"]["DiaryPage"];
 export type ObservationDependencies = Readonly<{
   verify: (token: string) => Promise<VerifiedSubject | null>;
@@ -63,6 +63,7 @@ export class ObservationController {
     const seasonId = query.seasonId;
     const cursor = query.cursor;
     const rawLimit = query.limit;
+    const rawIncludeIrrigation = query.includeIrrigation;
     let limit: number | undefined;
     if (rawLimit !== undefined) {
       if (typeof rawLimit !== "string" || !/^[1-9]\d*$/.test(rawLimit)) throw invalidRequest();
@@ -71,8 +72,10 @@ export class ObservationController {
     }
     if (seasonId !== undefined && (typeof seasonId !== "string" || !uuid.test(seasonId))) throw invalidRequest();
     if (cursor !== undefined && (typeof cursor !== "string" || !cursor.length || cursor.length > 512)) throw invalidRequest();
+    if (rawIncludeIrrigation !== undefined && rawIncludeIrrigation !== "true" && rawIncludeIrrigation !== "false") throw invalidRequest();
     return this.dependencies.readDiary(identity, fieldId, { ...(typeof seasonId === "string" ? { seasonId } : {}),
-      ...(typeof cursor === "string" ? { cursor } : {}), ...(limit === undefined ? {} : { limit }) });
+      ...(typeof cursor === "string" ? { cursor } : {}), ...(limit === undefined ? {} : { limit }),
+      ...(rawIncludeIrrigation === "true" ? { includeIrrigation: true } : {}) });
   }
 }
 
