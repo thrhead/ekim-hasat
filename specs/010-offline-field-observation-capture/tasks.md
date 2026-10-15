@@ -151,3 +151,12 @@
 - The optional `capturedBusinessTimezone` wire precondition is SPEC-010 scope for enforcing the approved first-delivery timezone rule. Keep older clients' omitted-field behavior and current replay authorization.
 - Do not modify the reviewer-owned checklist markers as implementation task tracking. Existing 32/32 and 16/16 checklist states record requirements-quality review, not completed tasks.
 - The account-continuity product decision is resolved: an observation-specific, non-authoritative persistent marker is established only by a concrete authenticated account; only retryable/offline restoration failure may reuse it for same-account local capture. Definitive no session/sign-out invalidates active use, another account switches namespaces, and delivery still requires a matching authenticated API session. T003/T005 verify and implement that decision against the existing auth lifecycle. No further product decision is identified.
+
+## Final whole-branch review recovery
+
+- [x] T042 Close F1 account-switch stale-context privacy race with revision/account guards in app composition; retain the deferred interleaving regression and prove GREEN.
+- [x] T043 Close F2 second-offline-observation gap with a farmer-accessible new-observation action that preserves the first durable command and distinct identity; prove RED→GREEN.
+- [x] T044 Close F3 mounted-diary stale view with local command-store subscription and accepted-row reconciliation; prove RED→GREEN.
+- [x] T045 Close F4 UNCONFIRMED dead end with an explicit active-account-guarded replay of the exact persisted command, retaining uncertainty and idempotency identity; author and observe RED before implementation, then prove GREEN.
+
+Evidence: `quickstart.md`, section “Final whole-branch review fixes”; recovery ledger `.superpowers/sdd/spec-010-offline-field-observation-capture/progress.md` (ignored).

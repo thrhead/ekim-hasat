@@ -153,12 +153,16 @@ export function createAppComposition(
       if (revision !== statusRevision) return;
       if (commands.some((command) => command.state === "PENDING")) {
         publish({ ...state, entry: "today", client, accountId });
-      } else if (!await recoverSavedObservationEntry(client, accountId, revision)) {
-        publish({ ...state, entry: "status-error", client, accountId });
+      } else {
+        const recovered = await recoverSavedObservationEntry(client, accountId, revision);
+        if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+        if (!recovered) publish({ ...state, entry: "status-error", client, accountId });
       }
     } catch {
-      if (revision === statusRevision && !await recoverSavedObservationEntry(client, accountId, revision)) {
-        publish({ ...state, entry: "status-error", client });
+      if (revision !== statusRevision || state.auth.status !== "authenticated" || state.auth.accountId !== accountId) return;
+      const recovered = await recoverSavedObservationEntry(client, accountId, revision);
+      if (revision === statusRevision && state.auth.status === "authenticated" && state.auth.accountId === accountId && !recovered) {
+        publish({ ...state, entry: "status-error", client, accountId });
       }
     }
   }

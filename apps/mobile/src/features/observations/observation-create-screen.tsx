@@ -16,7 +16,7 @@ function observationId(): string {
 export type ObservationCreateScreenProps = {
   client?: ApiClient;
   accountId?: string;
-  offlineStore?: Pick<ObservationCommandStore, "getContext" | "enqueue"> & Partial<Pick<ObservationCommandStore, "saveContext" | "list" | "subscribe">>;
+  offlineStore?: Pick<ObservationCommandStore, "getContext" | "enqueue"> & Partial<Pick<ObservationCommandStore, "saveContext" | "list" | "subscribe" | "retryUnconfirmed">>;
   fieldId: string;
   fieldName?: string;
   seasonId?: string;
@@ -104,6 +104,17 @@ function ObservationCreateForm({ client, accountId, offlineStore, fieldId, field
     } finally { inFlight.current = false; if (mounted.current) setSaving(false); }
   }
 
+  async function retryUnconfirmed(observationId: string) {
+    if (!accountId || !offlineStore?.retryUnconfirmed || saving) return;
+    setSaving(true);
+    try {
+      await offlineStore.retryUnconfirmed(accountId, observationId);
+      if (mounted.current) { setPendingId(observationId); onPending?.(); }
+    } catch {
+      if (mounted.current) setError("Gözlem sonucu yeniden denetlenemedi. Daha sonra tekrar deneyin.");
+    } finally { if (mounted.current) setSaving(false); }
+  }
+
   async function submit(request: ObservationRequest) {
     if (inFlight.current || !timezone || !client) return;
     inFlight.current = true; setSaving(true); setError(null);
@@ -153,11 +164,18 @@ function ObservationCreateForm({ client, accountId, offlineStore, fieldId, field
             setNote(command.description); setLocal(command.occurredAtLocal);
             setError(null);
           }} style={styles.button}><Text>Düzeltilmiş yeni gözlem oluştur</Text></Pressable>}
+        {command.state === "UNCONFIRMED" && offlineStore?.retryUnconfirmed && <Pressable accessibilityRole="button"
+          accessibilityLabel="Aynı gözlem sonucunu yeniden denetle" accessibilityState={{ disabled: saving, busy: saving }} disabled={saving}
+          onPress={() => { void retryUnconfirmed(command.observationId); }} style={styles.button}><Text>Aynı gözlem sonucunu yeniden denetle</Text></Pressable>}
       </View>;
     })}
     {pending ? <>
       <Text accessibilityRole="text" accessibilityLabel={pendingCommand?.retrying ? "Gözlem yeniden gönderiliyor" : "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor"} accessibilityLiveRegion="polite">{pendingCommand?.retrying ? "Gözlem yeniden gönderiliyor" : "Gözlem cihazda kaydedildi, gönderilmeyi bekliyor"}</Text>
       <Text>{note.trim()}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Yeni gözlem ekle" onPress={() => {
+        setPendingId(null); setNote(""); setError(null);
+        if (timezone) setLocal(observationLocalTime(now(), timezone).slice(0, 16));
+      }} style={styles.button}><Text>Yeni gözlem ekle</Text></Pressable>
     </> : accepted ? <>
       <Text accessibilityRole="text" accessibilityLabel="Gözlem kaydedildi" accessibilityLiveRegion="polite">Gözlem kaydedildi</Text>
       <Text>{accepted.description}</Text>

@@ -214,6 +214,16 @@ export function createObservationCommandStore(options: Readonly<{ storage?: Obse
       await storage.updateCommand(accountId, observationId, { ...command, state, failureCode });
       notifyChange();
     },
+    async retryUnconfirmed(accountId: string, observationId: string) {
+      if ((await activeMarker()) !== accountId) throw new Error("Observation account mismatch");
+      const command = (await storage.listCommands(accountId)).find((item) => item.observationId === observationId);
+      if (!command || command.state !== "UNCONFIRMED" || !command.attemptMayHaveCommitted) {
+        throw new Error("Unconfirmed observation command was not found");
+      }
+      if ((await activeMarker()) !== accountId) throw new Error("Observation account mismatch");
+      await storage.updateCommand(accountId, observationId, { ...command, state: "PENDING" });
+      notifyChange();
+    },
   };
 }
 

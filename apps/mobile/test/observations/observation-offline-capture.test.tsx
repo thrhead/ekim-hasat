@@ -54,6 +54,36 @@ describe("offline observation capture", () => {
     await act(async () => screen.unmount());
   });
 
+  it("keeps an add-another action available after the first offline note is saved", async () => {
+    const firstId = observationId;
+    const secondId = "223e4567-e89b-42d3-a456-426614174000";
+    const commands: Array<{ observationId: string; accountId: string; fieldId: string; seasonId: null; description: string;
+      occurredAtLocal: string; occurredAt: string; capturedBusinessTimezone: string; state: "PENDING" }> = [];
+    let listener: (() => void) | undefined;
+    const store = { getContext: async () => ({ fieldId: "field-1", seasonId: null, businessTimezone: "Europe/Istanbul" }),
+      enqueue: async (_account: string, command: (typeof commands)[number]) => { commands.push(command); listener?.(); },
+      list: async () => commands, subscribe: (onChange: () => void) => { listener = onChange; return () => { listener = undefined; }; } };
+    const createId = jest.fn().mockReturnValueOnce(firstId).mockReturnValueOnce(secondId);
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<ObservationCreateScreen accountId="account-a" fieldId="field-1"
+      offlineStore={store as never} now={now} createId={createId} />); });
+    await act(async () => {
+      node(screen, "Gözlem notu").props.onChangeText("First offline note");
+      node(screen, "Gözlem tarihi ve saati").props.onChangeText("2026-10-14T12:00");
+    });
+    await act(async () => { node(screen, "Gözlemi kaydet").props.onPress(); });
+    expect(commands.map((command) => command.observationId)).toEqual([firstId]);
+    expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Yeni gözlem ekle").length).toBeGreaterThan(0);
+    await act(async () => { node(screen, "Yeni gözlem ekle").props.onPress(); });
+    await act(async () => {
+      node(screen, "Gözlem notu").props.onChangeText("Second offline note");
+      node(screen, "Gözlem tarihi ve saati").props.onChangeText("2026-10-14T12:10");
+    });
+    await act(async () => { node(screen, "Gözlemi kaydet").props.onPress(); });
+    expect(commands.map((command) => command.observationId)).toEqual([firstId, secondId]);
+    await act(async () => screen.unmount());
+  });
+
   it("does not enqueue the same confirmation twice while the durable write is pending", async () => {
     let finishWrite!: () => void;
     const enqueue = jest.fn(() => new Promise<void>((resolve) => { finishWrite = resolve; }));

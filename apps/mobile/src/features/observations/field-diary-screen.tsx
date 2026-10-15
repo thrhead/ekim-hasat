@@ -7,7 +7,7 @@ import type { ObservationCommand, ObservationCommandStore } from "./observation-
 export type FieldDiaryScreenProps = {
   client: ApiClient;
   accountId?: string;
-  observationStore?: Pick<ObservationCommandStore, "list">;
+  observationStore?: Pick<ObservationCommandStore, "list"> & Partial<Pick<ObservationCommandStore, "subscribe">>;
   fieldId: string;
   fieldName?: string;
   seasonId?: string;
@@ -81,11 +81,15 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
 
   useEffect(() => {
     let current = true;
-    if (accountId && observationStore) void observationStore.list(accountId).then((commands) => {
-      if (current) setLocalCommands(commands.filter((command) => command.fieldId === fieldId
-        && (!seasonId || command.seasonId === seasonId)));
-    }).catch(() => {});
-    return () => { current = false; };
+    const refresh = () => {
+      if (accountId && observationStore) void observationStore.list(accountId).then((commands) => {
+        if (current) setLocalCommands(commands.filter((command) => command.fieldId === fieldId
+          && (!seasonId || command.seasonId === seasonId)));
+      }).catch(() => {});
+    };
+    refresh();
+    const unsubscribe = observationStore?.subscribe?.(refresh);
+    return () => { current = false; unsubscribe?.(); };
   }, [accountId, observationStore, fieldId, seasonId]);
 
   const visibleRows = accessDenied ? [] : reconcileObservationRows(data?.items ?? [], localCommands);

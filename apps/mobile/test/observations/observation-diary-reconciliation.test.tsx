@@ -57,3 +57,20 @@ it("keeps a durable accepted result visible after refresh failure and when page 
   expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, "Earlier field note"))).toHaveLength(1);
   await act(async () => screen.unmount());
 });
+
+it("updates an open diary when the local command becomes accepted", async () => {
+  let commands: ObservationCommand[] = [{ ...command, state: "PENDING", acceptedResult: undefined }];
+  let listener: (() => void) | undefined;
+  const store = { list: jest.fn(async () => commands), subscribe: (onChange: () => void) => {
+    listener = onChange; return () => { listener = undefined; };
+  } };
+  const GET = jest.fn().mockRejectedValue(new TypeError("offline"));
+  let screen!: TestRenderer;
+  await act(async () => { screen = create(<diary.FieldDiaryScreen client={{ GET } as never} accountId="a"
+    observationStore={store as never} fieldId="field-a" />); });
+  expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, command.description))).toHaveLength(0);
+  commands = [{ ...command, state: "ACCEPTED" }];
+  await act(async () => { listener?.(); });
+  expect(screen.root.findAll((candidate) => isAccessibleObservationNode(candidate, command.description))).toHaveLength(1);
+  await act(async () => screen.unmount());
+});

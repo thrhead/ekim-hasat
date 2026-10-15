@@ -158,4 +158,18 @@ describe("observation command store", () => {
       [command.observationId, command.description], [secondId, "Second note"],
     ]);
   });
+
+  it("lets an authenticated farmer explicitly retry the same unconfirmed command without clearing uncertainty", async () => {
+    const store = load()!.createObservationCommandStore({ storage: storage() });
+    await store.setAuthenticatedAccount("a");
+    await store.saveContext("a", { fieldId: "f", seasonId: null, businessTimezone: "Europe/Istanbul" });
+    await store.enqueue("a", command);
+    await store.markAttempt("a", command.observationId);
+    await store.recordAttention("a", command.observationId, "UNCONFIRMED", "IDEMPOTENCY_KEY_REUSED");
+    const unresolved = (await store.list("a"))[0]!;
+    await store.retryUnconfirmed("a", command.observationId);
+    expect(await store.list("a")).toEqual([{ ...unresolved, state: "PENDING" }]);
+    await store.setAuthenticatedAccount("b");
+    await expect(store.retryUnconfirmed("a", command.observationId)).rejects.toThrow("account mismatch");
+  });
 });

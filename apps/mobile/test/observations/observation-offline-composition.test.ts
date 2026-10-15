@@ -6,6 +6,8 @@ import { createAppComposition } from "../../src/app-composition";
 import { renderObservationContextRoute } from "../../App";
 import type { MobileAuthController } from "../../src/auth/auth-port";
 import type { ObservationCommandStore } from "../../src/features/observations/observation-command-store";
+import { createSeasonCreateCommandStore } from "../../src/features/seasons/season-create-command-store";
+import { createTaskCompletionCommandStore } from "../../src/features/tasks/task-completion-command-store";
 
 it("restores only a saved observation context after retryable offline auth restoration", async () => {
   const observationStore = {
@@ -66,3 +68,41 @@ it("offers saved observation context when sign-in is restored but onboarding sta
   expect(composition.getState()).toMatchObject({ entry: "observation-create", accountId: "account-a", fieldId: "field-a" });
   composition.dispose();
 });
+
+
+it("does not publish Account A context after its authenticated status fallback resumes under Account B", async () => {
+  const contextStarted = createDeferred<void>();
+  const releaseContext = createDeferred<{ fieldId: string; seasonId: null; businessTimezone: string } | null>();
+  const observationStore = { setAuthenticatedAccount: jest.fn().mockResolvedValue(undefined),
+    getLastContext: async (accountId: string) => { expect(accountId).toBe("account-a"); contextStarted.resolve(); return releaseContext.promise; },
+    list: jest.fn().mockResolvedValue([]) } as unknown as ObservationCommandStore;
+  const seasonStore = createSeasonCreateCommandStore({ storage: { async read() { return null; }, async saveCommand() {}, async recordSuccess() {}, async clearSuccess() {} } });
+  const taskStore = createTaskCompletionCommandStore({ storage: { async listCommands() { return []; }, async insertCommand() {}, async recordAccepted() {},
+    async recordConflict() {}, async writeTodaySnapshot() {}, async readTodaySnapshot() { return null; } } });
+  const clientA = { GET: jest.fn().mockRejectedValue(new TypeError("status transport unavailable")) };
+  const clientB = { GET: jest.fn().mockResolvedValue({ response: { ok: true, status: 200 }, data: { firstFieldOnboardingNeeded: true } }) };
+  let current: { status: "authenticated"; accountId: string } = { status: "authenticated", accountId: "account-a" };
+  let listener!: (auth: typeof current) => void;
+  const controller = { getState: () => current, getRestorationOutcome: () => "authenticated",
+    getAuthenticatedApiClient: () => current.accountId === "account-a" ? clientA : clientB,
+    getAuthenticatedApiSession: () => ({ accountId: current.accountId, client: current.accountId === "account-a" ? clientA : clientB }),
+    subscribe: (next: typeof listener) => { listener = next; next(current); return () => {}; }, start: async () => {},
+  } as unknown as MobileAuthController;
+  const composition = createAppComposition(controller, { observationStore, seasonCreateStore: seasonStore, taskCompletionStore: taskStore });
+  await contextStarted.promise;
+  current = { status: "authenticated", accountId: "account-b" };
+  listener(current);
+  expect(composition.getState()).toMatchObject({ auth: { accountId: "account-b" }, accountId: "account-b", entry: "loading" });
+  releaseContext.resolve({ fieldId: "private-field-a", seasonId: null, businessTimezone: "Europe/Istanbul" });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  expect(composition.getState().accountId).toBe("account-b");
+  expect(composition.getState().fieldId).not.toBe("private-field-a");
+  expect(composition.getState().entry).not.toBe("status-error");
+  composition.dispose();
+});
+
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((complete) => { resolve = complete; });
+  return { promise, resolve };
+}

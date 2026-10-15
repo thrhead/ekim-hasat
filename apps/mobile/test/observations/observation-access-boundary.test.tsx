@@ -10,17 +10,24 @@ it("announces an original-account unconfirmed note without calling it accepted o
   const command: ObservationCommand = { accountId: "account-a", observationId: "123e4567-e89b-42d3-a456-426614174000",
     fieldId: "field-a", seasonId: null, description: "Damp soil", occurredAtLocal: "2026-10-14T12:00",
     occurredAt: "2026-10-14T09:00:00Z", capturedBusinessTimezone: "Europe/Istanbul", state: "UNCONFIRMED" };
+  const retryUnconfirmed = jest.fn(async () => {});
+  const onPending = jest.fn();
   const store = { getContext: async () => ({ fieldId: "field-a", seasonId: null, businessTimezone: "Europe/Istanbul" }),
-    enqueue: jest.fn(), list: async () => [command] };
+    enqueue: jest.fn(), list: async () => [command], retryUnconfirmed };
   let screen!: ReturnType<typeof create>;
   await act(async () => { screen = create(<ObservationCreateScreen client={{ GET: jest.fn().mockRejectedValue(new TypeError("offline")) } as unknown as ApiClient}
-    accountId="account-a" fieldId="field-a" offlineStore={store as never}
+    accountId="account-a" fieldId="field-a" offlineStore={store as never} onPending={onPending}
     now={() => new Date("2026-10-14T12:00:00Z")} />); });
   const label = "Gözlem sonucu doğrulanamadı";
   const nodes = screen.root.findAll(({ props }) => props.accessibilityLabel === label);
   expect(nodes.length).toBeGreaterThan(0);
   expect(nodes[0]!.props.accessibilityLiveRegion).toBe("polite");
   expect(JSON.stringify(nodes[0]!.props)).not.toMatch(/kabul edildi|reddedildi/);
+  expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Aynı gözlem sonucunu yeniden denetle").length).toBeGreaterThan(0);
+  const retryButton = screen.root.findAll(({ props }) => props.accessibilityLabel === "Aynı gözlem sonucunu yeniden denetle")[0] as { props: { onPress: () => void } };
+  await act(async () => { retryButton.props.onPress(); });
+  expect(retryUnconfirmed).toHaveBeenCalledWith("account-a", command.observationId);
+  expect(onPending).toHaveBeenCalledTimes(1);
   await act(async () => screen.unmount());
 });
 
