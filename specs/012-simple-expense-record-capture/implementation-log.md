@@ -33,7 +33,7 @@
 | Mobile timed-entry exact-timestamp order omits kind tie-break | CONFIRMED; fixed | Same-instant observation/completion test failed before the fix when descending UUID order contradicted kind order. | Mobile comparator now orders timed ties by kind ascending, then UUID descending. Focused mobile Expense/Diary suites: 38/38 passed. |
 | Concurrent idempotency test may pass without exercising unique-conflict race | CONFIRMED; not changed | Existing test uses `Promise.all` and asserts convergence but has no synchronization proving both transactions reach the competing insert. | Strengthening it deterministically would require a database-side barrier/test hook or timing-based coordination; neither was added. Existing PostgreSQL concurrency test remains unchanged. |
 
-Generated API client consistency and contract type checks passed after regeneration. Mobile typecheck still reports the two pre-existing Diary test typing errors at `field-diary-screen.test.tsx:213,217`; the review-fix mobile tests themselves pass. The full T028 suite was not rerun.
+At this whole-feature review checkpoint, generated API client consistency and contract type checks passed after regeneration. Mobile typecheck still reported the two Diary test typing errors at `field-diary-screen.test.tsx:213,217`; the review-fix mobile tests themselves passed. The full T028 suite had not been rerun at that checkpoint. Subsequent entries below record their resolution and the final merged-result gate.
 
 ## Recovery audit (2026-10-16)
 
@@ -66,8 +66,35 @@ T007/T009 contract/type-test preparation, T008 Diary test preparation, and T010 
 
 ## Final-verification mobile typecheck blocker (2026-10-16)
 
-The fresh mobile typecheck reproduced TS2322 at `field-diary-screen.test.tsx:213` and TS2339 at `:217`. TS2322 came from the shared Expense fixture being double-cast to the entire generated Diary entry union; spreading it retained non-Expense variants, so `expenseDate` was not valid on every inferred member. TS2339 came from `react-test-renderer` exposing `props.accessibilityLabel` as `{}`; the test called `startsWith` without narrowing it to a string. The fixture now uses `Extract<Page["items"][number], { kind: "EXPENSE" }>` and the assertion narrows the label with `typeof`. No production or generated type changed. Fresh mobile typecheck passed; Field Diary and adjacent Expense/Season suites passed 38/38; `git diff --check` passed. This resolves the recorded final-verification blocker; the full final-verification gate remains pending.
+At the final-verification blocker checkpoint, the fresh mobile typecheck reproduced TS2322 at `field-diary-screen.test.tsx:213` and TS2339 at `:217`. TS2322 came from the shared Expense fixture being double-cast to the entire generated Diary entry union; spreading it retained non-Expense variants, so `expenseDate` was not valid on every inferred member. TS2339 came from `react-test-renderer` exposing `props.accessibilityLabel` as `{}`; the test called `startsWith` without narrowing it to a string. The fixture now uses `Extract<Page["items"][number], { kind: "EXPENSE" }>` and the assertion narrows the label with `typeof`. No production or generated type changed. Fresh mobile typecheck passed; Field Diary and adjacent Expense/Season suites passed 38/38; `git diff --check` passed. This resolved the blocker; the post-merge completion entry below records the subsequent full final-verification gate.
 
 ## Final-verification Season option ordering assertion (2026-10-16)
 
 The disposable-DB integration run exposed a test assumption that DRAFT must precede ACTIVE. The canonical contract requires stable creation ordering, while the repository query orders by `createdAt` then `id`; it does not rank statuses. The test fixtures share a creation batch and use random IDs, so their status positions are not guaranteed. Updated only the integration assertion to compare the returned ID/status/crop-label mapping independent of array order, assert returned statuses are DRAFT or ACTIVE, exclude the same-Business other-Field and cross-Business Season IDs from the selected Field result, and retain a privacy-safe 404 check for a Field in another Business. Production ordering is unchanged. Focused Season integration passed 4/4; the full sequential API integration and schema-invariant command passed 201/201. The disposable PostGIS database was verified as `ekim_hasat_test` with PostGIS and all 19 migrations, then removed.
+
+## Post-merge completion snapshot (2026-10-16)
+
+SPEC-012 Simple Expense Record Capture is complete and merged into local `main`. SPEC-001 through SPEC-012 are recorded as complete. At merged-result verification, local `main` HEAD was `d32c414e3d67959e068a92ff20b0b18006f61ebb`, six commits ahead of `origin/main` at `e0f4c0a84bcda6cb00af898f38bb0f24c2b268d7`. This continuity refresh adds a documentation-only commit after that verified feature HEAD; no push has been performed. The feature branch `012-simple-expense-record-capture` was deleted locally after merged-result verification.
+
+### Implemented behavior and boundaries
+
+- Expense is an immutable historical record with exact decimal amount validation/persistence, a pinned ISO 4217 currency code, a validated calendar date, and canonical OpenAPI-generated API client types.
+- A Field is required and Season is optional. Expense Season association must belong to the same Business and Field. Field-context capture can select that Field's available DRAFT or ACTIVE Seasons through the narrow OWNER-authorized `GET /v1/fields/{fieldId}/expenses/seasons` operation; a Season Diary context remains fixed to its Season.
+- Finance Expense access is OWNER-only. API authorization and all Field/Season reads and writes are Business-scoped; unauthorized Diary Expense projection is denied without exposing finance rows.
+- Create retries use the same Expense ID and exact logical payload. Exact same-actor replay returns the accepted result; a changed payload/context conflicts. Uncertain responses, including a successful HTTP response with no parsed body, retain that identity and payload for exact replay.
+- Expense dates remain date-only. Diary V1 remains backward compatible by default. Expense projection is opt-in through Diary V2; V2 combines timed and date-only events with contract ordering and cursor binding. A valid date-only cursor resolves to the earliest instant on its requested Business-local date, including `2018-11-04` in `America/Sao_Paulo` when local midnight is skipped; impossible calendar dates return `400 INVALID_REQUEST`.
+- Field Diary projection includes Field-only and explicitly linked Expenses; Season projection includes only Expenses linked to that exact Season. If page-level V2 Expense access returns 403, mobile restarts from the first page using V1, suppresses stale Expense rows, and preserves ordinary Diary rows. Mobile capture is online-only, retains exact retry identity on uncertain outcomes, and refreshes the relevant context after acceptance.
+
+### Final review and verification
+
+- Fresh whole-feature review, scoped finding fixes, final skipped-midnight scoped review, and `speckit-converge` completed cleanly. No unresolved Critical, Important, or Minor findings remain. The concurrency test's inability to prove deterministic transaction overlap remains documented as a test-quality limitation; no timing sleep or production test hook was added.
+- Fresh merged-result verification passed: domain 116/116; API unit 196/196; API contract 78/78; full API integration and schema invariants 201/201; focused mobile Expense/Season/Diary suites 38/38. API, mobile, and API-client type/contract checks, generated-client consistency, Prisma format/validation/generation, repository lint/build, Android smoke export, `git diff --check`, and repo-pinned `pnpm exec graft check` passed.
+- Writable PostgreSQL verification used a disposable PostGIS environment. `current_database() = ekim_hasat_test` was verified before migrations/tests, all repository migrations were applied, and the disposable environment was removed after the DB suites. No other database was used.
+- The merged-result working tree was clean. At that point local `main` was six commits ahead of `origin/main`; this continuity refresh adds one local documentation commit, and neither has been pushed.
+- This final merged-result gate supersedes the earlier point-in-time notes in this log that the final gate was pending or not yet rerun.
+
+### Next-feature workflow
+
+Fresh Repo-Backed Next-Spec Discovery → scope freeze → specify → review → clarify → review → plan/research/data-model/contracts → review → checklist generation + closure → tasks → analyze → Graft pre-implementation review → Superpowers + strict TDD implementation → fresh whole-feature review → confirmed finding fixes with genuine RED→GREEN → speckit-converge → final verification → integration choice → cleanup → continuity refresh.
+
+This snapshot records completed work only; SPEC-013 discovery has not started.
