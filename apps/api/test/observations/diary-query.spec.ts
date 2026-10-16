@@ -13,6 +13,8 @@ const skipped = (id: string, skippedAt: string) => ({ kind: "TASK_SKIPPED" as co
 const irrigation = (id: string, occurredAt: string) => ({ kind: "IRRIGATION" as const, id, fieldId, seasonId: null,
   occurredAt, businessTimezone: "Europe/Istanbul", method: "Drip", durationMinutes: 30,
   waterVolumeCubicMetres: null, note: null, recordedAt: "2026-10-05T10:00:00.000Z" });
+const expense = (id: string, expenseDate: string) => ({ kind: "EXPENSE" as const, id, fieldId, seasonId: null,
+  expenseDate, amount: "12.30", currency: "TRY", category: "FERTILIZER" as const, note: null });
 const queryModule = () => import("../../src/observations/diary-query.js");
 const base64urlAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
@@ -127,6 +129,32 @@ test("malformed cursor reaches the diary service as structured INVALID_REQUEST",
   await assert.rejects(repository.read({ provider: "test", subject: "test" }, fieldId, { cursor: `${canonical}!!!!` }), isInvalidCursor);
 });
 
+test("DATE_ONLY cursor resolves to the first instant when local midnight is skipped", async () => {
+  const { encodeDiaryCursor } = await queryModule();
+  const timezone = "America/Sao_Paulo";
+  const captured: { where?: { OR?: Array<{ occurredAt?: { lt?: Date } }> } } = {};
+  const transaction = {
+    applicationUser: { findUnique: async () => ({ id: "user", defaultBusinessId: "business" }) },
+    business: { findUnique: async () => ({ id: "business" }) },
+    membership: { findUnique: async () => ({ id: "membership", role: "OWNER", status: "ACTIVE" }) },
+  };
+  const prisma = {
+    $transaction: async (callback: (tx: unknown) => unknown) => callback(transaction),
+    $queryRaw: async () => [],
+    field: { findFirst: async () => ({ id: fieldId, business: { timezone } }) },
+    fieldObservation: { findMany: async ({ where }: { where: typeof captured }) => { captured.where = where; return []; } },
+  } as unknown as PrismaClient;
+  const completions = { readDiaryCandidates: async () => [] } as unknown as TaskCompletionRepository;
+  const cursor = encodeDiaryCursor({ version: 2, fieldId, seasonId: null, includeIrrigation: false, includeExpenses: true,
+    businessTimezone: timezone, localDate: "2018-11-04", precision: "DATE_ONLY", kind: "EXPENSE",
+    id: "33333333-3333-4333-8333-333333333333" });
+
+  await new ObservationDiaryRepository(prisma, completions).read({ provider: "test", subject: "test" }, fieldId,
+    { includeExpenses: true, cursor });
+
+  assert.equal(captured.where?.OR?.[0]?.occurredAt?.lt?.toISOString(), "2018-11-04T03:00:00.000Z");
+});
+
 test("strict-after traversal excludes records before its consumed cursor and permits records after it", async () => {
   const { pageDiaryCandidates } = await queryModule();
   const beforeCursor = obs("ffffffff-ffff-4fff-8fff-ffffffffffff", "2026-10-06T09:00:00.000Z");
@@ -173,4 +201,74 @@ test("diary cursor is bound to the includeIrrigation projection", async () => {
     occurredAt: "2026-10-05T09:00:00Z", kind: "IRRIGATION", id: "22222222-2222-4222-8222-222222222222" });
   assert.throws(() => decodeDiaryCursor(cursor, fieldId, null, false), isInvalidCursor);
   assert.equal(decodeDiaryCursor(cursor, fieldId, null, true)?.includeIrrigation, true);
+});
+
+test("expense opt-in keeps timed events ahead of date-only expenses within their Business-local day", async () => {
+  const { sortDiaryEntries } = await queryModule();
+  const entries = [
+    expense("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05"),
+    obs("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "2026-10-04T16:00:00.000Z"), // 2026-10-05 in Tokyo
+    expense("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+    obs("dddddddd-dddd-4ddd-8ddd-dddddddddddd", "2026-10-04T14:59:00.000Z"), // 2026-10-04 in Tokyo
+  ];
+  assert.deepEqual(sortDiaryEntries(entries, "Asia/Tokyo").map(({ id }) => id), [
+    "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  ]);
+});
+
+test("expense-enabled pages traverse timed and date-only groups without duplicate entries", async () => {
+  const { pageDiaryCandidates, decodeDiaryCursor } = await queryModule();
+  const entries = [
+    obs("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "2026-10-04T16:00:00.000Z"),
+    expense("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+    expense("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05"),
+    obs("dddddddd-dddd-4ddd-8ddd-dddddddddddd", "2026-10-04T14:59:00.000Z"),
+  ];
+  const seen: string[] = [];
+  let cursor: string | null = null;
+  do {
+    const after = cursor ? decodeDiaryCursor(cursor, fieldId, null, false, true, "Asia/Tokyo") : null;
+    const page = pageDiaryCandidates(entries, 1, fieldId, null, after, false, true, "Asia/Tokyo");
+    seen.push(...page.items.map(({ id }) => id));
+    cursor = page.nextCursor;
+    if (cursor) assert.equal(JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")).version, 2);
+  } while (cursor);
+  assert.deepEqual(seen, [
+    "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  ]);
+});
+
+test("expense-enabled cursor rejects different Field, Season, include flags, timezone and projection mode", async () => {
+  const { pageDiaryCandidates, decodeDiaryCursor } = await queryModule();
+  const entries = [expense("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+    expense("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05")];
+  const cursor = pageDiaryCandidates(entries, 1, fieldId, null, null, false, true, "Asia/Tokyo").nextCursor;
+  assert.ok(cursor);
+  assert.equal(decodeDiaryCursor(cursor, fieldId, null, false, true, "Asia/Tokyo")?.kind, "EXPENSE");
+  for (const [requestedField, requestedSeason, irrigation, expenses, timezone] of [
+    ["33333333-3333-4333-8333-333333333333", null, false, true, "Asia/Tokyo"],
+    [fieldId, seasonId, false, true, "Asia/Tokyo"],
+    [fieldId, null, true, true, "Asia/Tokyo"],
+    [fieldId, null, false, false, "Asia/Tokyo"],
+    [fieldId, null, false, true, "Europe/Istanbul"],
+  ] as const) {
+    assert.throws(() => decodeDiaryCursor(cursor, requestedField, requestedSeason, irrigation, expenses, timezone), isInvalidCursor);
+  }
+  const v1 = await canonicalCursor();
+  assert.throws(() => decodeDiaryCursor(v1, fieldId, null, false, true, "Asia/Tokyo"), isInvalidCursor);
+  assert.throws(() => decodeDiaryCursor(cursor, fieldId, null, false, false, "Asia/Tokyo"), isInvalidCursor);
+});
+
+test("expense-enabled cursor rejects an impossible date-only calendar date", async () => {
+  const { decodeDiaryCursor } = await queryModule();
+  const malformed = Buffer.from(JSON.stringify({ version: 2, fieldId, seasonId: null, includeIrrigation: false,
+    includeExpenses: true, businessTimezone: "Asia/Tokyo", localDate: "2026-02-31", precision: "DATE_ONLY",
+    kind: "EXPENSE", id: "22222222-2222-4222-8222-222222222222" }), "utf8").toString("base64url");
+  assert.throws(() => decodeDiaryCursor(malformed, fieldId, null, false, true, "Asia/Tokyo"), isInvalidCursor);
 });

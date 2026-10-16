@@ -67,6 +67,10 @@
     "./operations/irrigation-record": {
       "types": "./dist/operations/irrigation-record.d.ts",
       "import": "./dist/operations/irrigation-record.js"
+    },
+    "./finance/expense": {
+      "types": "./dist/finance/expense.d.ts",
+      "import": "./dist/finance/expense.js"
     }
   },
   "scripts": {

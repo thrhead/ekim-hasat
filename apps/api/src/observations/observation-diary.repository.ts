@@ -7,19 +7,23 @@ import { resolveBusinessTimezone } from "../seasons/business-timezone.js";
 import { TaskCompletionRepository } from "../tasks/task-completion.repository.js";
 import { TaskSkipRepository } from "../tasks/task-skip.repository.js";
 import type { ObservationDiaryFilters, ObservationDiaryPage } from "./observation.controller.js";
-import { decodeDiaryCursor, diaryLimit, pageDiaryCandidates, type DiaryEntry } from "./diary-query.js";
+import { decodeDiaryCursor, diaryLimit, pageDiaryCandidates, type DiaryEntry, type DiarySortKey, type DiaryV2Cursor } from "./diary-query.js";
+import { ExpenseDiaryReader } from "../finance/expense-diary-reader.js";
 
 export class ObservationDiaryRepository {
   private readonly membershipScope: MembershipScopeService;
+  private readonly expenses: ExpenseDiaryReader;
 
   constructor(private readonly prisma: PrismaClient, private readonly taskCompletions: TaskCompletionRepository, private readonly taskSkips?: TaskSkipRepository) {
     this.membershipScope = new MembershipScopeService(prisma);
+    this.expenses = new ExpenseDiaryReader(prisma);
   }
 
   async read(identity: VerifiedSubject, fieldId: string, filters: ObservationDiaryFilters = {}): Promise<ObservationDiaryPage> {
     const limit = diaryLimit(filters.limit);
     const seasonId = filters.seasonId;
-    const cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true);
+    let cursor: DiarySortKey | null = filters.includeExpenses
+      ? null : decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true);
     let scope;
     try { scope = await this.membershipScope.resolveDefaultBusinessScope(identity); }
     catch (error) { if (error instanceof ForbiddenException) throw forbidden(); throw error; }
@@ -32,13 +36,15 @@ export class ObservationDiaryRepository {
     if (!field) throw notFound();
     if (seasonId && !await this.prisma.season.findFirst({ where: { id: seasonId, fieldId, businessId: scope.businessId }, select: { id: true } })) throw notFound();
 
-    const observationAfter = !cursor ? {} : { OR: [
-      { occurredAt: { lt: new Date(cursor.occurredAt) } },
-      ...(cursor.kind === "IRRIGATION" || cursor.kind === "OBSERVATION"
-        ? [{ occurredAt: new Date(cursor.occurredAt), ...(cursor.kind === "OBSERVATION" ? { id: { lt: cursor.id } } : {}) }]
-        : []),
-    ] };
     const businessTimezone = resolveBusinessTimezone(field.business.timezone);
+    if (filters.includeExpenses) {
+      cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true, true, businessTimezone);
+    }
+    const v1Cursor = cursor?.version === 1 ? cursor : null;
+    const v2Cursor = cursor?.version === 2 ? cursor : null;
+    const timestampAfter = v2Cursor ? v2TimestampAfter(v2Cursor, businessTimezone) : v1Cursor;
+
+    const observationAfter = diaryTimestampFilter(timestampAfter, "OBSERVATION");
     const [observations, completions, skips, irrigationRecords] = await Promise.all([
       this.prisma.fieldObservation.findMany({
         where: {
@@ -51,23 +57,25 @@ export class ObservationDiaryRepository {
         orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
         select: { id: true, fieldId: true, seasonId: true, description: true, occurredAt: true },
       }),
-      this.taskCompletions.readDiaryCandidates(identity, fieldId, seasonId, cursor ? {
-        occurredAt: cursor.occurredAt, kind: cursor.kind, id: cursor.id,
+      this.taskCompletions.readDiaryCandidates(identity, fieldId, seasonId, timestampAfter ? {
+        occurredAt: timestampAfter.occurredAt, kind: timestampAfter.kind, id: timestampAfter.id,
       } : null, limit + 1),
-      this.taskSkips?.readDiaryCandidates(identity, fieldId, seasonId, cursor ? {
-        occurredAt: cursor.occurredAt, kind: cursor.kind, id: cursor.id,
+      this.taskSkips?.readDiaryCandidates(identity, fieldId, seasonId, timestampAfter ? {
+        occurredAt: timestampAfter.occurredAt, kind: timestampAfter.kind, id: timestampAfter.id,
       } : null, limit + 1) ?? Promise.resolve([]),
       filters.includeIrrigation ? this.prisma.irrigationRecord.findMany({
         where: { businessId: scope.businessId, fieldId,
           field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } },
           ...(seasonId ? { seasonId } : {}),
-          ...(cursor ? { OR: [{ occurredAt: { lt: new Date(cursor.occurredAt) } },
-            ...(cursor.kind === "IRRIGATION" ? [{ occurredAt: new Date(cursor.occurredAt), id: { lt: cursor.id } }] : [])] } : {}) },
+          ...diaryTimestampFilter(timestampAfter, "IRRIGATION") },
         orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
         select: { id: true, fieldId: true, seasonId: true, occurredAt: true, recordedAt: true,
           method: true, durationMinutes: true, waterVolumeCubicMetres: true, note: true },
       }) : Promise.resolve([]),
     ]);
+    const expenseRows = filters.includeExpenses
+      ? await this.expenses.readDiaryCandidates(identity, fieldId, seasonId, v2Cursor, limit + 1)
+      : [];
     const entries: DiaryEntry[] = [
       ...observations.map((row) => ({ kind: "OBSERVATION" as const, id: row.id, fieldId: row.fieldId,
         seasonId: row.seasonId, description: row.description, occurredAt: row.occurredAt.toISOString() })),
@@ -78,10 +86,57 @@ export class ObservationDiaryRepository {
         method: row.method, durationMinutes: row.durationMinutes,
         waterVolumeCubicMetres: row.waterVolumeCubicMetres?.toFixed(1) ?? null,
         note: row.note, recordedAt: row.recordedAt.toISOString() })),
+      ...expenseRows,
     ];
-    const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor, filters.includeIrrigation === true);
+    const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor, filters.includeIrrigation === true,
+      filters.includeExpenses === true, businessTimezone);
     return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone };
   }
+}
+
+const lowerBoundUuid = "00000000-0000-4000-8000-000000000000";
+type TimestampAfter = Readonly<{ occurredAt: string; kind: "IRRIGATION" | "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED"; id: string }>;
+
+function diaryTimestampFilter(after: TimestampAfter | null, sourceKind: TimestampAfter["kind"]): object {
+  if (!after) return {};
+  const boundary = new Date(after.occurredAt);
+  const kindOrder = sourceKind.localeCompare(after.kind);
+  return { OR: [
+    { occurredAt: { lt: boundary } },
+    ...(kindOrder > 0 ? [{ occurredAt: boundary }] : kindOrder === 0 ? [{ occurredAt: boundary, id: { lt: after.id } }] : []),
+  ] };
+}
+
+function v2TimestampAfter(cursor: DiaryV2Cursor, timezone: string): TimestampAfter {
+  if (cursor.precision === "TIMED") return { occurredAt: cursor.occurredAt!, kind: cursor.kind as TimestampAfter["kind"], id: cursor.id };
+  return { occurredAt: localDateStart(cursor.localDate, timezone).toISOString(), kind: "TASK_SKIPPED", id: lowerBoundUuid };
+}
+
+function localDateStart(localDate: string, timezone: string): Date {
+  const [year, month, day] = localDate.split("-").map(Number);
+  const target = Date.UTC(year!, month! - 1, day!);
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+  const matchesDate = (instant: Date) => {
+    const parts = Object.fromEntries(formatter.formatToParts(instant).map(({ type, value }) => [type, value]));
+    return parts.year === String(year).padStart(4, "0") && parts.month === String(month).padStart(2, "0")
+      && parts.day === String(day).padStart(2, "0");
+  };
+  for (let offset = -14 * 60; offset <= 14 * 60; offset++) {
+    const candidate = new Date(target + offset * 60_000);
+    if (matchesDate(candidate)) {
+      // The minute scan brackets the first instant on the date. Refine that
+      // bracket so sub-minute timezone transitions retain their exact boundary.
+      let before = candidate.getTime() - 60_000;
+      let atOrAfter = candidate.getTime();
+      while (atOrAfter - before > 1) {
+        const midpoint = Math.floor((before + atOrAfter) / 2);
+        if (matchesDate(new Date(midpoint))) atOrAfter = midpoint;
+        else before = midpoint;
+      }
+      return new Date(atOrAfter);
+    }
+  }
+  throw new ApiError(400, "INVALID_REQUEST", "Check the diary request and try again");
 }
 
 function forbidden(): ApiError { return new ApiError(403, "FORBIDDEN", "This request is not available"); }

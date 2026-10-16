@@ -8,7 +8,7 @@ export type paths = {
         };
         /**
          * Read an authorized Field or Season diary page
-         * @description Returns a unified projection of canonical accepted observations, task completions, and task skips. Irrigation history is included only when includeIrrigation=true. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's observations, completions, and skips and is validated against the authorized Field and Business. Deterministic keyset order is event time DESC, kind ASC, source UUID DESC. The cursor binds to authorized Field, optional Season, and the last returned tuple; each continuation queries strictly after it in this global order. Existing version-1 cursors for OBSERVATION and TASK_COMPLETION remain valid. Returned records do not repeat and inserts do not permanently skip pre-existing eligible rows. A newly inserted record sorting before the consumed cursor is not injected into that traversal and appears on fresh traversal/refresh; one sorting after it may appear on a later page. This is not snapshot-isolated pagination and has no fixed-snapshot guarantee. Ordering keys remain immutable for supported diary sources.
+         * @description Returns a unified projection of canonical accepted observations, task completions, task skips, and opt-in record types. Irrigation history is included only when includeIrrigation=true. Expense history is included only when includeExpenses=true and is available to the current Business OWNER. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's records and is validated against the authorized Field and Business. The default projection and version-1 cursor behavior remain unchanged when includeExpenses=false. Expense-enabled requests use a version-2 cursor with a date-only mixed ordering key bound to Field, Season, both include flags, and resolved Business timezone; V2 cursors cannot be reused with the default projection. For V2, Business-local calendar day sorts descending; within each day timed events sort by instant descending, kind ascending, and source UUID descending; date-only Expenses follow timed events and sort by Expense UUID descending. Expense dates are never represented as timestamps. Each continuation queries strictly after its global tuple. Returned records do not repeat; this is keyset pagination, not snapshot isolation.
          */
         get: operations["getFieldDiary"];
         put?: never;
@@ -76,8 +76,33 @@ export type components = {
         };
         DiaryPage: {
             businessTimezone: string;
-            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["IrrigationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"])[];
+            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["IrrigationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"] | components["schemas"]["ExpenseDiaryEntry"])[];
             nextCursor: string | null;
+        };
+        /** @description Projection of an accepted immutable Expense. expenseDate is a calendar date only; no time-of-day is known or implied. */
+        ExpenseDiaryEntry: {
+            /** @description Exact decimal amount. */
+            amount: string;
+            /** @enum {string} */
+            category: "SEED_SEEDLING" | "FERTILIZER" | "PESTICIDE" | "FUEL" | "LABOR" | "IRRIGATION" | "OTHER";
+            currency: string;
+            /** Format: date */
+            expenseDate: string;
+            /** Format: uuid */
+            fieldId: string;
+            /**
+             * Format: uuid
+             * @description Stable Expense ID used for ordering and pagination.
+             */
+            id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "EXPENSE";
+            note: string | null;
+            /** Format: uuid */
+            seasonId: string | null;
         };
         /** @description Projection of an accepted IrrigationRecord; it retains its own identity and is not an observation. */
         IrrigationDiaryEntry: {
@@ -257,6 +282,8 @@ export interface operations {
             query?: {
                 /** @description Opaque continuation token returned by the prior page. */
                 cursor?: string;
+                /** @description Include date-only EXPENSE entries. Requires current OWNER finance visibility. Uses V2 cursor semantics; omit or set false for the existing V1 projection. */
+                includeExpenses?: boolean;
                 /** @description Include accepted irrigation records as distinct IRRIGATION diary entries. */
                 includeIrrigation?: boolean;
                 limit?: number;

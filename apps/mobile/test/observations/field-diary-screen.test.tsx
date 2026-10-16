@@ -8,8 +8,10 @@ const observation: Page["items"][number] = { kind: "OBSERVATION", id: "observati
 const completion: Page["items"][number] = { kind: "TASK_COMPLETION", id: "completion-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-1", title: "Sulamayı kontrol et", occurredAt: "2026-10-04T09:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
 const skipped: Page["items"][number] = { kind: "TASK_SKIPPED", id: "skip-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-2", title: "Sürmeyi atla", skippedAt: "2026-10-04T10:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1", skipId: "skip-1" };
 const irrigation: Page["items"][number] = { kind: "IRRIGATION", id: "irrigation-1", fieldId: "field-1", seasonId: "season-1", method: "Damlama", durationMinutes: 15, waterVolumeCubicMetres: "2.5", note: "Sabah sulaması", occurredAt: "2026-10-05T09:00:00Z", recordedAt: "2026-10-05T09:05:00Z", businessTimezone: "Europe/Istanbul" };
+const expense: Extract<Page["items"][number], { kind: "EXPENSE" }> = { kind: "EXPENSE", id: "expense-1", fieldId: "field-1", seasonId: "season-1", amount: "12.345678", currency: "TRY", category: "FERTILIZER", expenseDate: "2026-10-05", note: null };
 function page(items: Page["items"] = [], nextCursor: string | null = null): Page { return { items, nextCursor, businessTimezone: "Europe/Istanbul" }; }
 function success(data: Page) { return { data, response: { ok: true, status: 200 } }; }
+function forbidden() { return { error: { error: { code: "FORBIDDEN", message: "private detail", requestId: "r1" } }, response: { ok: false, status: 403 } }; }
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: unknown) => void;
@@ -23,9 +25,9 @@ function node(screen: TestRenderer, label: string) {
 function text(screen: TestRenderer) {
   return screen.root.findAll(({ props }) => typeof props.children === "string" || Array.isArray(props.children)).flatMap(({ props }) => [props.children].flat().filter((child) => typeof child === "string")).join(" ");
 }
-async function mount(GET: jest.Mock, onAddObservation?: () => void, observationStore?: { list: jest.Mock }, onAddIrrigation?: () => void) {
+async function mount(GET: jest.Mock, onAddObservation?: () => void, observationStore?: { list: jest.Mock }, onAddIrrigation?: () => void, onAddExpense?: () => void) {
   let screen!: TestRenderer;
-  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} onAddIrrigation={onAddIrrigation} accountId={observationStore ? "account-1" : undefined} observationStore={observationStore as never} />); });
+  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} onAddIrrigation={onAddIrrigation} onAddExpense={onAddExpense} accountId={observationStore ? "account-1" : undefined} observationStore={observationStore as never} />); });
   return screen;
 }
 async function press(screen: TestRenderer, label: string) {
@@ -60,6 +62,15 @@ describe("Field/Season diary", () => {
     expect(rendered).toContain("Onaylı plana göre"); expect(rendered).toContain("Elle eklenen iş");
     expect(rendered).not.toContain("template-1");
     expect(node(screen, "Günlük yüklendi").props.accessibilityLiveRegion).toBe("polite");
+    await act(async () => screen.unmount());
+  });
+
+  it("orders timed entries by kind before descending UUID when instants tie", async () => {
+    const observationTie = { ...observation, id: "00000000-0000-4000-8000-000000000001", occurredAt: "2026-10-05T09:00:00Z" };
+    const completionTie = { ...completion, id: "ffffffff-ffff-4fff-8fff-ffffffffffff", occurredAt: "2026-10-05T09:00:00Z" };
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([completionTie, observationTie]))));
+    const rendered = text(screen);
+    expect(rendered.indexOf("Yapraklar sarardı")).toBeLessThan(rendered.indexOf("Sulamayı kontrol et"));
     await act(async () => screen.unmount());
   });
 
@@ -176,6 +187,103 @@ describe("Field/Season diary", () => {
     await act(async () => { old.reject(new TypeError("old offline")); });
     expect(text(screen)).toContain(observation.description);
     expect(screen.root.findAll(({ props }) => props.accessibilityRole === "alert")).toHaveLength(0);
+    await act(async () => screen.unmount());
+  });
+});
+
+describe("Expense-enabled Field Diary", () => {
+  it("loads the OWNER projection and renders an Expense date without an implied occurrence time", async () => {
+    const onAddExpense = jest.fn();
+    const GET = jest.fn().mockResolvedValue(success(page([irrigation, expense])));
+    const screen = await mount(GET, undefined, undefined, undefined, onAddExpense);
+    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", includeIrrigation: true, includeExpenses: true } } });
+    const expenseRow = screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))[0];
+    expect(expenseRow).toBeDefined();
+    expect(expenseRow!.props.accessibilityLabel).toContain("12.345678 TRY");
+    expect(expenseRow!.props.accessibilityLabel).toContain("05 Eki 2026");
+    expect(expenseRow!.props.accessibilityLabel).not.toMatch(/\d{2}:\d{2}|Europe\/Istanbul|Gerçekleşti/);
+    expect(text(screen)).toContain("Sulama kaydı");
+    await press(screen, "Gider ekle");
+    expect(onAddExpense).toHaveBeenCalledTimes(1);
+    await act(async () => screen.unmount());
+  });
+
+  it("keeps same-Business-day timed rows ahead of a date-only Expense in a negative-offset timezone", async () => {
+    const timed = { ...observation, description: "Sabah kontrolü", occurredAt: "2026-10-06T10:00:00Z" };
+    const data = { ...page([timed, { ...expense, expenseDate: "2026-10-06" }]), businessTimezone: "America/Los_Angeles" };
+    const screen = await mount(jest.fn().mockResolvedValue(success(data)), undefined, undefined, undefined, jest.fn());
+    const rendered = text(screen);
+    expect(rendered.indexOf("Sabah kontrolü")).toBeLessThan(rendered.indexOf("12.345678"));
+    const expenseRow = screen.root.findAll(({ props }) => {
+      const label = props.accessibilityLabel;
+      return typeof label === "string" && label.startsWith("Gider, 12.345678");
+    })[0];
+    const expenseLabel = expenseRow?.props.accessibilityLabel;
+    expect(typeof expenseLabel).toBe("string");
+    if (typeof expenseLabel !== "string") throw new Error("Expense row accessibility label was missing");
+    expect(expenseLabel).not.toMatch(/\d{2}:\d{2}|America\/Los_Angeles|Gerçekleşti/);
+    await act(async () => screen.unmount());
+  });
+
+  it("retries a denied first V2 page exactly once as V1 from the first page", async () => {
+    const GET = jest.fn().mockResolvedValueOnce(forbidden()).mockResolvedValueOnce(success(page([observation])));
+    const screen = await mount(GET, undefined, undefined, undefined, jest.fn());
+    expect(GET).toHaveBeenCalledTimes(2);
+    expect(GET.mock.calls[0]![1].params.query.includeExpenses).toBe(true);
+    expect(GET.mock.calls[1]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true });
+    expect(text(screen)).toContain(observation.description);
+    expect(text(screen)).not.toContain("private detail");
+    expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Gider ekle")).toHaveLength(0);
+    await act(async () => screen.unmount());
+  });
+
+  it("abandons a denied later V2 page, hides old Expenses immediately, and keeps ordinary rows during V1 retry", async () => {
+    const fallback = deferred<ReturnType<typeof success>>();
+    const GET = jest.fn().mockResolvedValueOnce(success(page([observation, expense], "v2-cursor")))
+      .mockResolvedValueOnce(forbidden()).mockImplementationOnce(() => fallback.promise);
+    const screen = await mount(GET, undefined, undefined, undefined, jest.fn());
+    expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(2);
+    await press(screen, "Daha eski kayıtları yükle");
+    expect(GET).toHaveBeenCalledTimes(3);
+    expect(GET.mock.calls[1]![1].params.query.cursor).toBe("v2-cursor");
+    expect(GET.mock.calls[2]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true });
+    expect(text(screen)).toContain(observation.description);
+    expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
+    await act(async () => { fallback.resolve(success(page([observation]))); });
+    await act(async () => screen.unmount());
+  });
+
+  it("replaces V2 rows with the V1 first page, then continues only with the V1 cursor", async () => {
+    const fresh = { ...observation, id: "observation-fresh", description: "V1 ilk sayfa kaydı" };
+    const older = { ...observation, id: "observation-older", description: "V1 eski sayfa kaydı" };
+    const GET = jest.fn().mockResolvedValueOnce(success(page([observation, expense], "v2-cursor")))
+      .mockResolvedValueOnce(forbidden()).mockResolvedValueOnce(success(page([fresh], "v1-cursor")))
+      .mockResolvedValueOnce(success(page([older])));
+    const screen = await mount(GET, undefined, undefined, undefined, jest.fn());
+    await press(screen, "Daha eski kayıtları yükle");
+    expect(text(screen)).toContain(fresh.description);
+    expect(text(screen)).not.toContain(observation.description);
+    expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
+    await press(screen, "Daha eski kayıtları yükle");
+    expect(GET.mock.calls[3]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true, cursor: "v1-cursor" });
+    expect(text(screen)).toContain(fresh.description);
+    expect(text(screen)).toContain(older.description);
+    expect(text(screen)).not.toContain(observation.description);
+    await act(async () => screen.unmount());
+  });
+
+  it.each(["initial", "later"])("clears inaccessible rows when V1 also denies after %s V2 denial", async (phase) => {
+    const GET = phase === "initial"
+      ? jest.fn().mockResolvedValueOnce(forbidden()).mockResolvedValueOnce(forbidden())
+      : jest.fn().mockResolvedValueOnce(success(page([observation, expense], "v2-cursor")))
+        .mockResolvedValueOnce(forbidden()).mockResolvedValueOnce(forbidden());
+    const screen = await mount(GET, undefined, undefined, undefined, jest.fn());
+    if (phase === "later") await press(screen, "Daha eski kayıtları yükle");
+    expect(GET).toHaveBeenCalledTimes(phase === "initial" ? 2 : 3);
+    expect(text(screen)).toContain("erişiminiz doğrulanamadı");
+    expect(text(screen)).not.toContain(observation.description);
+    expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
+    expect(text(screen)).not.toContain("private detail");
     await act(async () => screen.unmount());
   });
 });

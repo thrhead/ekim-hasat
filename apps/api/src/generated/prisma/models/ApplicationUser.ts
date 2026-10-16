@@ -192,6 +192,7 @@ export type ApplicationUserWhereInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }
 
 export type ApplicationUserOrderByWithRelationInput = {
@@ -210,6 +211,7 @@ export type ApplicationUserOrderByWithRelationInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentOrderByRelationAggregateInput
   observations?: Prisma.FieldObservationOrderByRelationAggregateInput
   irrigationRecords?: Prisma.IrrigationRecordOrderByRelationAggregateInput
+  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
 }
 
 export type ApplicationUserWhereUniqueInput = Prisma.AtLeast<{
@@ -232,6 +234,7 @@ export type ApplicationUserWhereUniqueInput = Prisma.AtLeast<{
   taskDateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }, "id" | "authProvider_authSubject">
 
 export type ApplicationUserOrderByWithAggregationInput = {
@@ -271,6 +274,7 @@ export type ApplicationUserCreateInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateInput = {
@@ -288,6 +292,7 @@ export type ApplicationUserUncheckedCreateInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUpdateInput = {
@@ -305,6 +310,7 @@ export type ApplicationUserUpdateInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateInput = {
@@ -322,6 +328,7 @@ export type ApplicationUserUncheckedUpdateInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateManyInput = {
@@ -557,6 +564,20 @@ export type ApplicationUserUpdateOneRequiredWithoutIrrigationRecordsNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.ApplicationUserUpdateToOneWithWhereWithoutIrrigationRecordsInput, Prisma.ApplicationUserUpdateWithoutIrrigationRecordsInput>, Prisma.ApplicationUserUncheckedUpdateWithoutIrrigationRecordsInput>
 }
 
+export type ApplicationUserCreateNestedOneWithoutExpensesInput = {
+  create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutExpensesInput, Prisma.ApplicationUserUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutExpensesInput
+  connect?: Prisma.ApplicationUserWhereUniqueInput
+}
+
+export type ApplicationUserUpdateOneRequiredWithoutExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutExpensesInput, Prisma.ApplicationUserUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutExpensesInput
+  upsert?: Prisma.ApplicationUserUpsertWithoutExpensesInput
+  connect?: Prisma.ApplicationUserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ApplicationUserUpdateToOneWithWhereWithoutExpensesInput, Prisma.ApplicationUserUpdateWithoutExpensesInput>, Prisma.ApplicationUserUncheckedUpdateWithoutExpensesInput>
+}
+
 export type ApplicationUserCreateNestedOneWithoutCommandRecordsInput = {
   create?: Prisma.XOR<Prisma.ApplicationUserCreateWithoutCommandRecordsInput, Prisma.ApplicationUserUncheckedCreateWithoutCommandRecordsInput>
   connectOrCreate?: Prisma.ApplicationUserCreateOrConnectWithoutCommandRecordsInput
@@ -585,6 +606,7 @@ export type ApplicationUserCreateWithoutDefaultBusinessInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutDefaultBusinessInput = {
@@ -601,6 +623,7 @@ export type ApplicationUserUncheckedCreateWithoutDefaultBusinessInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutDefaultBusinessInput = {
@@ -654,6 +677,7 @@ export type ApplicationUserCreateWithoutMembershipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutMembershipsInput = {
@@ -670,6 +694,7 @@ export type ApplicationUserUncheckedCreateWithoutMembershipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutMembershipsInput = {
@@ -702,6 +727,7 @@ export type ApplicationUserUpdateWithoutMembershipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutMembershipsInput = {
@@ -718,6 +744,7 @@ export type ApplicationUserUncheckedUpdateWithoutMembershipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutCompletionsInput = {
@@ -734,6 +761,7 @@ export type ApplicationUserCreateWithoutCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutCompletionsInput = {
@@ -750,6 +778,7 @@ export type ApplicationUserUncheckedCreateWithoutCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutCompletionsInput = {
@@ -782,6 +811,7 @@ export type ApplicationUserUpdateWithoutCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutCompletionsInput = {
@@ -798,6 +828,7 @@ export type ApplicationUserUncheckedUpdateWithoutCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutIdempotencyRecordsInput = {
@@ -814,6 +845,7 @@ export type ApplicationUserCreateWithoutIdempotencyRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutIdempotencyRecordsInput = {
@@ -830,6 +862,7 @@ export type ApplicationUserUncheckedCreateWithoutIdempotencyRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutIdempotencyRecordsInput = {
@@ -862,6 +895,7 @@ export type ApplicationUserUpdateWithoutIdempotencyRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutIdempotencyRecordsInput = {
@@ -878,6 +912,7 @@ export type ApplicationUserUncheckedUpdateWithoutIdempotencyRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutTaskCompletionsInput = {
@@ -894,6 +929,7 @@ export type ApplicationUserCreateWithoutTaskCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutTaskCompletionsInput = {
@@ -910,6 +946,7 @@ export type ApplicationUserUncheckedCreateWithoutTaskCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutTaskCompletionsInput = {
@@ -942,6 +979,7 @@ export type ApplicationUserUpdateWithoutTaskCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -958,6 +996,7 @@ export type ApplicationUserUncheckedUpdateWithoutTaskCompletionsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutTaskSkipsInput = {
@@ -974,6 +1013,7 @@ export type ApplicationUserCreateWithoutTaskSkipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutTaskSkipsInput = {
@@ -990,6 +1030,7 @@ export type ApplicationUserUncheckedCreateWithoutTaskSkipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutTaskSkipsInput = {
@@ -1022,6 +1063,7 @@ export type ApplicationUserUpdateWithoutTaskSkipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutTaskSkipsInput = {
@@ -1038,6 +1080,7 @@ export type ApplicationUserUncheckedUpdateWithoutTaskSkipsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutTaskDateAdjustmentsInput = {
@@ -1054,6 +1097,7 @@ export type ApplicationUserCreateWithoutTaskDateAdjustmentsInput = {
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutTaskDateAdjustmentsInput = {
@@ -1070,6 +1114,7 @@ export type ApplicationUserUncheckedCreateWithoutTaskDateAdjustmentsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutTaskDateAdjustmentsInput = {
@@ -1102,6 +1147,7 @@ export type ApplicationUserUpdateWithoutTaskDateAdjustmentsInput = {
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
@@ -1118,6 +1164,7 @@ export type ApplicationUserUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutObservationsInput = {
@@ -1134,6 +1181,7 @@ export type ApplicationUserCreateWithoutObservationsInput = {
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutActorUserInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutObservationsInput = {
@@ -1150,6 +1198,7 @@ export type ApplicationUserUncheckedCreateWithoutObservationsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutActorUserInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutObservationsInput = {
@@ -1182,6 +1231,7 @@ export type ApplicationUserUpdateWithoutObservationsInput = {
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutActorUserNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutObservationsInput = {
@@ -1198,6 +1248,7 @@ export type ApplicationUserUncheckedUpdateWithoutObservationsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutActorUserNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutIrrigationRecordsInput = {
@@ -1214,6 +1265,7 @@ export type ApplicationUserCreateWithoutIrrigationRecordsInput = {
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutActorUserInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutIrrigationRecordsInput = {
@@ -1230,6 +1282,7 @@ export type ApplicationUserUncheckedCreateWithoutIrrigationRecordsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutActorUserInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutIrrigationRecordsInput = {
@@ -1262,6 +1315,7 @@ export type ApplicationUserUpdateWithoutIrrigationRecordsInput = {
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutActorUserNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutIrrigationRecordsInput = {
@@ -1278,6 +1332,91 @@ export type ApplicationUserUncheckedUpdateWithoutIrrigationRecordsInput = {
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutActorUserNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
+}
+
+export type ApplicationUserCreateWithoutExpensesInput = {
+  id?: string
+  authProvider: string
+  authSubject: string
+  createdAt?: Date | string
+  defaultBusiness?: Prisma.BusinessCreateNestedOneWithoutDefaultUsersInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutUserInput
+  idempotencyRecords?: Prisma.IdempotencyRecordCreateNestedManyWithoutUserInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutUserInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorUserInput
+  taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutActorUserInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
+  irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+}
+
+export type ApplicationUserUncheckedCreateWithoutExpensesInput = {
+  id?: string
+  authProvider: string
+  authSubject: string
+  defaultBusinessId?: string | null
+  createdAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutUserInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorUserInput
+  taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutActorUserInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+}
+
+export type ApplicationUserCreateOrConnectWithoutExpensesInput = {
+  where: Prisma.ApplicationUserWhereUniqueInput
+  create: Prisma.XOR<Prisma.ApplicationUserCreateWithoutExpensesInput, Prisma.ApplicationUserUncheckedCreateWithoutExpensesInput>
+}
+
+export type ApplicationUserUpsertWithoutExpensesInput = {
+  update: Prisma.XOR<Prisma.ApplicationUserUpdateWithoutExpensesInput, Prisma.ApplicationUserUncheckedUpdateWithoutExpensesInput>
+  create: Prisma.XOR<Prisma.ApplicationUserCreateWithoutExpensesInput, Prisma.ApplicationUserUncheckedCreateWithoutExpensesInput>
+  where?: Prisma.ApplicationUserWhereInput
+}
+
+export type ApplicationUserUpdateToOneWithWhereWithoutExpensesInput = {
+  where?: Prisma.ApplicationUserWhereInput
+  data: Prisma.XOR<Prisma.ApplicationUserUpdateWithoutExpensesInput, Prisma.ApplicationUserUncheckedUpdateWithoutExpensesInput>
+}
+
+export type ApplicationUserUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  authSubject?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultBusiness?: Prisma.BusinessUpdateOneWithoutDefaultUsersNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutUserNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutUserNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutUserNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorUserNestedInput
+  taskSkips?: Prisma.TaskSkipUpdateManyWithoutActorUserNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+}
+
+export type ApplicationUserUncheckedUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  authSubject?: Prisma.StringFieldUpdateOperationsInput | string
+  defaultBusinessId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutUserNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorUserNestedInput
+  taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutActorUserNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateWithoutCommandRecordsInput = {
@@ -1294,6 +1433,7 @@ export type ApplicationUserCreateWithoutCommandRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserUncheckedCreateWithoutCommandRecordsInput = {
@@ -1310,6 +1450,7 @@ export type ApplicationUserUncheckedCreateWithoutCommandRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorUserInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorUserInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorUserInput
 }
 
 export type ApplicationUserCreateOrConnectWithoutCommandRecordsInput = {
@@ -1342,6 +1483,7 @@ export type ApplicationUserUpdateWithoutCommandRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutCommandRecordsInput = {
@@ -1358,6 +1500,7 @@ export type ApplicationUserUncheckedUpdateWithoutCommandRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserCreateManyDefaultBusinessInput = {
@@ -1381,6 +1524,7 @@ export type ApplicationUserUpdateWithoutDefaultBusinessInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateWithoutDefaultBusinessInput = {
@@ -1397,6 +1541,7 @@ export type ApplicationUserUncheckedUpdateWithoutDefaultBusinessInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorUserNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorUserNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorUserNestedInput
 }
 
 export type ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessInput = {
@@ -1421,6 +1566,7 @@ export type ApplicationUserCountOutputType = {
   taskDateAdjustments: number
   observations: number
   irrigationRecords: number
+  expenses: number
 }
 
 export type ApplicationUserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1433,6 +1579,7 @@ export type ApplicationUserCountOutputTypeSelect<ExtArgs extends runtime.Types.E
   taskDateAdjustments?: boolean | ApplicationUserCountOutputTypeCountTaskDateAdjustmentsArgs
   observations?: boolean | ApplicationUserCountOutputTypeCountObservationsArgs
   irrigationRecords?: boolean | ApplicationUserCountOutputTypeCountIrrigationRecordsArgs
+  expenses?: boolean | ApplicationUserCountOutputTypeCountExpensesArgs
 }
 
 /**
@@ -1508,6 +1655,13 @@ export type ApplicationUserCountOutputTypeCountIrrigationRecordsArgs<ExtArgs ext
   where?: Prisma.IrrigationRecordWhereInput
 }
 
+/**
+ * ApplicationUserCountOutputType without action
+ */
+export type ApplicationUserCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
 
 export type ApplicationUserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1525,6 +1679,7 @@ export type ApplicationUserSelect<ExtArgs extends runtime.Types.Extensions.Inter
   taskDateAdjustments?: boolean | Prisma.ApplicationUser$taskDateAdjustmentsArgs<ExtArgs>
   observations?: boolean | Prisma.ApplicationUser$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.ApplicationUser$irrigationRecordsArgs<ExtArgs>
+  expenses?: boolean | Prisma.ApplicationUser$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.ApplicationUserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["applicationUser"]>
 
@@ -1566,6 +1721,7 @@ export type ApplicationUserInclude<ExtArgs extends runtime.Types.Extensions.Inte
   taskDateAdjustments?: boolean | Prisma.ApplicationUser$taskDateAdjustmentsArgs<ExtArgs>
   observations?: boolean | Prisma.ApplicationUser$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.ApplicationUser$irrigationRecordsArgs<ExtArgs>
+  expenses?: boolean | Prisma.ApplicationUser$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.ApplicationUserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ApplicationUserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1588,6 +1744,7 @@ export type $ApplicationUserPayload<ExtArgs extends runtime.Types.Extensions.Int
     taskDateAdjustments: Prisma.$TaskDateAdjustmentPayload<ExtArgs>[]
     observations: Prisma.$FieldObservationPayload<ExtArgs>[]
     irrigationRecords: Prisma.$IrrigationRecordPayload<ExtArgs>[]
+    expenses: Prisma.$ExpensePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1999,6 +2156,7 @@ export interface Prisma__ApplicationUserClient<T, Null = never, ExtArgs extends 
   taskDateAdjustments<T extends Prisma.ApplicationUser$taskDateAdjustmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$taskDateAdjustmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskDateAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   observations<T extends Prisma.ApplicationUser$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   irrigationRecords<T extends Prisma.ApplicationUser$irrigationRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$irrigationRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IrrigationRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenses<T extends Prisma.ApplicationUser$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApplicationUser$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2666,6 +2824,30 @@ export type ApplicationUser$irrigationRecordsArgs<ExtArgs extends runtime.Types.
   take?: number
   skip?: number
   distinct?: Prisma.IrrigationRecordScalarFieldEnum | Prisma.IrrigationRecordScalarFieldEnum[]
+}
+
+/**
+ * ApplicationUser.expenses
+ */
+export type ApplicationUser$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**
