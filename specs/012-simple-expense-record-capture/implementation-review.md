@@ -52,3 +52,17 @@ This separate review pass against the integrated feature diff confirmed and reso
 - **CONFIRMED — concurrency-test quality limitation:** The existing `Promise.all` integration test verifies convergence but does not prove that both transactions overlap at the insert. It was left unchanged because deterministic coordination would require a database test hook/barrier or brittle timing; no production-only test hook was added.
 
 Focused API unit/contract tests passed 24/24, API typecheck passed, focused mobile Expense/Diary and adjacent suites passed 38/38, and generated API-client contract checks passed. The extended Season PostgreSQL integration test could not run because `DATABASE_URL` was not configured; the disposable-database guard stopped before any connection or write. Mobile typecheck retains two pre-existing Diary test typing errors at `apps/mobile/test/observations/field-diary-screen.test.tsx:213,217`. The full T028 suite was not rerun.
+
+## Final scoped-review follow-up — DATE_ONLY skipped-midnight boundary (2026-10-16)
+
+**Disposition: CONFIRMED; resolved.** The DATE_ONLY repository cursor boundary required an exact local midnight and threw a generic error for `America/Sao_Paulo` on `2018-11-04`, whose first valid local instant is 01:00. A focused repository-level regression test failed before the fix with `Business-local date has no midnight boundary`. The private Diary resolver now returns the earliest instant whose local calendar date matches, refined to millisecond precision; the regression asserts the resulting query boundary is `2018-11-04T03:00:00.000Z`. The resolver remains local to the Diary repository, avoiding changes to shared timezone behavior. If no instant belongs to the requested timezone-local date, the result is canonical `400 INVALID_REQUEST` rather than 500.
+
+Focused verification after the change:
+
+- DATE_ONLY skipped-midnight regression: 1/1 passed after its recorded RED.
+- Diary query unit suite: 20/20 passed, including the impossible `2026-02-31` cursor rejection as `400 INVALID_REQUEST`.
+- Diary HTTP error suite: 5/5 passed.
+- Field Diary PostgreSQL integration suite: 13/13 passed sequentially against a newly created, volume-less disposable PostGIS database. The database was verified as `ekim_hasat_test` before migration and test execution; the temporary container was removed afterward.
+- `pnpm --filter @ekim-hasat/api typecheck`: passed.
+
+No full T028 rerun, convergence workflow, push, or merge was performed.

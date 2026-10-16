@@ -116,13 +116,27 @@ function localDateStart(localDate: string, timezone: string): Date {
   const [year, month, day] = localDate.split("-").map(Number);
   const target = Date.UTC(year!, month! - 1, day!);
   const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+  const matchesDate = (instant: Date) => {
+    const parts = Object.fromEntries(formatter.formatToParts(instant).map(({ type, value }) => [type, value]));
+    return parts.year === String(year).padStart(4, "0") && parts.month === String(month).padStart(2, "0")
+      && parts.day === String(day).padStart(2, "0");
+  };
   for (let offset = -14 * 60; offset <= 14 * 60; offset++) {
     const candidate = new Date(target + offset * 60_000);
-    const parts = Object.fromEntries(formatter.formatToParts(candidate).map(({ type, value }) => [type, value]));
-    if (parts.year === String(year).padStart(4, "0") && parts.month === String(month).padStart(2, "0")
-      && parts.day === String(day).padStart(2, "0") && parts.hour === "00" && parts.minute === "00" && parts.second === "00") return candidate;
+    if (matchesDate(candidate)) {
+      // The minute scan brackets the first instant on the date. Refine that
+      // bracket so sub-minute timezone transitions retain their exact boundary.
+      let before = candidate.getTime() - 60_000;
+      let atOrAfter = candidate.getTime();
+      while (atOrAfter - before > 1) {
+        const midpoint = Math.floor((before + atOrAfter) / 2);
+        if (matchesDate(new Date(midpoint))) atOrAfter = midpoint;
+        else before = midpoint;
+      }
+      return new Date(atOrAfter);
+    }
   }
-  throw new Error("Business-local date has no midnight boundary");
+  throw new ApiError(400, "INVALID_REQUEST", "Check the diary request and try again");
 }
 
 function forbidden(): ApiError { return new ApiError(403, "FORBIDDEN", "This request is not available"); }

@@ -129,6 +129,32 @@ test("malformed cursor reaches the diary service as structured INVALID_REQUEST",
   await assert.rejects(repository.read({ provider: "test", subject: "test" }, fieldId, { cursor: `${canonical}!!!!` }), isInvalidCursor);
 });
 
+test("DATE_ONLY cursor resolves to the first instant when local midnight is skipped", async () => {
+  const { encodeDiaryCursor } = await queryModule();
+  const timezone = "America/Sao_Paulo";
+  const captured: { where?: { OR?: Array<{ occurredAt?: { lt?: Date } }> } } = {};
+  const transaction = {
+    applicationUser: { findUnique: async () => ({ id: "user", defaultBusinessId: "business" }) },
+    business: { findUnique: async () => ({ id: "business" }) },
+    membership: { findUnique: async () => ({ id: "membership", role: "OWNER", status: "ACTIVE" }) },
+  };
+  const prisma = {
+    $transaction: async (callback: (tx: unknown) => unknown) => callback(transaction),
+    $queryRaw: async () => [],
+    field: { findFirst: async () => ({ id: fieldId, business: { timezone } }) },
+    fieldObservation: { findMany: async ({ where }: { where: typeof captured }) => { captured.where = where; return []; } },
+  } as unknown as PrismaClient;
+  const completions = { readDiaryCandidates: async () => [] } as unknown as TaskCompletionRepository;
+  const cursor = encodeDiaryCursor({ version: 2, fieldId, seasonId: null, includeIrrigation: false, includeExpenses: true,
+    businessTimezone: timezone, localDate: "2018-11-04", precision: "DATE_ONLY", kind: "EXPENSE",
+    id: "33333333-3333-4333-8333-333333333333" });
+
+  await new ObservationDiaryRepository(prisma, completions).read({ provider: "test", subject: "test" }, fieldId,
+    { includeExpenses: true, cursor });
+
+  assert.equal(captured.where?.OR?.[0]?.occurredAt?.lt?.toISOString(), "2018-11-04T03:00:00.000Z");
+});
+
 test("strict-after traversal excludes records before its consumed cursor and permits records after it", async () => {
   const { pageDiaryCandidates } = await queryModule();
   const beforeCursor = obs("ffffffff-ffff-4fff-8fff-ffffffffffff", "2026-10-06T09:00:00.000Z");

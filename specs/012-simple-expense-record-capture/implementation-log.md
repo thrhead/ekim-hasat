@@ -55,3 +55,11 @@ Completed tasks: T001–T028 (T010 completed with T017/T018 GREEN; US1 gate pass
 ## Parallel execution
 
 T007/T009 contract/type-test preparation, T008 Diary test preparation, and T010 mobile test preparation were delegated as independent test-only tasks. They touched separate test surfaces; the DB-writing test suite remained sequential and under controller ownership. The controller reviewed all results and integrated the work. No nested agents were used.
+
+## Follow-up scoped-review repair — DATE_ONLY cursor with skipped midnight (2026-10-16)
+
+- **CONFIRMED — fixed:** `America/Sao_Paulo` local date `2018-11-04` has no local `00:00`, but its earliest valid instant is `01:00` local (`2018-11-04T03:00:00.000Z`).
+- **RED:** Before changing the resolver, `pnpm --filter @ekim-hasat/api exec tsx --test --test-name-pattern='DATE_ONLY cursor resolves to the first instant when local midnight is skipped' test/observations/diary-query.spec.ts` failed at `localDateStart` with `Business-local date has no midnight boundary`.
+- **GREEN:** The focused test passes and asserts the timed-source query boundary is exactly `2018-11-04T03:00:00.000Z`. The repository-local resolver now finds the first instant whose Business-local calendar date matches and refines the boundary to millisecond precision. It does not alter shared timezone helpers or other domains. A local date with no instant in the configured timezone maps to canonical `400 INVALID_REQUEST`, not 500.
+- **Regression verification:** Diary query unit suite 20/20; Diary HTTP error suite 5/5; Field Diary PostgreSQL integration suite 13/13; API typecheck passed. The existing impossible-calendar-date cursor test remains green and asserts `400 INVALID_REQUEST`.
+- **Database safety:** Started a volume-less temporary PostGIS container bound only to `127.0.0.1:5433`, created/applied migrations only in `ekim_hasat_test`, and verified `current_database() = ekim_hasat_test` before migration and integration execution. The focused integration suite asserted the same target. Removed the container after the test; no other database was contacted.
