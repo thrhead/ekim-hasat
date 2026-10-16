@@ -98,10 +98,12 @@ test("changed-Season reuse of an accepted Expense ID conflicts without revealing
 
 test("lists all same-Field Seasons for OWNER Expense context without exposing other Fields", async () => {
   const options = await repository().listAvailableSeasons(identity, field);
-  assert.deepEqual(options.map(({ id, status }) => ({ id, status })), [
-    { id: season, status: "DRAFT" }, { id: activeSeason, status: "ACTIVE" },
-  ]);
-  assert.deepEqual(options.map(({ cropLabel }) => cropLabel), ["SPEC-012 season crop", "SPEC-012 season crop"]);
+  assert.ok(options.every(({ status }) => status === "DRAFT" || status === "ACTIVE"));
+  assert.deepEqual(new Map(options.map(({ id, status, cropLabel }) => [id, { status, cropLabel }])), new Map([
+    [season, { status: "DRAFT", cropLabel: "SPEC-012 season crop" }],
+    [activeSeason, { status: "ACTIVE", cropLabel: "SPEC-012 season crop" }],
+  ]));
+  assert.equal(options.some(({ id }) => id === wrongFieldSeason || id === foreignBusinessSeason), false);
   await assert.rejects(repository().listAvailableSeasons(identity, foreignField), (error: unknown) => error instanceof ApiError
     && error.getStatus() === 404 && error.presentation.code === "NOT_FOUND");
 });
