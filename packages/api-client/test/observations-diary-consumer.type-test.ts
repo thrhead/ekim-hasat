@@ -36,6 +36,13 @@ const diaryResult = client.GET("/fields/{fieldId}/diary", {
   },
 });
 
+const expenseDiaryResult = client.GET("/fields/{fieldId}/diary", {
+  params: {
+    path: { fieldId: "8c6705c6-d80c-4b88-8722-b66cc32a6d4f" },
+    query: { includeExpenses: true, limit: 50 },
+  },
+});
+
 type Assert<T extends true> = T;
 type HasObservationPaths = Assert<
   "/fields/{fieldId}/observations" | "/fields/{fieldId}/diary" extends keyof paths ? true : false
@@ -75,6 +82,19 @@ type GeneratedSkippedDiary = Assert<
     ? true
     : false
 >;
+type ExpenseDiaryVariant = Extract<
+  ObservationDiaryComponents["schemas"]["DiaryPage"]["items"][number],
+  { kind: "EXPENSE" }
+>;
+type HasExpenseDiaryVariant = Assert<ExpenseDiaryVariant extends never ? false : true>;
+type ExpenseDiaryDateIsDateOnly = Assert<
+  ExpenseDiaryVariant extends { expenseDate: string }
+    ? ExpenseDiaryVariant["expenseDate"] extends `${string}T${string}` ? false : true
+    : false
+>;
+type ExpenseDiaryHasNoOccurrenceTimestamp = Assert<
+  "occurredAt" extends keyof ExpenseDiaryVariant ? false : true
+>;
 type SkippedDiaryKind = Assert<
   ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"]["kind"] extends "TASK_SKIPPED"
     ? true
@@ -99,12 +119,16 @@ void (0 as unknown as HasOneObservationCreateRoute);
 void (0 as unknown as GeneratedObservation);
 void (0 as unknown as GeneratedDiary);
 void (0 as unknown as GeneratedSkippedDiary);
+void (0 as unknown as HasExpenseDiaryVariant);
+void (0 as unknown as ExpenseDiaryDateIsDateOnly);
+void (0 as unknown as ExpenseDiaryHasNoOccurrenceTimestamp);
 void (0 as unknown as SkippedDiaryKind);
 void (0 as unknown as HasConflictCode);
 void (0 as unknown as HasStructuredErrors);
 void createResult;
 void offlineCreateResult;
 void diaryResult;
+void expenseDiaryResult;
 
 const skippedDiary: ObservationDiaryComponents["schemas"]["TaskSkippedDiaryEntry"] = {
   kind: "TASK_SKIPPED",

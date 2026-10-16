@@ -64,3 +64,17 @@ test("Field Diary contract requires opt-in irrigation history with a distinct IR
   assert.match(irrigation, /businessTimezone/);
   assert.doesNotMatch(irrigation, /observationId:/);
 });
+
+test("SPEC-012 Diary contract keeps Expenses opt-in and models a date-only EXPENSE entry with V2 cursor semantics", async () => {
+  const contract = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
+  const diary = /  \/fields\/\{fieldId\}\/diary:\n    get:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0] ?? "";
+  const page = /DiaryPage:[\s\S]*?(?=\n    ObservationDiaryEntry:)/.exec(contract)?.[0] ?? "";
+  const expense = /ExpenseDiaryEntry:[\s\S]*?(?=\n    ApiError:)/.exec(contract)?.[0] ?? "";
+  assert.match(diary, /name: includeExpenses[\s\S]*?in: query[\s\S]*?required: false[\s\S]*?type: boolean[\s\S]*?default: false/);
+  assert.match(diary, /version-2 cursor[\s\S]*?date-only[\s\S]*?timezone/i);
+  assert.match(page, /EXPENSE/);
+  assert.match(page, /ExpenseDiaryEntry/);
+  assert.match(expense, /kind: \{ type: string, const: EXPENSE \}/);
+  assert.match(expense, /expenseDate: \{ type: string, format: date \}/);
+  assert.doesNotMatch(expense, /occurredAt:|recordedAt:|syntheticTime:/);
+});

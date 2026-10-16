@@ -420,6 +420,7 @@ export const ModelName = {
   TaskDateAdjustment: 'TaskDateAdjustment',
   FieldObservation: 'FieldObservation',
   IrrigationRecord: 'IrrigationRecord',
+  Expense: 'Expense',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
   CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
   CalendarReadCursor: 'CalendarReadCursor',
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "irrigationRecord" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "irrigationRecord" | "expense" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2097,6 +2098,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Expense: {
+      payload: Prisma.$ExpensePayload<ExtArgs>
+      fields: Prisma.ExpenseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        update: {
+          args: Prisma.ExpenseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpensePayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpense>
+        }
+        groupBy: {
+          args: Prisma.ExpenseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseCountAggregateOutputType> | number
+        }
+      }
+    }
     CalendarReadSnapshot: {
       payload: Prisma.$CalendarReadSnapshotPayload<ExtArgs>
       fields: Prisma.CalendarReadSnapshotFieldRefs
@@ -2776,6 +2851,24 @@ export const IrrigationRecordScalarFieldEnum = {
 export type IrrigationRecordScalarFieldEnum = (typeof IrrigationRecordScalarFieldEnum)[keyof typeof IrrigationRecordScalarFieldEnum]
 
 
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  amount: 'amount',
+  currency: 'currency',
+  category: 'category',
+  expenseDate: 'expenseDate',
+  note: 'note',
+  recordedAt: 'recordedAt'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
 export const CalendarReadSnapshotScalarFieldEnum = {
   readId: 'readId',
   userId: 'userId',
@@ -3181,6 +3274,7 @@ export type GlobalOmitConfig = {
   taskDateAdjustment?: Prisma.TaskDateAdjustmentOmit
   fieldObservation?: Prisma.FieldObservationOmit
   irrigationRecord?: Prisma.IrrigationRecordOmit
+  expense?: Prisma.ExpenseOmit
   calendarReadSnapshot?: Prisma.CalendarReadSnapshotOmit
   calendarReadSnapshotTask?: Prisma.CalendarReadSnapshotTaskOmit
   calendarReadCursor?: Prisma.CalendarReadCursorOmit

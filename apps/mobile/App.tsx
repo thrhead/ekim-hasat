@@ -14,6 +14,7 @@ import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
 import { IrrigationRecordCreateScreen } from "./src/features/operations/irrigation-record-create-screen";
+import { ExpenseCreateScreen } from "./src/features/finance/expense-create-screen";
 import { scheduleObservationRetry } from "./src/features/observations/observation-delivery";
 import { CalendarScreen } from "./src/features/calendar/calendar-screen";
 import { AuthScreen } from "./src/features/auth/auth-screen";
@@ -185,9 +186,15 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
     fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
     onBack={() => composition?.openField(state.diaryFieldId!)}
     onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)}
-    onAddIrrigation={() => composition?.showIrrigationCreate()} />;
+    onAddIrrigation={() => composition?.showIrrigationCreate()}
+    onAddExpense={() => composition?.showExpenseCreate()} />;
   if (state.entry === "irrigation-create" && state.client && state.diaryFieldId) return <IrrigationRecordCreateScreen
     key={`${state.accountId ?? ""}:${state.diaryFieldId}:irrigation`}
+    client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
+    onBack={() => composition?.returnToFieldDiary()}
+    onCreated={() => composition?.returnToFieldDiary()} />;
+  if (state.entry === "expense-create" && state.client && state.diaryFieldId) return <ExpenseCreateScreen
+    key={`${state.accountId ?? ""}:${state.diaryFieldId}:${state.diarySeasonId ?? "field"}:expense`}
     client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
     onBack={() => composition?.returnToFieldDiary()}
     onCreated={() => composition?.returnToFieldDiary()} />;

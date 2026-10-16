@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Finance Expenses API
+  version: 1.0.0
+  description: >-
+    Online, server-authoritative creation of immutable field expenses. Expense history
+    is read through the existing Field Diary contract; this file owns the Finance create
+    operation and does not define a second Diary endpoint.
+servers:
+  - url: /v1
+paths:
+  /fields/{fieldId}/expenses:
+    post:
+      operationId: createFieldExpense
+      tags: [finance]
+      summary: Record an expense for an authorized Field
+      description: >-
+        The server resolves the active Business and Membership from the authenticated
+        subject, requires OWNER, and validates the Field and optional Season in that
+        scope. Business ID is never accepted from the request. expenseId is unique
+        within the authorized Business. An exact retry by the same actor and with the
+        same canonical payload replays the accepted Expense; changed actor, payload,
+        Field, or Season returns 409. Current authorization is revalidated before replay.
+        This operation requires connectivity and does not queue offline work.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fieldId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateExpenseRequest' }
+      responses:
+        '201':
+          description: Expense accepted and committed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '200':
+          description: Exact retry replayed the previously accepted Expense
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+        '400':
+          description: Invalid amount, currency, category, date, or request shape
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '401':
+          description: Authentication is missing or invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Current membership does not authorize Finance access
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Field or optional Season is unavailable in this authorized context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '409':
+          description: Expense ID was reused with a changed actor, payload, or context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500':
+          description: Unexpected server failure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CreateExpenseRequest:
+      type: object
+      additionalProperties: false
+      required: [expenseId, amount, currency, category, expenseDate]
+      properties:
+        expenseId:
+          type: string
+          format: uuid
+          description: Stable identity created once for this online submission and its retries.
+        seasonId:
+          type: string
+          format: uuid
+          description: Optional Season belonging to the path Field and authorized Business.
+        amount:
+          type: string
+          pattern: '^(?=.*[1-9])(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$'
+          description: Positive exact decimal string; at most 18 integer digits and 6 fractional digits. Excess precision/range is rejected without rounding.
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: Required uppercase ISO 4217 alphabetic code; the server validates it against the repository-pinned, versioned ISO 4217 code set.
+        category:
+          type: string
+          enum: [SEED_SEEDLING, FERTILIZER, PESTICIDE, FUEL, LABOR, IRRIGATION, OTHER]
+        expenseDate:
+          type: string
+          format: date
+          description: Calendar date when the expense occurred; no time or timezone conversion.
+        note:
+          type: string
+          description: Optional note. No feature-specific length cap or trimming rule is defined.
+    Expense:
+      type: object
+      required: [id, fieldId, seasonId, amount, currency, category, expenseDate, note]
+      properties:
+        id: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid, nullable: true }
+        amount:
+          type: string
+          pattern: '^(?=.*[1-9])(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$'
+          description: Exact decimal string; never a JSON floating-point number.
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        category: { type: string, enum: [SEED_SEEDLING, FERTILIZER, PESTICIDE, FUEL, LABOR, IRRIGATION, OTHER] }
+        expenseDate: { type: string, format: date }
+        note: { type: string, nullable: true }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message: { type: string }
+            requestId: { type: string }

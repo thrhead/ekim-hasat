@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { ApiError } from "../../src/observability/api-error.filter.js";
 import { after, before, test } from "node:test";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client.js";
@@ -19,8 +20,11 @@ const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomU
 const otherSeasonId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID(), completionId = randomUUID(), skipId = randomUUID();
 const irrigationRecordId = randomUUID(), matchingSeasonIrrigationId = randomUUID(), otherSeasonIrrigationId = randomUUID();
+const fieldExpenseId = randomUUID(), olderFieldExpenseId = randomUUID(), seasonExpenseId = randomUUID(), otherSeasonExpenseId = randomUUID();
+const workerId = randomUUID();
 const identity = { provider: "spec006-diary", subject: run };
 const foreignIdentity = { provider: "spec006-diary", subject: `${run}-foreign` };
+const workerIdentity = { provider: "spec006-diary", subject: `${run}-worker` };
 const taskCompletions = new TaskCompletionRepository(prisma);
 const observationCreates = new ObservationCreateRepository(prisma, () => new Date("2026-10-05T10:00:00.000Z"));
 const tieAt = "2026-10-04T09:30:00.000Z";
@@ -36,8 +40,10 @@ before(async () => {
   await prisma.business.createMany({ data: [{ id: businessId, timezone: "Asia/Tokyo" }, { id: foreignBusinessId, timezone: "Europe/Istanbul" }] });
   await prisma.applicationUser.create({ data: { id: userId, authProvider: identity.provider, authSubject: identity.subject, defaultBusinessId: businessId } });
   await prisma.applicationUser.create({ data: { id: foreignUserId, authProvider: foreignIdentity.provider, authSubject: foreignIdentity.subject, defaultBusinessId: foreignBusinessId } });
+  await prisma.applicationUser.create({ data: { id: workerId, authProvider: workerIdentity.provider, authSubject: workerIdentity.subject, defaultBusinessId: businessId } });
   await prisma.membership.create({ data: { businessId, userId, role: "OWNER", status: "ACTIVE" } });
   await prisma.membership.create({ data: { businessId: foreignBusinessId, userId: foreignUserId, role: "OWNER", status: "ACTIVE" } });
+  await prisma.membership.create({ data: { businessId, userId: workerId, role: "WORKER", status: "ACTIVE" } });
   await prisma.$executeRaw`INSERT INTO fields (id,business_id,name,representative_point) VALUES
     (${fieldId}::uuid,${businessId}::uuid,'Diary field',ST_SetSRID(ST_MakePoint(29,41),4326)),
     (${foreignFieldId}::uuid,${foreignBusinessId}::uuid,'Foreign diary',ST_SetSRID(ST_MakePoint(29,41),4326))`;
@@ -64,6 +70,16 @@ before(async () => {
     occurredAt: new Date(Date.parse("2026-10-05T08:00:00.000Z") - index * 60_000),
     acceptedAt: new Date("2026-10-05T10:00:00.000Z"), payloadFingerprint: randomUUID().replaceAll("-", "") }));
   const membership = await prisma.membership.findUniqueOrThrow({ where: { businessId_userId: { businessId, userId } }, select: { id: true } });
+  await prisma.expense.createMany({ data: [
+    { id: fieldExpenseId, businessId, fieldId, seasonId: null, actorUserId: userId, actorMembershipId: membership.id,
+      amount: "12.30", currency: "TRY", category: "FERTILIZER", expenseDate: new Date("2026-10-05T00:00:00.000Z"), note: "Seedlings" },
+    { id: olderFieldExpenseId, businessId, fieldId, seasonId: null, actorUserId: userId, actorMembershipId: membership.id,
+      amount: "2.00", currency: "TRY", category: "FUEL", expenseDate: new Date("2026-10-04T00:00:00.000Z"), note: null },
+    { id: seasonExpenseId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      amount: "5.00", currency: "TRY", category: "LABOR", expenseDate: new Date("2026-10-05T00:00:00.000Z"), note: null },
+    { id: otherSeasonExpenseId, businessId, fieldId, seasonId: otherSeasonId, actorUserId: userId, actorMembershipId: membership.id,
+      amount: "7.00", currency: "TRY", category: "SEED_SEEDLING", expenseDate: new Date("2026-10-05T00:00:00.000Z"), note: null },
+  ] });
   await prisma.fieldObservation.createMany({ data: observations.map((row) => ({ ...row, actorMembershipId: membership.id })) });
   // An observation and accepted completion share an occurrence instant to protect observation-first ties.
   const tieId = randomUUID(); observationIds.push(tieId);
@@ -191,6 +207,92 @@ test("Field Diary HTTP query forwards the includeIrrigation opt-in", async () =>
     assert.equal(next.statusCode, 200);
     assert.ok((next.json() as { items: Array<{ id: string }> }).items.some(({ id }) => id === irrigationRecordId));
   } finally { await app.close(); }
+});
+
+test("default Field Diary keeps V1 cursors and excludes accepted expenses", async () => {
+  const first = await diary.read(identity, fieldId, { limit: 1 });
+  assert.ok(first.nextCursor);
+  assert.equal(JSON.parse(Buffer.from(first.nextCursor, "base64url").toString("utf8")).version, 1);
+  const seen: string[] = [];
+  let page = first;
+  while (true) {
+    seen.push(...page.items.map(({ id }) => id));
+    if (!page.nextCursor) break;
+    page = await diary.read(identity, fieldId, { limit: 100, cursor: page.nextCursor });
+  }
+  assert.equal(seen.includes(fieldExpenseId), false);
+  assert.equal(seen.includes(seasonExpenseId), false);
+});
+
+test("OWNER expense-enabled Field Diary projects accepted date-only expenses once across pages", async () => {
+  const seen: Array<Record<string, unknown>> = [];
+  let page = await diary.read(identity, fieldId, { includeExpenses: true, limit: 1 });
+  assert.equal(page.businessTimezone, "Asia/Tokyo");
+  while (true) {
+    seen.push(...page.items);
+    if (!page.nextCursor) break;
+    assert.equal(JSON.parse(Buffer.from(page.nextCursor, "base64url").toString("utf8")).version, 2);
+    page = await diary.read(identity, fieldId, { includeExpenses: true, limit: 100, cursor: page.nextCursor });
+  }
+  assert.equal(new Set(seen.map(({ id }) => id)).size, seen.length);
+  const expenses = seen.filter(({ kind }) => kind === "EXPENSE");
+  assert.deepEqual(new Set(expenses.map(({ id }) => id)), new Set([fieldExpenseId, olderFieldExpenseId, seasonExpenseId, otherSeasonExpenseId]));
+  const fieldOnly = expenses.find(({ id }) => id === fieldExpenseId);
+  assert.deepEqual(fieldOnly, { kind: "EXPENSE", id: fieldExpenseId, fieldId, seasonId: null,
+    expenseDate: "2026-10-05", amount: "12.30", currency: "TRY", category: "FERTILIZER", note: "Seedlings" });
+  assert.equal("occurredAt" in fieldOnly!, false);
+  assert.equal("recordedAt" in fieldOnly!, false);
+});
+
+test("expense-enabled Season Diary includes only explicitly linked expenses", async () => {
+  const seen: Array<{ id: string; kind: string }> = [];
+  let page = await diary.read(identity, fieldId, { seasonId, includeExpenses: true, limit: 1 });
+  while (true) {
+    seen.push(...page.items);
+    if (!page.nextCursor) break;
+    page = await diary.read(identity, fieldId, { seasonId, includeExpenses: true, limit: 1, cursor: page.nextCursor });
+  }
+  const expenses = seen.filter(({ kind }) => kind === "EXPENSE");
+  assert.equal(new Set(seen.map(({ id }) => id)).size, seen.length);
+  assert.deepEqual(expenses.map(({ id }) => id), [seasonExpenseId]);
+  assert.equal(expenses.some(({ id }) => id === fieldExpenseId || id === olderFieldExpenseId || id === otherSeasonExpenseId), false);
+});
+
+test("active WORKER can read ordinary Diary but receives generic forbidden for expense opt-in", async () => {
+  const ordinary = await diary.read(workerIdentity, fieldId);
+  assert.ok(ordinary.items.length > 0);
+  assert.equal(ordinary.items.some(({ kind }) => kind === "EXPENSE"), false);
+  await assert.rejects(diary.read(workerIdentity, fieldId, { includeExpenses: true }),
+    (error: unknown) => error instanceof ApiError && error.getStatus() === 403 && error.presentation.code === "FORBIDDEN");
+});
+
+test("Field Diary HTTP expense opt-in returns date-only entries to OWNER and generic 403 to WORKER", async () => {
+  const app = await createObservationApp({
+    verify: async (token) => token === "owner-diary-token" ? identity : token === "worker-diary-token" ? workerIdentity : null,
+    create: (who, requestedFieldId, request) => observationCreates.create(who, requestedFieldId, request),
+    readDiary: (who, requestedFieldId, filters) => diary.read(who, requestedFieldId, filters),
+  });
+  await app.init();
+  await app.getHttpAdapter().getInstance().ready();
+  try {
+    const url = `/v1/fields/${fieldId}/diary?includeExpenses=true&seasonId=${seasonId}`;
+    const owner = await app.inject({ method: "GET", url,
+      headers: { authorization: "Bearer owner-diary-token" } });
+    assert.equal(owner.statusCode, 200);
+    assert.deepEqual((owner.json() as { items: Array<{ id: string }> }).items.filter(({ id }) => id === seasonExpenseId).length, 1);
+    const worker = await app.inject({ method: "GET", url,
+      headers: { authorization: "Bearer worker-diary-token" } });
+    assert.equal(worker.statusCode, 403);
+    assert.equal((worker.json() as { error: { code: string } }).error.code, "FORBIDDEN");
+    assert.equal(worker.body.includes(seasonExpenseId), false);
+  } finally { await app.close(); }
+});
+
+test("expense-enabled cursor cannot continue in default Diary mode", async () => {
+  const first = await diary.read(identity, fieldId, { includeExpenses: true, limit: 1 });
+  assert.ok(first.nextCursor);
+  await assert.rejects(diary.read(identity, fieldId, { cursor: first.nextCursor }),
+    (error: unknown) => error instanceof ApiError && error.getStatus() === 400 && error.presentation.code === "INVALID_REQUEST");
 });
 
 test("quickstart journey creates, reads back, exactly replays, and paginates with an accepted completion", async () => {

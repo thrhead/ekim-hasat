@@ -133,6 +133,11 @@ export type FieldObservation = Prisma.FieldObservationModel
  */
 export type IrrigationRecord = Prisma.IrrigationRecordModel
 /**
+ * Model Expense
+ *
+ */
+export type Expense = Prisma.ExpenseModel
+/**
  * Model CalendarReadSnapshot
  *
  */
