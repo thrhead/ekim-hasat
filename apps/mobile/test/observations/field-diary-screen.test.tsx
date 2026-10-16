@@ -8,7 +8,7 @@ const observation: Page["items"][number] = { kind: "OBSERVATION", id: "observati
 const completion: Page["items"][number] = { kind: "TASK_COMPLETION", id: "completion-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-1", title: "Sulamayı kontrol et", occurredAt: "2026-10-04T09:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
 const skipped: Page["items"][number] = { kind: "TASK_SKIPPED", id: "skip-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-2", title: "Sürmeyi atla", skippedAt: "2026-10-04T10:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1", skipId: "skip-1" };
 const irrigation: Page["items"][number] = { kind: "IRRIGATION", id: "irrigation-1", fieldId: "field-1", seasonId: "season-1", method: "Damlama", durationMinutes: 15, waterVolumeCubicMetres: "2.5", note: "Sabah sulaması", occurredAt: "2026-10-05T09:00:00Z", recordedAt: "2026-10-05T09:05:00Z", businessTimezone: "Europe/Istanbul" };
-const expense = { kind: "EXPENSE", id: "expense-1", fieldId: "field-1", seasonId: "season-1", amount: "12.345678", currency: "TRY", category: "FERTILIZER", expenseDate: "2026-10-05", note: null } as unknown as Page["items"][number];
+const expense: Extract<Page["items"][number], { kind: "EXPENSE" }> = { kind: "EXPENSE", id: "expense-1", fieldId: "field-1", seasonId: "season-1", amount: "12.345678", currency: "TRY", category: "FERTILIZER", expenseDate: "2026-10-05", note: null };
 function page(items: Page["items"] = [], nextCursor: string | null = null): Page { return { items, nextCursor, businessTimezone: "Europe/Istanbul" }; }
 function success(data: Page) { return { data, response: { ok: true, status: 200 } }; }
 function forbidden() { return { error: { error: { code: "FORBIDDEN", message: "private detail", requestId: "r1" } }, response: { ok: false, status: 403 } }; }
@@ -214,8 +214,14 @@ describe("Expense-enabled Field Diary", () => {
     const screen = await mount(jest.fn().mockResolvedValue(success(data)), undefined, undefined, undefined, jest.fn());
     const rendered = text(screen);
     expect(rendered.indexOf("Sabah kontrolü")).toBeLessThan(rendered.indexOf("12.345678"));
-    const expenseRow = screen.root.findAll((node) => node.props.accessibilityLabel?.startsWith("Gider, 12.345678"))[0];
-    expect(expenseRow.props.accessibilityLabel).not.toMatch(/\d{2}:\d{2}|America\/Los_Angeles|Gerçekleşti/);
+    const expenseRow = screen.root.findAll(({ props }) => {
+      const label = props.accessibilityLabel;
+      return typeof label === "string" && label.startsWith("Gider, 12.345678");
+    })[0];
+    const expenseLabel = expenseRow?.props.accessibilityLabel;
+    expect(typeof expenseLabel).toBe("string");
+    if (typeof expenseLabel !== "string") throw new Error("Expense row accessibility label was missing");
+    expect(expenseLabel).not.toMatch(/\d{2}:\d{2}|America\/Los_Angeles|Gerçekleşti/);
     await act(async () => screen.unmount());
   });
 

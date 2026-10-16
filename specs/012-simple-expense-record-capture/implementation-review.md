@@ -66,3 +66,7 @@ Focused verification after the change:
 - `pnpm --filter @ekim-hasat/api typecheck`: passed.
 
 No full T028 rerun, convergence workflow, push, or merge was performed.
+
+## Final-verification mobile typecheck blocker disposition (2026-10-16)
+
+**Resolved.** The previously reported test-only typing errors were reproduced. The Expense fixture’s `unknown` double cast widened it to the full Diary union, causing TS2322 when a spread Expense value added `expenseDate`; the test now types it as the generated `EXPENSE` discriminated member. The renderer’s untyped `accessibilityLabel` value was `{}`, causing TS2339 on `startsWith`; the predicate and assertion now narrow it to `string`. Fresh mobile typecheck passed, and Field Diary plus Expense/Season focused suites passed 38/38. No production or generated types were changed. This review only dispositions the compile blocker; the requested full final-verification rerun is still outstanding.
