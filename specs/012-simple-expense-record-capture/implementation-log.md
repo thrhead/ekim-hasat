@@ -20,6 +20,8 @@
 | T021 / T024 Season Diary pagination | Adding a second Season-linked expense to the integration fixture exposed a genuine failure after a DATE_ONLY cursor: the timestamp-source reader rejected the synthetic all-day lower-bound UUID because it did not satisfy the application's versioned UUID validator. | Changed the date-only timestamp-source cursor sentinel to a valid lowest-bound version-4 UUID. `field-diary.integration.spec.ts`: 13/13 passed, including Field history containing Field-only and both Season-linked Expenses, Season pages containing only that exact Season's Expense, and no duplicate IDs across pages. API typecheck passed. |
 | T022 / T025 mobile Season choice | The new mobile test failed because expense entry never requested Field detail and had no Season picker; the approved plan's Field-scoped Season choice was absent. | Added a Field-detail read and optional picker using that Field's available active Season, while preserving explicit Season Diary context and defaulting Field Diary capture to no Season. `expense-season-context.test.tsx`: 3/3; create form, diary and composition suites: 57/57; mobile typecheck passed. The Field path remains fixed and the request only includes the selected Season ID. |
 | T026 US2 focused validation | No new tests were added at this gate. | Sequential disposable-DB suites: Season create association 3/3, authorization/tenant isolation 3/3, idempotency/retry/concurrency 3/3, Diary filtering/pagination 13/13. Mobile Season/form/Diary tests: 33/33. API and mobile typechecks passed. Preflight verified `current_database() = ekim_hasat_test`. |
+| T027 implementation-conformance review | No RED was appropriate: the implementation review found no confirmed Critical or Important gap requiring behavior changes. | Recorded the spec/plan/data-model/contract conformance assessment in `implementation-review.md`. API contracts (78), generated-client consistency, and source review support the disposition. `checklists/finance.md` remains a separate requirements-quality artifact. No RED→GREEN fix was needed. |
+| T028 comprehensive cross-feature gate | The initial API unit invocation lacked `DATABASE_URL`, and the initial concurrent mobile invocation hit two Jest timeouts; neither result was treated as implementation failure. | With a fresh volume-less PostGIS container, verified `current_database() = ekim_hasat_test`, applied repository migrations, then ran DB-writing API commands sequentially. API unit: 192/192; API integration plus schema SQL invariants: 200/200; API contract: 78/78; domain: 116/116; focused mobile Expense form/Diary: 33/33. Generated API client generation completed; `api-client test:contract` passed generation consistency, build, and contract type checks. Prisma schema validation passed. No code behavior changes were required. |
 
 ## Recovery audit (2026-10-16)
 
@@ -36,7 +38,7 @@ PostgreSQL ran in a temporary PostGIS container without a persistent volume. Bef
 
 ## Progress
 
-Completed tasks: T001–T026 (T010 completed with T017/T018 GREEN; US1 gate passed; US2 association, pagination and mobile context gates passed).
+Completed tasks: T001–T028 (T010 completed with T017/T018 GREEN; US1 gate passed; US2 association, pagination and mobile context gates passed; final implementation-conformance review and cross-feature validation passed).
 
 ## Parallel execution
 

@@ -67,8 +67,8 @@ The repository already has the required pnpm workspace, API/domain/mobile test r
 
 ## Phase 5: Cross-Cutting Verification
 
-- [ ] T027 Perform a separate implementation-conformance review against `specs/012-simple-expense-record-capture/spec.md`, `plan.md`, `data-model.md`, and both canonical OpenAPI contracts using implementation tests and code-review evidence; record findings in `specs/012-simple-expense-record-capture/implementation-review.md`, and leave `checklists/finance.md` closed solely as a requirements-quality artifact without reinterpreting its markers as implementation status.
-- [ ] T028 Run the comprehensive cross-feature validation commands from `specs/012-simple-expense-record-capture/quickstart.md` plus `pnpm --filter @ekim-hasat/domain test`: full focused API unit/integration/contract coverage, disposable PostgreSQL checks, generated-client consistency, and mobile tests after both user stories are integrated.
+- [x] T027 Perform a separate implementation-conformance review against `specs/012-simple-expense-record-capture/spec.md`, `plan.md`, `data-model.md`, and both canonical OpenAPI contracts using implementation tests and code-review evidence; record findings in `specs/012-simple-expense-record-capture/implementation-review.md`, and leave `checklists/finance.md` closed solely as a requirements-quality artifact without reinterpreting its markers as implementation status.
+- [x] T028 Run the comprehensive cross-feature validation commands from `specs/012-simple-expense-record-capture/quickstart.md` plus `pnpm --filter @ekim-hasat/domain test`: full focused API unit/integration/contract coverage, disposable PostgreSQL checks, generated-client consistency, and mobile tests after both user stories are integrated.
 
 ## Dependencies
 
