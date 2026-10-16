@@ -38,7 +38,9 @@ function businessToday(now: Date, timezone: string): string {
 }
 
 function statusOf(error: unknown): number | undefined {
-  return error && typeof error === "object" && "status" in error ? Number(error.status) : undefined;
+  if (!error || typeof error !== "object" || !("status" in error)) return undefined;
+  const status = Number(error.status);
+  return Number.isFinite(status) ? status : undefined;
 }
 
 export function ExpenseCreateScreen(props: ExpenseCreateScreenProps) {

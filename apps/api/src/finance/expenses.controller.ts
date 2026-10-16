@@ -1,10 +1,10 @@
 import "reflect-metadata";
-import { Body, Controller, Headers, Inject, Param, Post, Res, UseFilters } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Inject, Param, Post, Res, UseFilters } from "@nestjs/common";
 import { createExpense } from "@ekim-hasat/domain/finance/expense";
 import type { VerifiedSubject } from "@ekim-hasat/domain/identity/auth-provider";
 import { ApiError, ApiErrorFilter } from "../observability/api-error.filter.js";
 import { authenticateSeasonRequest } from "../seasons/seasons-read.controller.js";
-import type { ExpenseCreateOutcome, ExpenseCreateRequest } from "./expenses.repository.js";
+import type { ExpenseCreateOutcome, ExpenseCreateRequest, ExpenseSeasonOption } from "./expenses.repository.js";
 import type { ExpensesDependencies } from "./expenses.module.js";
 
 const dependenciesKey = Symbol.for("EXPENSES_DEPENDENCIES");
@@ -52,6 +52,16 @@ export type ExpenseCreateDependencies = ExpensesDependencies;
 @UseFilters(ApiErrorFilter)
 export class ExpensesController {
   constructor(@Inject(dependenciesKey) private readonly dependencies: ExpenseCreateDependencies) {}
+
+  @Get("fields/:fieldId/expenses/seasons")
+  async listAvailableSeasons(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("fieldId") fieldId: string,
+  ): Promise<ReadonlyArray<ExpenseSeasonOption>> {
+    const identity: VerifiedSubject = await authenticateSeasonRequest(authorization, this.dependencies.verify);
+    if (!uuid.test(fieldId)) throw invalidRequest();
+    return this.dependencies.listAvailableSeasons(identity, fieldId);
+  }
 
   @Post("fields/:fieldId/expenses")
   async create(

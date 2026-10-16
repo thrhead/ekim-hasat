@@ -1,8 +1,8 @@
 import { createApiClient, type ApiClient, type ExpenseComponents } from "../../../../../packages/api-client/src/index";
-import { readField } from "../fields/fields-client";
 
 export type ExpenseRequest = ExpenseComponents["schemas"]["CreateExpenseRequest"];
 export type ExpenseRecord = ExpenseComponents["schemas"]["Expense"];
+export type ExpenseSeasonOption = Readonly<{ id: string; label: string }>;
 
 function errorMessage(status: number, code?: string): string {
   if (code === "INVALID_REQUEST") return "Gider bilgilerini kontrol edin.";
@@ -21,15 +21,24 @@ export async function readExpenseBusinessTimezone(client: ApiClient, fieldId: st
   return result.data.businessTimezone;
 }
 
-export async function readExpenseSeasonOptions(client: ApiClient, fieldId: string): Promise<ReadonlyArray<Readonly<{ id: string; label: string }>>> {
-  const field = await readField(client, fieldId);
-  return field.activeSeason ? [{ id: field.activeSeason.id, label: field.activeSeason.cropLabel ?? "Sezon" }] : [];
+export async function readExpenseSeasonOptions(client: ApiClient, fieldId: string): Promise<ReadonlyArray<ExpenseSeasonOption>> {
+  const result = await client.GET("/fields/{fieldId}/expenses/seasons", { params: { path: { fieldId } } });
+  if (!result.response.ok || !result.data) {
+    throw Object.assign(new Error(errorMessage(result.response.status, result.error?.error.code)), { status: result.response.status });
+  }
+  return result.data.map(({ id, cropLabel, status }) => ({
+    id,
+    label: `${cropLabel} · ${status === "ACTIVE" ? "Aktif" : "Taslak"}`,
+  }));
 }
 
 export async function submitExpense(client: ApiClient, fieldId: string, request: ExpenseRequest): Promise<ExpenseRecord> {
   const result = await client.POST("/fields/{fieldId}/expenses", { params: { path: { fieldId } }, body: request });
   if (!result.response.ok || !result.data) {
-    throw Object.assign(new Error(errorMessage(result.response.status, result.error?.error.code)), { status: result.response.status });
+    // A 2xx without a representation may still have committed. Treat it as
+    // uncertain so the form retains this exact identity and payload for replay.
+    const status = result.response.ok ? undefined : result.response.status;
+    throw Object.assign(new Error(errorMessage(result.response.status, result.error?.error.code)), { status });
   }
   return result.data;
 }

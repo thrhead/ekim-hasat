@@ -65,6 +65,15 @@ describe("Field/Season diary", () => {
     await act(async () => screen.unmount());
   });
 
+  it("orders timed entries by kind before descending UUID when instants tie", async () => {
+    const observationTie = { ...observation, id: "00000000-0000-4000-8000-000000000001", occurredAt: "2026-10-05T09:00:00Z" };
+    const completionTie = { ...completion, id: "ffffffff-ffff-4fff-8fff-ffffffffffff", occurredAt: "2026-10-05T09:00:00Z" };
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([completionTie, observationTie]))));
+    const rendered = text(screen);
+    expect(rendered.indexOf("Yapraklar sarardı")).toBeLessThan(rendered.indexOf("Sulamayı kontrol et"));
+    await act(async () => screen.unmount());
+  });
+
   it("renders skipped work as its own diary event, never as a completion", async () => {
     const screen = await mount(jest.fn().mockResolvedValue(success(page([skipped]))));
     const rendered = text(screen);

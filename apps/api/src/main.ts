@@ -157,6 +157,7 @@ async function bootstrap(): Promise<void> {
   const expensesModule = createExpensesModule({
     verify,
     create: (identity, fieldId, request) => expensesService.create(identity, fieldId, request),
+    listAvailableSeasons: (identity, fieldId) => expensesService.listAvailableSeasons(identity, fieldId),
   });
   const weatherModule = createWeatherModule({
     verify,

@@ -21,6 +21,8 @@ export type ExpenseCreateOutcome = Readonly<{
   expense: Expense & Readonly<{ recordedAt: string }>;
 }>;
 
+export type ExpenseSeasonOption = Readonly<{ id: string; status: "DRAFT" | "ACTIVE"; cropLabel: string }>;
+
 type ExpenseRow = {
   id: string;
   business_id: string;
@@ -41,6 +43,40 @@ export class ExpensesRepository {
 
   constructor(private readonly prisma: PrismaClient, private readonly now: () => Date = () => new Date()) {
     this.membershipScope = new MembershipScopeService(prisma);
+  }
+
+  async listAvailableSeasons(identity: VerifiedSubject, fieldId: string): Promise<ReadonlyArray<ExpenseSeasonOption>> {
+    let scope;
+    try { scope = await this.membershipScope.resolveDefaultBusinessScope(identity); }
+    catch (error) {
+      if (error instanceof ForbiddenException) throw forbidden();
+      throw error;
+    }
+    if (!scope || scope.role !== "OWNER") throw forbidden();
+    const field = await this.prisma.field.findFirst({
+      where: {
+        id: fieldId, businessId: scope.businessId,
+        business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE", role: "OWNER" } } },
+      },
+      select: { id: true },
+    });
+    if (!field) throw notFound();
+    const seasons = await this.prisma.season.findMany({
+      where: { fieldId, businessId: scope.businessId, status: { in: ["DRAFT", "ACTIVE"] } },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      select: {
+        id: true, status: true,
+        cropDefinitionVersion: { select: { displayName: true } },
+        customCrop: { select: { displayName: true } },
+      },
+    });
+    return seasons.map((season) => {
+      const cropLabel = season.cropDefinitionVersion?.displayName ?? season.customCrop?.displayName;
+      if (!cropLabel || (season.status !== "DRAFT" && season.status !== "ACTIVE")) {
+        throw new Error("Expense Season option integrity failure");
+      }
+      return { id: season.id, status: season.status, cropLabel };
+    });
   }
 
   async create(identity: VerifiedSubject, fieldId: string, input: ExpenseCreateRequest): Promise<ExpenseCreateOutcome> {

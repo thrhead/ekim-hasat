@@ -196,7 +196,9 @@ function compareDiaryEntries(left: DiaryEntry, right: DiaryEntry, timezone: stri
     if (left.kind !== right.kind) return left.kind === "EXPENSE" ? 1 : -1;
     return right.id.localeCompare(left.id);
   }
-  return diaryTimedAt(right).localeCompare(diaryTimedAt(left)) || right.id.localeCompare(left.id);
+  return diaryTimedAt(right).localeCompare(diaryTimedAt(left))
+    || left.kind.localeCompare(right.kind)
+    || right.id.localeCompare(left.id);
 }
 
 function businessDate(item: DiaryEntry, timezone: string): string {

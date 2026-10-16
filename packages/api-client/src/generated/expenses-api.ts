@@ -19,6 +19,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/fields/{fieldId}/expenses/seasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available Seasons for an authorized Field Expense
+         * @description The server resolves current Business membership and requires OWNER. It returns only DRAFT and ACTIVE Seasons belonging to the path Field and authorized Business. Business ID is never accepted from the request.
+         */
+        get: operations["listFieldExpenseSeasons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 };
 export type webhooks = Record<string, never>;
 export type components = {
@@ -72,6 +92,14 @@ export type components = {
             /** Format: uuid */
             seasonId: string | null;
         };
+        ExpenseSeasonOption: {
+            cropLabel: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "DRAFT" | "ACTIVE";
+        };
+        ExpenseSeasonOptions: components["schemas"]["ExpenseSeasonOption"][];
     };
     responses: never;
     parameters: never;
@@ -152,6 +180,64 @@ export interface operations {
             };
             /** @description Expense ID was reused with a changed actor, payload, or context */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Unexpected server failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listFieldExpenseSeasons: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fieldId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Available same-Field Seasons, in stable creation order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseSeasonOptions"];
+                };
+            };
+            /** @description Authentication is missing or invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Current membership does not authorize Finance access */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Field is unavailable in this authorized context */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -238,3 +238,11 @@ test("expense-enabled cursor rejects different Field, Season, include flags, tim
   assert.throws(() => decodeDiaryCursor(v1, fieldId, null, false, true, "Asia/Tokyo"), isInvalidCursor);
   assert.throws(() => decodeDiaryCursor(cursor, fieldId, null, false, false, "Asia/Tokyo"), isInvalidCursor);
 });
+
+test("expense-enabled cursor rejects an impossible date-only calendar date", async () => {
+  const { decodeDiaryCursor } = await queryModule();
+  const malformed = Buffer.from(JSON.stringify({ version: 2, fieldId, seasonId: null, includeIrrigation: false,
+    includeExpenses: true, businessTimezone: "Asia/Tokyo", localDate: "2026-02-31", precision: "DATE_ONLY",
+    kind: "EXPENSE", id: "22222222-2222-4222-8222-222222222222" }), "utf8").toString("base64url");
+  assert.throws(() => decodeDiaryCursor(malformed, fieldId, null, false, true, "Asia/Tokyo"), isInvalidCursor);
+});

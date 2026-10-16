@@ -18,7 +18,9 @@ function text(screen: TestRenderer) {
 }
 async function mount(
   POST = jest.fn().mockResolvedValue({ data: accepted, response: { ok: true, status: 201 } }),
-  GET = jest.fn().mockResolvedValue(context),
+  GET = jest.fn((path: string) => Promise.resolve(path === "/fields/{fieldId}/diary" ? context : {
+    data: [], response: { ok: true, status: 200 },
+  })),
   onCreated = jest.fn(),
 ) {
   let screen!: TestRenderer;
@@ -156,6 +158,23 @@ describe("online Field expense capture", () => {
     await act(async () => screen.unmount());
   });
 
+  it("retains the exact request when a successful response has no parsed body", async () => {
+    const POST = jest.fn().mockResolvedValueOnce({ data: undefined, response: { ok: true, status: 201 } })
+      .mockResolvedValueOnce({ data: accepted, response: { ok: true, status: 200 } });
+    const onCreated = jest.fn();
+    const screen = await mount(POST, undefined, onCreated);
+    await validInput(screen);
+    await press(screen, "Gideri kaydet");
+    expect(onCreated).not.toHaveBeenCalled();
+    expect(text(screen)).not.toContain("Gider kaydedildi");
+    expect(node(screen, "Tutar").props.value).toBe("12.345678");
+    await press(screen, "Kaydı yeniden dene");
+    expect(POST).toHaveBeenCalledTimes(2);
+    expect(POST.mock.calls[1]).toEqual(POST.mock.calls[0]);
+    expect(onCreated).toHaveBeenCalledWith(accepted);
+    await act(async () => screen.unmount());
+  });
+
   it.each([
     [400, "INVALID_REQUEST"], [403, "FORBIDDEN"], [500, "UNEXPECTED"],
   ])("keeps a %i %s response unaccepted and exposes an alert", async (status, code) => {
@@ -179,7 +198,7 @@ describe("online Field expense capture", () => {
     await press(screen, "Bilgileri yeniden yükle");
     expect(GET).toHaveBeenCalledTimes(4);
     expect(GET.mock.calls.map(([path]) => path)).toEqual([
-      "/fields/{fieldId}/diary", "/fields/{fieldId}", "/fields/{fieldId}/diary", "/fields/{fieldId}",
+      "/fields/{fieldId}/diary", "/fields/{fieldId}/expenses/seasons", "/fields/{fieldId}/diary", "/fields/{fieldId}/expenses/seasons",
     ]);
     expect(POST).not.toHaveBeenCalled();
     await act(async () => screen.unmount());

@@ -9,11 +9,15 @@ const contractPath = fileURLToPath(
 );
 test("SPEC-012 expense create OpenAPI contract", async () => {
   const contract = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
-  const operation = /  \/fields\/\{fieldId\}\/expenses:\n    post:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0] ?? "";
+  const operation = /    post:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0] ?? "";
+  const seasonOperation = /  \/fields\/\{fieldId\}\/expenses\/seasons:\n    get:[\s\S]*?(?=\n  \/fields\/\{fieldId\}\/expenses:)/.exec(contract)?.[0] ?? "";
   const request = /CreateExpenseRequest:[\s\S]*?(?=\n    Expense:)/.exec(contract)?.[0] ?? "";
 
   assert.match(contract, /^openapi: 3\.1\.0/m);
   assert.ok(operation, "POST /v1/fields/{fieldId}/expenses exists");
+  assert.ok(seasonOperation, "GET /v1/fields/{fieldId}/expenses/seasons exists");
+  assert.match(seasonOperation, /operationId: listFieldExpenseSeasons/);
+  assert.match(seasonOperation, /DRAFT and ACTIVE Seasons belonging to the path Field and authorized Business/);
   assert.match(operation, /operationId: createFieldExpense/);
   assert.match(operation, /requestBody:\n        required: true/);
   assert.match(request, /required: \[expenseId, amount, currency, category, expenseDate\]/);
@@ -37,6 +41,7 @@ test("create route returns contract-shaped acceptance and replay statuses", asyn
   let createCalls = 0;
   const app = await createExpensesApp({
     verify: async () => ({ provider: "contract-test", subject: "owner" }),
+    listAvailableSeasons: async () => [{ id: "season-1", status: "DRAFT", cropLabel: "Buğday" }],
     create: async (_identity, _field, body) => {
       createCalls += 1;
       return {
@@ -67,6 +72,9 @@ test("create route returns contract-shaped acceptance and replay statuses", asyn
     assert.equal("recordedAt" in body, false);
     assert.equal("businessId" in body, false);
     assert.equal(createCalls, 2);
+    const seasons = await fastify.inject({ method: "GET", url: `/v1/fields/${fieldId}/expenses/seasons`, headers: { authorization: "Bearer valid" } });
+    assert.equal(seasons.statusCode, 200);
+    assert.deepEqual(seasons.json(), [{ id: "season-1", status: "DRAFT", cropLabel: "Buğday" }]);
   } finally { await app.close(); }
 });
 
@@ -75,6 +83,7 @@ test("create route rejects non-decimal amount, missing currency, and unknown cat
   let createCalls = 0;
   const app = await createExpensesApp({
     verify: async () => ({ provider: "contract-test", subject: "owner" }),
+    listAvailableSeasons: async () => [],
     create: async () => { createCalls += 1; throw new Error("invalid request reached persistence"); },
   });
   const fastify = app.getHttpAdapter().getInstance();

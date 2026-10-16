@@ -40,3 +40,15 @@
 ## T027 disposition
 
 No confirmed Critical or Important implementation-conformance gap was found, so no RED→GREEN implementation fix was required by this review. T027 and T028 are complete.
+
+## Fresh whole-feature review dispositions (2026-10-16)
+
+This separate review pass against the integrated feature diff confirmed and resolved these behavior gaps:
+
+- **CONFIRMED — uncertain successful Expense response:** A 2xx response without a parsed record now keeps the active request identity and exact payload available for replay. A focused missing-body test recorded RED before the fix and GREEN afterward.
+- **CONFIRMED — impossible date-only cursor:** V2 cursor decoding now rejects impossible calendar dates as `INVALID_REQUEST`. The focused `2026-02-31` test recorded RED before the fix and GREEN afterward.
+- **CONFIRMED — Field-context Season options:** The picker now loads all same-Field DRAFT and ACTIVE Seasons through the OWNER-scoped `GET /fields/{fieldId}/expenses/seasons` contract. The server scopes by current Business, Field, and active OWNER membership. API and mobile tests recorded RED before the fix and pass afterward.
+- **CONFIRMED — timed Diary tie order:** Mobile now uses kind ascending before UUID descending when timed instants tie. A conflicting-UUID focused test recorded RED before the fix and passes afterward.
+- **CONFIRMED — concurrency-test quality limitation:** The existing `Promise.all` integration test verifies convergence but does not prove that both transactions overlap at the insert. It was left unchanged because deterministic coordination would require a database test hook/barrier or brittle timing; no production-only test hook was added.
+
+Focused API unit/contract tests passed 24/24, API typecheck passed, focused mobile Expense/Diary and adjacent suites passed 38/38, and generated API-client contract checks passed. The extended Season PostgreSQL integration test could not run because `DATABASE_URL` was not configured; the disposable-database guard stopped before any connection or write. Mobile typecheck retains two pre-existing Diary test typing errors at `apps/mobile/test/observations/field-diary-screen.test.tsx:213,217`. The full T028 suite was not rerun.

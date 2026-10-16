@@ -16,6 +16,7 @@ const owner = randomUUID(), foreignOwner = randomUUID();
 const ownerMembership = randomUUID(), foreignMembership = randomUUID();
 const field = randomUUID(), otherField = randomUUID(), foreignField = randomUUID();
 const season = randomUUID(), wrongFieldSeason = randomUUID(), foreignBusinessSeason = randomUUID();
+const activeSeason = randomUUID();
 const crop = randomUUID(), cropKey = `spec012-season-${run}`;
 const identity = { provider, subject: `${run}-owner` };
 const repository = () => new ExpensesRepository(prisma, () => new Date("2026-10-16T10:00:00.000Z"));
@@ -47,6 +48,7 @@ before(async () => {
   await prisma.cropDefinitionVersion.create({ data: { id: crop, cropKey, version: "1", displayName: "SPEC-012 season crop" } });
   await prisma.season.createMany({ data: [
     { id: season, businessId: business, fieldId: field, cropKey, cropDefinitionVersionId: crop, actualPlantingDate: new Date("2026-10-01T00:00:00.000Z"), status: "DRAFT" },
+    { id: activeSeason, businessId: business, fieldId: field, cropKey, cropDefinitionVersionId: crop, actualPlantingDate: new Date("2026-10-04T00:00:00.000Z"), status: "ACTIVE", activatedAt: new Date("2026-10-04T10:00:00.000Z") },
     { id: wrongFieldSeason, businessId: business, fieldId: otherField, cropKey, cropDefinitionVersionId: crop, actualPlantingDate: new Date("2026-10-02T00:00:00.000Z"), status: "DRAFT" },
     { id: foreignBusinessSeason, businessId: foreignBusiness, fieldId: foreignField, cropKey, cropDefinitionVersionId: crop, actualPlantingDate: new Date("2026-10-03T00:00:00.000Z"), status: "DRAFT" },
   ] });
@@ -57,7 +59,7 @@ after(async () => {
     await prisma.$executeRawUnsafe("ALTER TABLE expenses DISABLE TRIGGER USER");
     try { await prisma.expense.deleteMany({ where: { businessId: { in: [business, foreignBusiness] } } }); }
     finally { await prisma.$executeRawUnsafe("ALTER TABLE expenses ENABLE TRIGGER USER"); }
-    await prisma.season.deleteMany({ where: { id: { in: [season, wrongFieldSeason, foreignBusinessSeason] } } });
+    await prisma.season.deleteMany({ where: { id: { in: [season, activeSeason, wrongFieldSeason, foreignBusinessSeason] } } });
     await prisma.cropDefinitionVersion.delete({ where: { id: crop } });
     await prisma.$executeRaw`DELETE FROM fields WHERE id IN (${field}::uuid,${otherField}::uuid,${foreignField}::uuid)`;
     await prisma.membership.deleteMany({ where: { id: { in: [ownerMembership, foreignMembership] } } });
@@ -92,4 +94,14 @@ test("changed-Season reuse of an accepted Expense ID conflicts without revealing
   await assert.rejects(repository().create(identity, field, { ...submission, seasonId: wrongFieldSeason }), (error: unknown) => error instanceof ApiError
     && error.getStatus() === 409 && error.presentation.code === "IDEMPOTENCY_KEY_REUSED");
   assert.equal(await prisma.expense.count({ where: { businessId: business, id: submission.expenseId } }), 1);
+});
+
+test("lists all same-Field Seasons for OWNER Expense context without exposing other Fields", async () => {
+  const options = await repository().listAvailableSeasons(identity, field);
+  assert.deepEqual(options.map(({ id, status }) => ({ id, status })), [
+    { id: season, status: "DRAFT" }, { id: activeSeason, status: "ACTIVE" },
+  ]);
+  assert.deepEqual(options.map(({ cropLabel }) => cropLabel), ["SPEC-012 season crop", "SPEC-012 season crop"]);
+  await assert.rejects(repository().listAvailableSeasons(identity, foreignField), (error: unknown) => error instanceof ApiError
+    && error.getStatus() === 404 && error.presentation.code === "NOT_FOUND");
 });

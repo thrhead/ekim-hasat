@@ -1,4 +1,5 @@
 import { ApiError } from "../observability/api-error.filter.js";
+import { validateLocalDate } from "@ekim-hasat/domain/seasons/local-date";
 import { businessLocalDate } from "../seasons/business-timezone.js";
 
 export type DiaryKind = "IRRIGATION" | "OBSERVATION" | "TASK_COMPLETION" | "TASK_SKIPPED" | "EXPENSE";
@@ -89,6 +90,7 @@ export function decodeDiaryCursor(
         || !["EXPENSE", "IRRIGATION", "OBSERVATION", "TASK_COMPLETION", "TASK_SKIPPED"].includes(String(decoded.kind ?? ""))
         || (decoded.precision === "DATE_ONLY" ? decoded.kind !== "EXPENSE" || decoded.occurredAt !== undefined
           : decoded.kind === "EXPENSE" || typeof decoded.occurredAt !== "string" || !Number.isFinite(Date.parse(decoded.occurredAt)))) throw invalidRequest();
+      validateLocalDate(decoded.localDate);
       return decoded as unknown as DiaryV2Cursor;
     }
     if (decoded.version !== 1 || decoded.kind === "EXPENSE"

@@ -9,6 +9,48 @@ info:
 servers:
   - url: /v1
 paths:
+  /fields/{fieldId}/expenses/seasons:
+    get:
+      operationId: listFieldExpenseSeasons
+      tags: [finance]
+      summary: List available Seasons for an authorized Field Expense
+      description: >-
+        The server resolves current Business membership and requires OWNER. It returns
+        only DRAFT and ACTIVE Seasons belonging to the path Field and authorized Business.
+        Business ID is never accepted from the request.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fieldId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Available same-Field Seasons, in stable creation order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExpenseSeasonOptions' }
+        '401':
+          description: Authentication is missing or invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Current membership does not authorize Finance access
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Field is unavailable in this authorized context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500':
+          description: Unexpected server failure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
   /fields/{fieldId}/expenses:
     post:
       operationId: createFieldExpense
@@ -81,6 +123,17 @@ components:
       type: http
       scheme: bearer
   schemas:
+    ExpenseSeasonOptions:
+      type: array
+      items: { $ref: '#/components/schemas/ExpenseSeasonOption' }
+    ExpenseSeasonOption:
+      type: object
+      additionalProperties: false
+      required: [id, status, cropLabel]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [DRAFT, ACTIVE] }
+        cropLabel: { type: string }
     CreateExpenseRequest:
       type: object
       additionalProperties: false
