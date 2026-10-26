@@ -1,8 +1,11 @@
 jest.mock("@react-native-async-storage/async-storage", () => (
   jest.requireActual("@react-native-async-storage/async-storage/jest/async-storage-mock")
 ));
+jest.mock("expo-sqlite", () => ({ openDatabaseAsync: jest.fn(), openDatabaseSync: jest.fn() }));
 
 import { act, create, type TestRenderer } from "react-test-renderer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SQLite from "expo-sqlite";
 import type { ComponentType } from "react";
 import { StyleSheet, type ViewStyle } from "react-native";
 import type { ApiClient } from "../../../../packages/api-client/src/index";
@@ -173,6 +176,20 @@ describe("online Harvest create form", () => {
     await act(async () => screen.unmount());
   });
 
+  it("submits METRIC_TONNE without converting or rounding the entered quantity", async () => {
+    const tonneAccepted = { ...accepted, unit: "METRIC_TONNE" };
+    const POST = jest.fn().mockResolvedValue({ data: tonneAccepted, response: { ok: true, status: 201 } });
+    const { screen, onCreated } = await capture({ POST });
+    await change(screen, "Hasat tarihi", "2026-10-06");
+    await change(screen, "Miktar", "12.375");
+    await press(screen, "Birim");
+    await press(screen, "Ton");
+    await press(screen, "Hasadı kaydet");
+    expect(POST.mock.calls[0]?.[1]?.body).toMatchObject({ quantity: "12.375", unit: "METRIC_TONNE" });
+    expect(onCreated).toHaveBeenCalledWith(tonneAccepted);
+    await act(async () => screen.unmount());
+  });
+
   it.each(["0", "-1", "12.3751", "100000000000"])("rejects invalid quantity %s before sending", async (quantity) => {
     const POST = jest.fn();
     const { screen } = await capture({ POST });
@@ -208,6 +225,30 @@ describe("online Harvest create form", () => {
     await act(async () => screen.unmount());
   });
 
+  it("does not write an uncertain Harvest to local storage or an outbox after context loads", async () => {
+    const setItem = jest.spyOn(AsyncStorage, "setItem");
+    const openAsync = SQLite.openDatabaseAsync as jest.Mock;
+    const openSync = SQLite.openDatabaseSync as jest.Mock;
+    openAsync.mockClear(); openSync.mockClear();
+    try {
+      const POST = jest.fn().mockRejectedValue(new TypeError("Network request failed"));
+      const onCreated = jest.fn();
+      const { screen, GET } = await capture({ POST, onCreated });
+      expect(GET).toHaveBeenCalled();
+      await validCapture(screen);
+      await press(screen, "Hasadı kaydet");
+      expect(POST).toHaveBeenCalledTimes(1);
+      expect(onCreated).not.toHaveBeenCalled();
+      expect(text(screen)).not.toContain("Hasat kaydedildi");
+      expect(setItem).not.toHaveBeenCalled();
+      expect(openAsync).not.toHaveBeenCalled();
+      expect(openSync).not.toHaveBeenCalled();
+      await act(async () => screen.unmount());
+    } finally {
+      setItem.mockRestore();
+    }
+  });
+
   it("reports acceptance only after the server returns a committed record", async () => {
     let resolve!: (value: unknown) => void;
     const POST = jest.fn(() => new Promise((done) => { resolve = done; }));
@@ -234,6 +275,13 @@ describe("online Harvest create form", () => {
     await press(screen, "Hasadı kaydet");
     expect(onCreated).not.toHaveBeenCalled();
     expect(text(screen)).not.toContain("Hasat kaydedildi");
+    const quantityInput = node(screen, "Miktar");
+    if (quantityInput?.props.editable === false) {
+      expect(quantityInput.props.editable).toBe(false);
+    } else {
+      await change(screen, "Miktar", "25");
+      expect(node(screen, "Miktar")?.props.value).toBe("25");
+    }
     await press(screen, "Kaydı yeniden dene");
     expect(POST.mock.calls[1]).toEqual(POST.mock.calls[0]);
     expect(createId).toHaveBeenCalledTimes(1);
