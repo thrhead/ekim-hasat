@@ -78,3 +78,22 @@ test("SPEC-012 Diary contract keeps Expenses opt-in and models a date-only EXPEN
   assert.match(expense, /expenseDate: \{ type: string, format: date \}/);
   assert.doesNotMatch(expense, /occurredAt:|recordedAt:|syntheticTime:/);
 });
+
+test("SPEC-013 Harvest Diary contract is default-off and exposes authorized viewerRole outside items", async () => {
+  const contract = (await readFile(contractPath, "utf8")).replace(/\r\n/g, "\n");
+  const diary = /  \/fields\/\{fieldId\}\/diary:\n    get:[\s\S]*?(?=\ncomponents:)/.exec(contract)?.[0] ?? "";
+  const page = /DiaryPage:[\s\S]*?(?=\n    ObservationDiaryEntry:)/.exec(contract)?.[0] ?? "";
+  const items = /        items:[\s\S]*?(?=        businessTimezone:)/.exec(page)?.[0] ?? "";
+  const harvest = /HarvestDiaryEntry:[\s\S]*?(?=\n    ApiError:)/.exec(contract)?.[0] ?? "";
+  assert.match(diary, /name: includeHarvests[\s\S]*?in: query[\s\S]*?required: false[\s\S]*?type: boolean[\s\S]*?default: false/);
+  assert.match(diary, /V2 cursor[\s\S]*?includeExpenses[\s\S]*?includeHarvests/i);
+  assert.match(page, /HARVEST/);
+  assert.match(page, /HarvestDiaryEntry/);
+  assert.match(harvest, /kind: \{ type: string, const: HARVEST \}/);
+  assert.match(harvest, /harvestDate: \{ type: string, format: date \}/);
+  assert.match(harvest, /quantity: \{ type: string/);
+  assert.match(harvest, /unit: \{ type: string, enum: \[KG, METRIC_TONNE\] \}/);
+  assert.doesNotMatch(harvest, /occurredAt:|recordedAt:|syntheticTime:/);
+  assert.match(page, /viewerRole:\n\s+type: string\n\s+enum: \[OWNER, WORKER, ADVISOR\]/);
+  assert.doesNotMatch(items, /viewerRole/);
+});

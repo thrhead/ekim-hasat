@@ -1,15 +1,18 @@
 import { act, create, type TestRenderer } from "react-test-renderer";
+import { StyleSheet, Text } from "react-native";
 import type { ApiClient, ObservationDiaryComponents } from "../../../../packages/api-client/src/index";
 import { FieldDiaryScreen } from "../../src/features/observations/field-diary-screen";
 import { readFieldDiary } from "../../src/features/observations/diary-client";
 
 type Page = ObservationDiaryComponents["schemas"]["DiaryPage"];
+type ViewerRole = "OWNER" | "WORKER" | "ADVISOR";
 const observation: Page["items"][number] = { kind: "OBSERVATION", id: "observation-1", fieldId: "field-1", seasonId: null, description: "Yapraklar sarardı", occurredAt: "2026-10-05T09:00:00Z" };
 const completion: Page["items"][number] = { kind: "TASK_COMPLETION", id: "completion-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-1", title: "Sulamayı kontrol et", occurredAt: "2026-10-04T09:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1" };
 const skipped: Page["items"][number] = { kind: "TASK_SKIPPED", id: "skip-1", fieldId: "field-1", seasonId: "season-1", taskId: "task-2", title: "Sürmeyi atla", skippedAt: "2026-10-04T10:00:00Z", plannedLocalDate: "2026-10-03", sourceKind: "VALIDATED_TEMPLATE", templateVersionId: "template-1", skipId: "skip-1" };
 const irrigation: Page["items"][number] = { kind: "IRRIGATION", id: "irrigation-1", fieldId: "field-1", seasonId: "season-1", method: "Damlama", durationMinutes: 15, waterVolumeCubicMetres: "2.5", note: "Sabah sulaması", occurredAt: "2026-10-05T09:00:00Z", recordedAt: "2026-10-05T09:05:00Z", businessTimezone: "Europe/Istanbul" };
 const expense: Extract<Page["items"][number], { kind: "EXPENSE" }> = { kind: "EXPENSE", id: "expense-1", fieldId: "field-1", seasonId: "season-1", amount: "12.345678", currency: "TRY", category: "FERTILIZER", expenseDate: "2026-10-05", note: null };
-function page(items: Page["items"] = [], nextCursor: string | null = null): Page { return { items, nextCursor, businessTimezone: "Europe/Istanbul" }; }
+const harvest = { kind: "HARVEST", id: "00000000-0000-4000-8000-000000000002", fieldId: "field-1", seasonId: "season-1", harvestDate: "2026-10-05", quantity: "12.375", unit: "KG" } as unknown as Page["items"][number];
+function page(items: Page["items"] = [], nextCursor: string | null = null, viewerRole?: ViewerRole): Page & { viewerRole?: ViewerRole } { return { items, nextCursor, businessTimezone: "Europe/Istanbul", ...(viewerRole ? { viewerRole } : {}) }; }
 function success(data: Page) { return { data, response: { ok: true, status: 200 } }; }
 function forbidden() { return { error: { error: { code: "FORBIDDEN", message: "private detail", requestId: "r1" } }, response: { ok: false, status: 403 } }; }
 function deferred<T>() {
@@ -25,9 +28,9 @@ function node(screen: TestRenderer, label: string) {
 function text(screen: TestRenderer) {
   return screen.root.findAll(({ props }) => typeof props.children === "string" || Array.isArray(props.children)).flatMap(({ props }) => [props.children].flat().filter((child) => typeof child === "string")).join(" ");
 }
-async function mount(GET: jest.Mock, onAddObservation?: () => void, observationStore?: { list: jest.Mock }, onAddIrrigation?: () => void, onAddExpense?: () => void) {
+async function mount(GET: jest.Mock, onAddObservation?: () => void, observationStore?: { list: jest.Mock }, onAddIrrigation?: () => void, onAddExpense?: () => void, onAddHarvest?: () => void) {
   let screen!: TestRenderer;
-  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} onAddIrrigation={onAddIrrigation} onAddExpense={onAddExpense} accountId={observationStore ? "account-1" : undefined} observationStore={observationStore as never} />); });
+  await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddObservation={onAddObservation} onAddIrrigation={onAddIrrigation} onAddExpense={onAddExpense} onAddHarvest={onAddHarvest} accountId={observationStore ? "account-1" : undefined} observationStore={observationStore as never} />); });
   return screen;
 }
 async function press(screen: TestRenderer, label: string) {
@@ -284,6 +287,51 @@ describe("Expense-enabled Field Diary", () => {
     expect(text(screen)).not.toContain(observation.description);
     expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
     expect(text(screen)).not.toContain("private detail");
+    await act(async () => screen.unmount());
+  });
+});
+
+describe("Harvest-enabled Field Diary", () => {
+  it("renders one canonical Harvest with its exact quantity and date, without inventing a time", async () => {
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([harvest], null, "OWNER"))), undefined, undefined, undefined, undefined, jest.fn());
+    const row = screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Hasat,"))[0];
+    expect(row).toBeDefined();
+    expect(row!.props.accessibilityLabel).toContain("12.375 kg");
+    expect(row!.props.accessibilityLabel).toContain("05 Eki 2026");
+    expect(row!.props.accessibilityLabel).not.toMatch(/\d{2}:\d{2}|Europe\/Istanbul|Gerçekleşti/);
+    expect(text(screen)).toContain("12.375 kg");
+    expect(text(screen)).toContain("05 Eki 2026");
+    await act(async () => screen.unmount());
+  });
+
+  it.each(["OWNER", "WORKER"] as const)("shows and activates Hasat ekle for the server's %s role", async (viewerRole) => {
+    const onAddHarvest = jest.fn();
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([], null, viewerRole))), undefined, undefined, undefined, undefined, onAddHarvest);
+    const action = node(screen, "Hasat ekle");
+    expect(action.props.accessibilityRole).toBe("button");
+    expect(StyleSheet.flatten(action.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    await press(screen, "Hasat ekle");
+    expect(onAddHarvest).toHaveBeenCalledTimes(1);
+    const textNodes = screen.root.findAll(({ type }) => type === Text);
+    expect(textNodes.every(({ props }) => props.allowFontScaling !== false)).toBe(true);
+    await act(async () => screen.unmount());
+  });
+
+  it.each([
+    ["ADVISOR", "ADVISOR"],
+    ["missing viewerRole", undefined],
+  ] as const)("hides Hasat ekle for %s", async (_name, viewerRole) => {
+    const screen = await mount(jest.fn().mockResolvedValue(success(page([], null, viewerRole))), undefined, undefined, undefined, undefined, jest.fn());
+    expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Hasat ekle")).toHaveLength(0);
+    await act(async () => screen.unmount());
+  });
+
+  it("does not infer the create role from provider or app metadata", async () => {
+    const GET = jest.fn().mockResolvedValue(success(page()));
+    const client = Object.assign({ GET }, { auth: { user: { app_metadata: { role: "OWNER" }, user_metadata: { role: "OWNER" } } } });
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<FieldDiaryScreen client={client as unknown as ApiClient} fieldId="field-1" fieldName="Kuzey" seasonId="season-1" seasonName="Buğday" onAddHarvest={jest.fn()} />); });
+    expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Hasat ekle")).toHaveLength(0);
     await act(async () => screen.unmount());
   });
 });

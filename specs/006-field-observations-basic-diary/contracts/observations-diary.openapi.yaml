@@ -52,7 +52,7 @@ paths:
       tags: [diary]
       operationId: getFieldDiary
       summary: Read an authorized Field or Season diary page
-      description: Returns a unified projection of canonical accepted observations, task completions, task skips, and opt-in record types. Irrigation history is included only when includeIrrigation=true. Expense history is included only when includeExpenses=true and is available to the current Business OWNER. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's records and is validated against the authorized Field and Business. The default projection and version-1 cursor behavior remain unchanged when includeExpenses=false. Expense-enabled requests use a version-2 cursor with a date-only mixed ordering key bound to Field, Season, both include flags, and resolved Business timezone; V2 cursors cannot be reused with the default projection. For V2, Business-local calendar day sorts descending; within each day timed events sort by instant descending, kind ascending, and source UUID descending; date-only Expenses follow timed events and sort by Expense UUID descending. Expense dates are never represented as timestamps. Each continuation queries strictly after its global tuple. Returned records do not repeat; this is keyset pagination, not snapshot isolation.
+      description: Returns a unified projection of canonical accepted observations, task completions, task skips, and opt-in record types. Irrigation history is included only when includeIrrigation=true. Expense history is included only when includeExpenses=true and is available to the current Business OWNER. Harvest history is included only when includeHarvests=true and is available under ordinary authorized Diary read access for OWNER, WORKER, and ADVISOR. Response-level viewerRole is derived from the current MembershipScopeService result and is not part of DiaryPage.items or authorization for mutations. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's records and is validated against the authorized Field and Business. The default projection and version-1 cursor behavior remain unchanged when includeExpenses=false and includeHarvests=false. If either date-only source is enabled, requests use the existing version-2 cursor with a date-only mixed ordering key bound to Field, Season, irrigation/expense/harvest inclusion flags, and resolved Business timezone; V2 cursors cannot be reused with different bindings. For V2, Business-local calendar day sorts descending; within each day timed events sort by instant descending, kind ascending, and source UUID descending; date-only entries follow timed events and sort by kind ascending, then source UUID descending. Expense-only ordering is unchanged when Harvest is disabled. Date-only values are never represented as timestamps. Each continuation queries strictly after its global tuple. Returned records do not repeat; this is keyset pagination, not snapshot isolation.
       parameters:
         - $ref: '#/components/parameters/FieldId'
         - name: seasonId
@@ -69,6 +69,11 @@ paths:
           in: query
           required: false
           description: Include date-only EXPENSE entries. Requires current OWNER finance visibility. Uses V2 cursor semantics; omit or set false for the existing V1 projection.
+          schema: { type: boolean, default: false }
+        - name: includeHarvests
+          in: query
+          required: false
+          description: Include accepted date-only HARVEST entries under ordinary Diary authorization. Uses V2 cursor semantics; omit or set false for the existing V1 projection.
           schema: { type: boolean, default: false }
         - name: cursor
           in: query
@@ -152,6 +157,7 @@ components:
               - $ref: '#/components/schemas/TaskCompletionDiaryEntry'
               - $ref: '#/components/schemas/TaskSkippedDiaryEntry'
               - $ref: '#/components/schemas/ExpenseDiaryEntry'
+              - $ref: '#/components/schemas/HarvestDiaryEntry'
             discriminator:
               propertyName: kind
               mapping:
@@ -160,8 +166,13 @@ components:
                 TASK_COMPLETION: '#/components/schemas/TaskCompletionDiaryEntry'
                 TASK_SKIPPED: '#/components/schemas/TaskSkippedDiaryEntry'
                 EXPENSE: '#/components/schemas/ExpenseDiaryEntry'
+                HARVEST: '#/components/schemas/HarvestDiaryEntry'
         businessTimezone: { type: string }
         nextCursor: { type: string, nullable: true, maxLength: 512 }
+        viewerRole:
+          type: string
+          enum: [OWNER, WORKER, ADVISOR]
+          description: Optional current role from authorized MembershipScopeService resolution. This response-level UI hint is not authorization.
     ObservationDiaryEntry:
       type: object
       required: [kind, id, fieldId, seasonId, description, occurredAt]
@@ -233,6 +244,18 @@ components:
         currency: { type: string, pattern: '^[A-Z]{3}$' }
         category: { type: string, enum: [SEED_SEEDLING, FERTILIZER, PESTICIDE, FUEL, LABOR, IRRIGATION, OTHER] }
         note: { type: string, nullable: true }
+    HarvestDiaryEntry:
+      type: object
+      description: Projection of a canonical accepted Harvest. harvestDate is a calendar date only; no time-of-day is known or implied.
+      required: [kind, id, fieldId, seasonId, harvestDate, quantity, unit]
+      properties:
+        kind: { type: string, const: HARVEST }
+        id: { type: string, format: uuid, description: Canonical Harvest ID used for ordering and pagination. }
+        fieldId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        harvestDate: { type: string, format: date }
+        quantity: { type: string, description: Exact positive decimal string; no binary floating point. }
+        unit: { type: string, enum: [KG, METRIC_TONNE] }
     ApiError:
       type: object
       required: [error]

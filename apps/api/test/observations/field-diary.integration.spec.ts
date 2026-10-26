@@ -15,16 +15,21 @@ import { assertDisposableDatabaseUrl } from "../support/disposable-database.js";
 
 const databaseUrl = process.env.DATABASE_URL;
 assertDisposableDatabaseUrl(databaseUrl);
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl! }) });
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl! }), log: [{ emit: "event", level: "query" }] });
+const queryEvents: string[] = [];
+prisma.$on("query", ({ query }) => queryEvents.push(query));
 const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomUUID(), userId = randomUUID(), foreignUserId = randomUUID(), fieldId = randomUUID(), foreignFieldId = randomUUID(), seasonId = randomUUID();
 const otherSeasonId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID(), completionId = randomUUID(), skipId = randomUUID();
 const irrigationRecordId = randomUUID(), matchingSeasonIrrigationId = randomUUID(), otherSeasonIrrigationId = randomUUID();
-const fieldExpenseId = randomUUID(), olderFieldExpenseId = randomUUID(), seasonExpenseId = randomUUID(), otherSeasonExpenseId = randomUUID();
-const workerId = randomUUID();
+const fieldExpenseId = "f0000000-0000-4000-8000-000000000001", olderFieldExpenseId = randomUUID(), seasonExpenseId = randomUUID(), otherSeasonExpenseId = randomUUID();
+const harvestId = "00000000-0000-4000-8000-000000000001", secondHarvestId = "00000000-0000-4000-8000-000000000002";
+const otherSeasonHarvestId = "00000000-0000-4000-8000-000000000003", foreignHarvestId = randomUUID();
+const foreignSeasonId = randomUUID(), workerId = randomUUID(), advisorId = randomUUID();
 const identity = { provider: "spec006-diary", subject: run };
 const foreignIdentity = { provider: "spec006-diary", subject: `${run}-foreign` };
 const workerIdentity = { provider: "spec006-diary", subject: `${run}-worker` };
+const advisorIdentity = { provider: "spec006-diary", subject: `${run}-advisor` };
 const taskCompletions = new TaskCompletionRepository(prisma);
 const observationCreates = new ObservationCreateRepository(prisma, () => new Date("2026-10-05T10:00:00.000Z"));
 const tieAt = "2026-10-04T09:30:00.000Z";
@@ -41,9 +46,11 @@ before(async () => {
   await prisma.applicationUser.create({ data: { id: userId, authProvider: identity.provider, authSubject: identity.subject, defaultBusinessId: businessId } });
   await prisma.applicationUser.create({ data: { id: foreignUserId, authProvider: foreignIdentity.provider, authSubject: foreignIdentity.subject, defaultBusinessId: foreignBusinessId } });
   await prisma.applicationUser.create({ data: { id: workerId, authProvider: workerIdentity.provider, authSubject: workerIdentity.subject, defaultBusinessId: businessId } });
+  await prisma.applicationUser.create({ data: { id: advisorId, authProvider: advisorIdentity.provider, authSubject: advisorIdentity.subject, defaultBusinessId: businessId } });
   await prisma.membership.create({ data: { businessId, userId, role: "OWNER", status: "ACTIVE" } });
   await prisma.membership.create({ data: { businessId: foreignBusinessId, userId: foreignUserId, role: "OWNER", status: "ACTIVE" } });
   await prisma.membership.create({ data: { businessId, userId: workerId, role: "WORKER", status: "ACTIVE" } });
+  await prisma.membership.create({ data: { businessId, userId: advisorId, role: "ADVISOR", status: "ACTIVE" } });
   await prisma.$executeRaw`INSERT INTO fields (id,business_id,name,representative_point) VALUES
     (${fieldId}::uuid,${businessId}::uuid,'Diary field',ST_SetSRID(ST_MakePoint(29,41),4326)),
     (${foreignFieldId}::uuid,${foreignBusinessId}::uuid,'Foreign diary',ST_SetSRID(ST_MakePoint(29,41),4326))`;
@@ -59,6 +66,8 @@ before(async () => {
       ] } } } } });
   await new SeasonActivationRepository(prisma).activate(identity, seasonId, 1, randomUUID());
   await prisma.season.create({ data: { id: otherSeasonId, businessId, fieldId, cropKey: `diary-${run}`, cropDefinitionVersionId: cropId,
+    actualPlantingDate: new Date("2026-09-01T00:00:00.000Z"), status: "DRAFT", version: 1 } });
+  await prisma.season.create({ data: { id: foreignSeasonId, businessId: foreignBusinessId, fieldId: foreignFieldId, cropKey: `diary-${run}`, cropDefinitionVersionId: cropId,
     actualPlantingDate: new Date("2026-09-01T00:00:00.000Z"), status: "DRAFT", version: 1 } });
   await taskCompletions.complete(identity, taskId, 1, { completionId, occurredAt: tieAt });
   await taskSkips.skip(identity, skipTaskId, 1, { skipId });
@@ -79,6 +88,19 @@ before(async () => {
       amount: "5.00", currency: "TRY", category: "LABOR", expenseDate: new Date("2026-10-05T00:00:00.000Z"), note: null },
     { id: otherSeasonExpenseId, businessId, fieldId, seasonId: otherSeasonId, actorUserId: userId, actorMembershipId: membership.id,
       amount: "7.00", currency: "TRY", category: "SEED_SEEDLING", expenseDate: new Date("2026-10-05T00:00:00.000Z"), note: null },
+  ] });
+  await prisma.harvest.createMany({ data: [
+    { id: harvestId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      harvestDate: new Date("2026-10-05T00:00:00.000Z"), quantity: "12.375", unit: "METRIC_TONNE", recordedAt: new Date("2026-10-05T10:00:00.000Z") },
+    { id: secondHarvestId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      harvestDate: new Date("2026-10-05T00:00:00.000Z"), quantity: "8.250", unit: "KG", recordedAt: new Date("2026-10-05T10:01:00.000Z") },
+    { id: otherSeasonHarvestId, businessId, fieldId, seasonId: otherSeasonId, actorUserId: userId, actorMembershipId: membership.id,
+      harvestDate: new Date("2026-10-04T00:00:00.000Z"), quantity: "5", unit: "KG", recordedAt: new Date("2026-10-05T10:02:00.000Z") },
+    { id: foreignHarvestId, businessId: foreignBusinessId, fieldId: foreignFieldId, seasonId: foreignSeasonId,
+      actorUserId: foreignUserId, actorMembershipId: (await prisma.membership.findUniqueOrThrow({
+        where: { businessId_userId: { businessId: foreignBusinessId, userId: foreignUserId } }, select: { id: true },
+      })).id, harvestDate: new Date("2026-10-05T00:00:00.000Z"), quantity: "9.5", unit: "KG",
+      recordedAt: new Date("2026-10-05T10:03:00.000Z") },
   ] });
   await prisma.fieldObservation.createMany({ data: observations.map((row) => ({ ...row, actorMembershipId: membership.id })) });
   // An observation and accepted completion share an occurrence instant to protect observation-first ties.
@@ -293,6 +315,126 @@ test("expense-enabled cursor cannot continue in default Diary mode", async () =>
   assert.ok(first.nextCursor);
   await assert.rejects(diary.read(identity, fieldId, { cursor: first.nextCursor }),
     (error: unknown) => error instanceof ApiError && error.getStatus() === 400 && error.presentation.code === "INVALID_REQUEST");
+});
+
+test("Harvest is opt-in, tenant and Season scoped, and visible to every ordinary Diary role", async () => {
+  type HarvestEntry = { kind: string; id: string; fieldId?: string; seasonId?: string | null;
+    harvestDate?: string; quantity?: string; unit?: string; [key: string]: unknown };
+  type HarvestPage = { items: HarvestEntry[]; nextCursor: string | null; viewerRole?: string };
+  const readWithHarvests = async (who: typeof identity, filters: Record<string, unknown> = {}) =>
+    await diary.read(who, fieldId, { ...filters, includeHarvests: true } as never) as unknown as HarvestPage;
+  const readAllWithHarvests = async (who: typeof identity, filters: Record<string, unknown> = {}) => {
+    let page = await readWithHarvests(who, { ...filters, limit: 100 });
+    const items = [...page.items];
+    while (page.nextCursor) {
+      page = await readWithHarvests(who, { ...filters, limit: 100, cursor: page.nextCursor });
+      items.push(...page.items);
+    }
+    return { ...page, items };
+  };
+
+  const expected = new Map([[harvestId, "OWNER"], [secondHarvestId, "OWNER"], [otherSeasonHarvestId, "OWNER"]]);
+  const defaultOwner = await diary.read(identity, fieldId) as unknown as HarvestPage;
+  assert.equal(JSON.parse(Buffer.from(defaultOwner.nextCursor!, "base64url").toString("utf8")).version, 1);
+  assert.equal(defaultOwner.items.some(({ id }) => expected.has(id)), false, "the default projection remains Harvest-free");
+  assert.equal(defaultOwner.viewerRole, "OWNER");
+  assert.equal(defaultOwner.items.some((item) => "viewerRole" in item), false, "viewerRole is response metadata, not an item field");
+
+  for (const [who, role] of [[identity, "OWNER"], [workerIdentity, "WORKER"], [advisorIdentity, "ADVISOR"]] as const) {
+    const ordinary = await diary.read(who, fieldId) as unknown as HarvestPage;
+    assert.equal(ordinary.viewerRole, role);
+    assert.equal(ordinary.items.some(({ id }) => expected.has(id)), false);
+    assert.equal(ordinary.items.some(({ kind }) => kind === "EXPENSE"), false);
+
+    const included = await readAllWithHarvests(who);
+    assert.equal(included.viewerRole, role);
+    assert.equal(included.items.filter(({ id }) => expected.has(id)).length, 3,
+      `${role} sees each same-Field Harvest once`);
+    assert.equal(included.items.some(({ id }) => id === foreignHarvestId), false, "another Business Harvest is isolated");
+    assert.equal(included.items.some(({ kind }) => kind === "EXPENSE"), false, "Harvest opt-in does not enable Expense history");
+  }
+
+  const fieldPage = await readAllWithHarvests(identity);
+  const first = fieldPage.items.find(({ id }) => id === harvestId)!;
+  assert.deepEqual({ kind: first.kind, id: first.id, fieldId: first.fieldId, seasonId: first.seasonId,
+    harvestDate: first.harvestDate, quantity: first.quantity, unit: first.unit },
+  { kind: "HARVEST", id: harvestId, fieldId, seasonId, harvestDate: "2026-10-05", quantity: "12.375", unit: "METRIC_TONNE" });
+  assert.equal("recordedAt" in first, false);
+  assert.equal("occurredAt" in first, false);
+
+  const seasonPage = await readAllWithHarvests(identity, { seasonId });
+  assert.deepEqual(new Set(seasonPage.items.filter(({ kind }) => kind === "HARVEST").map(({ id }) => id)), new Set([harvestId, secondHarvestId]));
+  assert.equal(seasonPage.items.some(({ id }) => id === otherSeasonHarvestId), false);
+  await assert.rejects(readWithHarvests(foreignIdentity),
+    (error: unknown) => (error as { getStatus?: () => number }).getStatus?.() === 404);
+
+  const paged = await readWithHarvests(identity, { includeExpenses: true, limit: 1 });
+  assert.ok(paged.nextCursor);
+  const cursor = JSON.parse(Buffer.from(paged.nextCursor!, "base64url").toString("utf8"));
+  assert.equal(cursor.version, 2);
+  assert.equal(cursor.includeExpenses, true);
+  assert.equal(cursor.includeHarvests, true);
+  assert.equal(cursor.viewerRole, undefined);
+
+  const mixedDateOnly = await readAllWithHarvests(identity, { includeExpenses: true });
+  const dateOnly = mixedDateOnly.items.filter((item) => item.kind === "EXPENSE" || item.kind === "HARVEST");
+  const sameDay = dateOnly.filter((item) => item.kind === "EXPENSE"
+    ? item.expenseDate === "2026-10-05" : item.harvestDate === "2026-10-05");
+  const firstHarvestPosition = sameDay.findIndex(({ kind }) => kind === "HARVEST");
+  assert.ok(firstHarvestPosition > 0);
+  assert.ok(sameDay.slice(0, firstHarvestPosition).every(({ kind }) => kind === "EXPENSE"),
+    "same-day date-only entries order by kind before source UUID");
+});
+
+test("Harvest source candidate queries are database-bounded", async () => {
+  queryEvents.length = 0;
+  await diary.read(identity, fieldId, { includeHarvests: true, limit: 3 } as never);
+  const harvestQuery = queryEvents.find((query) => /FROM[\s\S]*\bharvests\b/i.test(query));
+  assert.ok(harvestQuery, "the Diary reader queries the canonical Harvest table");
+  assert.match(harvestQuery!, /\bLIMIT\b/i, "the Harvest candidate query applies a database-side bound");
+});
+
+test("Harvest keyset continuation remains strict when date-only records are inserted during traversal", async () => {
+  const first = await diary.read(identity, fieldId, { limit: 1, includeHarvests: true } as never);
+  assert.ok(first.nextCursor);
+  const cursor = JSON.parse(Buffer.from(first.nextCursor!, "base64url").toString("utf8"));
+  assert.equal(cursor.version, 2);
+  const membership = await prisma.membership.findUniqueOrThrow({ where: { businessId_userId: { businessId, userId } }, select: { id: true } });
+  const earlierId = randomUUID(), laterId = randomUUID();
+  await prisma.harvest.createMany({ data: [
+    { id: earlierId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      harvestDate: new Date("2026-10-06T00:00:00.000Z"), quantity: "1", unit: "KG", recordedAt: new Date() },
+    { id: laterId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
+      harvestDate: new Date("2026-10-02T00:00:00.000Z"), quantity: "2", unit: "KG", recordedAt: new Date() },
+  ] });
+  const continuation = await diary.read(identity, fieldId, { limit: 100, cursor: first.nextCursor!, includeHarvests: true } as never) as unknown as {
+    items: Array<{ id: string; kind: string }>; nextCursor: string | null;
+  };
+  assert.equal(continuation.items.some(({ id }) => id === earlierId), false, "an insertion before the consumed tuple waits for refresh");
+  assert.equal(continuation.items.some(({ id }) => id === laterId), true, "an insertion after the consumed tuple may appear later");
+  assert.equal(continuation.items.length <= 100, true, "each returned page stays within its requested bound");
+});
+
+test("Field Diary HTTP response derives viewerRole from current authorized Membership and keeps it outside items", async () => {
+  const app = await createObservationApp({
+    verify: async (token) => token === "owner-harvest-diary" ? identity
+      : token === "worker-harvest-diary" ? workerIdentity : token === "advisor-harvest-diary" ? advisorIdentity : null,
+    create: (who, requestedFieldId, request) => observationCreates.create(who, requestedFieldId, request),
+    readDiary: (who, requestedFieldId, filters) => diary.read(who, requestedFieldId, filters),
+  });
+  await app.init();
+  await app.getHttpAdapter().getInstance().ready();
+  try {
+    for (const [token, role] of [["owner-harvest-diary", "OWNER"], ["worker-harvest-diary", "WORKER"], ["advisor-harvest-diary", "ADVISOR"]] as const) {
+      const response = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeHarvests=true&limit=100`,
+        headers: { authorization: `Bearer ${token}` } });
+      assert.equal(response.statusCode, 200);
+      const body = response.json() as { items: Array<Record<string, unknown>>; viewerRole?: string; nextCursor: string | null };
+      assert.equal(body.viewerRole, role);
+      assert.equal(body.items.some((item) => "viewerRole" in item), false);
+      assert.equal(body.items.filter(({ kind }) => kind === "HARVEST").length, 3);
+    }
+  } finally { await app.close(); }
 });
 
 test("quickstart journey creates, reads back, exactly replays, and paginates with an accepted completion", async () => {

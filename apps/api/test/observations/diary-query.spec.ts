@@ -3,6 +3,7 @@ import test from "node:test";
 import { ApiError } from "../../src/observability/api-error.filter.js";
 import type { PrismaClient } from "../../src/generated/prisma/client.js";
 import { ObservationDiaryRepository } from "../../src/observations/observation-diary.repository.js";
+import type { DiaryEntry } from "../../src/observations/diary-query.js";
 import type { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
 
 const fieldId = "11111111-1111-4111-8111-111111111111";
@@ -15,6 +16,8 @@ const irrigation = (id: string, occurredAt: string) => ({ kind: "IRRIGATION" as 
   waterVolumeCubicMetres: null, note: null, recordedAt: "2026-10-05T10:00:00.000Z" });
 const expense = (id: string, expenseDate: string) => ({ kind: "EXPENSE" as const, id, fieldId, seasonId: null,
   expenseDate, amount: "12.30", currency: "TRY", category: "FERTILIZER" as const, note: null });
+const harvest = (id: string, harvestDate: string) => ({ kind: "HARVEST" as const, id, fieldId, seasonId,
+  harvestDate, quantity: "12.375", unit: "KG" as const }) as unknown as DiaryEntry;
 const queryModule = () => import("../../src/observations/diary-query.js");
 const base64urlAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
@@ -271,4 +274,106 @@ test("expense-enabled cursor rejects an impossible date-only calendar date", asy
     includeExpenses: true, businessTimezone: "Asia/Tokyo", localDate: "2026-02-31", precision: "DATE_ONLY",
     kind: "EXPENSE", id: "22222222-2222-4222-8222-222222222222" }), "utf8").toString("base64url");
   assert.throws(() => decodeDiaryCursor(malformed, fieldId, null, false, true, "Asia/Tokyo"), isInvalidCursor);
+});
+
+test("Harvest ordering keeps timed entries first, then sorts same-day date-only kinds and IDs", async () => {
+  const { sortDiaryEntries } = await queryModule();
+  const entries = [
+    harvest("ffffffff-ffff-4fff-8fff-ffffffffffff", "2026-10-05"),
+    expense("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+    harvest("dddddddd-dddd-4ddd-8ddd-dddddddddddd", "2026-10-05"),
+    expense("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05"),
+    obs("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "2026-10-04T16:00:00.000Z"), // 2026-10-05 in Tokyo
+  ];
+
+  assert.deepEqual(sortDiaryEntries(entries, "Asia/Tokyo").map(({ kind, id }) => [kind, id]), [
+    ["OBSERVATION", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"],
+    ["EXPENSE", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"],
+    ["EXPENSE", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+    ["HARVEST", "ffffffff-ffff-4fff-8fff-ffffffffffff"],
+    ["HARVEST", "dddddddd-dddd-4ddd-8ddd-dddddddddddd"],
+  ]);
+});
+
+test("Harvest and Expense DATE_ONLY pages continue strictly after the full kind and ID tuple", async () => {
+  const { pageDiaryCandidates, decodeDiaryCursor } = await queryModule();
+  const entries = [
+    harvest("ffffffff-ffff-4fff-8fff-ffffffffffff", "2026-10-05"),
+    expense("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+    harvest("dddddddd-dddd-4ddd-8ddd-dddddddddddd", "2026-10-05"),
+    expense("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-05"),
+  ];
+  const seen: Array<readonly [string, string]> = [];
+  let cursor: string | null = null;
+  do {
+    const decoded = cursor
+      ? decodeDiaryCursor(cursor, fieldId, null, false, true, "Asia/Tokyo", true)
+      : null;
+    const page = pageDiaryCandidates(entries, 1, fieldId, null, decoded, false, true, "Asia/Tokyo", true);
+    seen.push(...page.items.map(({ kind, id }) => [kind, id] as const));
+    cursor = page.nextCursor;
+    if (cursor) {
+      const payload = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as Record<string, unknown>;
+      assert.equal(payload.version, 2);
+      assert.equal(payload.precision, "DATE_ONLY");
+      assert.equal(payload.kind, page.items.at(-1)?.kind);
+      assert.equal(payload.id, page.items.at(-1)?.id);
+    }
+  } while (cursor);
+
+  assert.deepEqual(seen, [
+    ["EXPENSE", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"],
+    ["EXPENSE", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+    ["HARVEST", "ffffffff-ffff-4fff-8fff-ffffffffffff"],
+    ["HARVEST", "dddddddd-dddd-4ddd-8ddd-dddddddddddd"],
+  ]);
+});
+
+test("Harvest is excluded by default and legacy Diary pagination remains V1", async () => {
+  const { pageDiaryCandidates } = await queryModule();
+  const entries = [
+    obs("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "2026-10-04T16:00:00.000Z"),
+    obs("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-04T15:00:00.000Z"),
+    harvest("cccccccc-cccc-4ccc-8ccc-cccccccccccc", "2026-10-05"),
+  ];
+  const page = pageDiaryCandidates(entries, 100, fieldId, null);
+
+  assert.deepEqual(page.items.map(({ kind }) => kind), ["OBSERVATION", "OBSERVATION"]);
+  const legacyPage = pageDiaryCandidates(entries.slice(0, 2), 1, fieldId, null);
+  assert.equal(JSON.parse(Buffer.from(legacyPage.nextCursor!, "base64url").toString("utf8")).version, 1);
+});
+
+test("Harvest-only inclusion uses a V2 cursor bound to all query and ordering fields", async () => {
+  const { decodeDiaryCursor } = await queryModule();
+  const timezone = "Asia/Tokyo";
+  const payload = { version: 2, fieldId, seasonId, includeIrrigation: true, includeExpenses: false,
+    includeHarvests: true, businessTimezone: timezone, localDate: "2026-10-05", precision: "DATE_ONLY",
+    kind: "HARVEST", id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" };
+  const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+
+  assert.deepEqual(decodeDiaryCursor(encoded, fieldId, seasonId, true, false, timezone, true), payload);
+  for (const [requestedField, requestedSeason, irrigationEnabled, expensesEnabled, timezoneName, harvestsEnabled] of [
+    ["33333333-3333-4333-8333-333333333333", seasonId, true, false, timezone, true],
+    [fieldId, null, true, false, timezone, true],
+    [fieldId, seasonId, false, false, timezone, true],
+    [fieldId, seasonId, true, true, timezone, true],
+    [fieldId, seasonId, true, false, "Europe/Istanbul", true],
+    [fieldId, seasonId, true, false, timezone, false],
+  ] as const) {
+    assert.throws(() => decodeDiaryCursor(encoded, requestedField, requestedSeason,
+      irrigationEnabled, expensesEnabled, timezoneName, harvestsEnabled), isInvalidCursor);
+  }
+});
+
+test("legacy V2 Expense cursors without includeHarvests decode as includeHarvests false", async () => {
+  const { decodeDiaryCursor } = await queryModule();
+  const timezone = "Asia/Tokyo";
+  const legacyV2 = Buffer.from(JSON.stringify({ version: 2, fieldId, seasonId: null, includeIrrigation: false,
+    includeExpenses: true, businessTimezone: timezone, localDate: "2026-10-05", precision: "DATE_ONLY",
+    kind: "EXPENSE", id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" }), "utf8").toString("base64url");
+
+  const decoded = decodeDiaryCursor(legacyV2, fieldId, null, false, true, timezone);
+
+  assert.equal(decoded?.version, 2);
+  assert.equal((decoded as unknown as { includeHarvests?: boolean })?.includeHarvests, false);
 });
