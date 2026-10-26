@@ -10,6 +10,7 @@ import type { operations as TaskDateAdjustmentOperations, paths as TaskDateAdjus
 import type { operations as TaskSkipOperations, paths as TaskSkipPaths } from "./generated/task-skips-api.js";
 import type { operations as IrrigationRecordsOperations, paths as IrrigationRecordsPaths } from "./generated/irrigation-records-api.js";
 import type { operations as ExpenseOperations, paths as ExpensePaths } from "./generated/expenses-api.js";
+import type { operations as HarvestOperations, paths as HarvestPaths } from "./generated/harvests-api.js";
 
 export type { components } from "./generated/onboarding-api.js";
 export type { components as SeasonComponents, operations as SeasonOperations, paths as SeasonPaths } from "./generated/seasons-api.js";
@@ -22,8 +23,9 @@ export type { components as TaskDateAdjustmentComponents, operations as TaskDate
 export type { components as TaskSkipComponents, operations as TaskSkipOperations, paths as TaskSkipPaths } from "./generated/task-skips-api.js";
 export type { components as IrrigationRecordsComponents, operations as IrrigationRecordsOperations, paths as IrrigationRecordsPaths } from "./generated/irrigation-records-api.js";
 export type { components as ExpenseComponents, operations as ExpenseOperations, paths as ExpensePaths } from "./generated/expenses-api.js";
-export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths & FieldPaths & ObservationDiaryPaths & CalendarPaths & TaskDateAdjustmentPaths & TaskSkipPaths & IrrigationRecordsPaths & ExpensePaths;
-export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations & FieldOperations & ObservationDiaryOperations & CalendarOperations & TaskDateAdjustmentOperations & TaskSkipOperations & IrrigationRecordsOperations & ExpenseOperations;
+export type { components as HarvestComponents, operations as HarvestOperations, paths as HarvestPaths } from "./generated/harvests-api.js";
+export type paths = OnboardingPaths & SeasonPaths & TaskCompletionPaths & WeatherPaths & FieldPaths & ObservationDiaryPaths & CalendarPaths & TaskDateAdjustmentPaths & TaskSkipPaths & IrrigationRecordsPaths & ExpensePaths & HarvestPaths;
+export type operations = OnboardingOperations & SeasonOperations & TaskCompletionOperations & WeatherOperations & FieldOperations & ObservationDiaryOperations & CalendarOperations & TaskDateAdjustmentOperations & TaskSkipOperations & IrrigationRecordsOperations & ExpenseOperations & HarvestOperations;
 
 /** Creates the typed client from the generated application API paths. */
 export function createApiClient(options: ClientOptions = {}) {
