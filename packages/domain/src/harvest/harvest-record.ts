@@ -1,4 +1,4 @@
-import { validateLocalDate, type LocalDate } from "../seasons/local-date.js";
+import { LocalDateValidationError, validateLocalDate, type LocalDate } from "../seasons/local-date.js";
 
 export type HarvestUnit = "KG" | "METRIC_TONNE";
 
@@ -40,7 +40,8 @@ export function createHarvestRecord(input: CreateHarvestRecordInput): HarvestRec
   let harvestDate: LocalDate;
   try {
     harvestDate = validateLocalDate(input.harvestDate);
-  } catch {
+  } catch (error) {
+    if (!(error instanceof LocalDateValidationError)) throw error;
     throw new TypeError("harvestDate must be a valid YYYY-MM-DD calendar date");
   }
 

@@ -32,6 +32,18 @@ test("rejects malformed and impossible Harvest calendar dates", () => {
   }
 });
 
+test("preserves unexpected errors raised while reading harvestDate", () => {
+  const failure = new Error("harvestDate accessor failed");
+  const input = {
+    ...validInput,
+    get harvestDate() {
+      throw failure;
+    },
+  };
+
+  assert.throws(() => createHarvestRecord(input), (error: unknown) => error === failure);
+});
+
 test("preserves exact positive decimal quantity strings within the supported bounds", () => {
   for (const quantity of ["0.001", "1", "1.0", "99999999999", "99999999999.999"]) {
     assert.equal(createHarvestRecord({ ...validInput, quantity }).quantity, quantity);
