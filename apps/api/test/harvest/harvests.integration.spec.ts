@@ -249,7 +249,7 @@ test("exact retry returns the original fact; changed payload, Field, Season, or 
   }
 });
 
-test("authorization and ACTIVE Season are rechecked before an exact replay", async () => {
+test("authorization is rechecked and an exact replay survives a later Season state change", async () => {
   const submitted = request();
   const first = await (await repository()).create(ownerIdentity, field, submitted);
   await prisma.membership.update({ where: { id: ownerMembership }, data: { status: "REVOKED" } });
@@ -259,7 +259,11 @@ test("authorization and ACTIVE Season are rechecked before an exact replay", asy
   try { await rejectCreate(ownerIdentity, field, submitted, 403, "FORBIDDEN"); }
   finally { await prisma.membership.update({ where: { id: ownerMembership }, data: { role: "OWNER" } }); }
   await prisma.season.update({ where: { id: season }, data: { status: "DRAFT", activatedAt: null } });
-  try { await rejectCreate(ownerIdentity, field, submitted, 404, "NOT_FOUND"); }
+  try {
+    const replay = await (await repository()).create(ownerIdentity, field, submitted);
+    assert.equal(replay.kind, "replayed");
+    assert.deepEqual(replay.harvest, first.harvest);
+  }
   finally { await prisma.season.update({ where: { id: season }, data: { status: "ACTIVE", activatedAt: now() } }); }
   const replay = await (await repository()).create(ownerIdentity, field, submitted);
   assert.deepEqual(replay.harvest, first.harvest);

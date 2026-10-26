@@ -75,6 +75,7 @@ export const ModelName = {
   FieldObservation: 'FieldObservation',
   IrrigationRecord: 'IrrigationRecord',
   Expense: 'Expense',
+  Harvest: 'Harvest',
   CalendarReadSnapshot: 'CalendarReadSnapshot',
   CalendarReadSnapshotTask: 'CalendarReadSnapshotTask',
   CalendarReadCursor: 'CalendarReadCursor',
@@ -457,6 +458,22 @@ export const ExpenseScalarFieldEnum = {
 } as const
 
 export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const HarvestScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  harvestDate: 'harvestDate',
+  quantity: 'quantity',
+  unit: 'unit',
+  recordedAt: 'recordedAt'
+} as const
+
+export type HarvestScalarFieldEnum = (typeof HarvestScalarFieldEnum)[keyof typeof HarvestScalarFieldEnum]
 
 
 export const CalendarReadSnapshotScalarFieldEnum = {

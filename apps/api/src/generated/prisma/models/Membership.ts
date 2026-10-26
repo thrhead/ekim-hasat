@@ -190,6 +190,7 @@ export type MembershipWhereInput = {
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
 }
 
 export type MembershipOrderByWithRelationInput = {
@@ -206,6 +207,7 @@ export type MembershipOrderByWithRelationInput = {
   observations?: Prisma.FieldObservationOrderByRelationAggregateInput
   irrigationRecords?: Prisma.IrrigationRecordOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
+  harvests?: Prisma.HarvestOrderByRelationAggregateInput
 }
 
 export type MembershipWhereUniqueInput = Prisma.AtLeast<{
@@ -227,6 +229,7 @@ export type MembershipWhereUniqueInput = Prisma.AtLeast<{
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
 }, "id" | "businessId_userId" | "id_businessId_userId">
 
 export type MembershipOrderByWithAggregationInput = {
@@ -263,6 +266,7 @@ export type MembershipCreateInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateInput = {
@@ -277,6 +281,7 @@ export type MembershipUncheckedCreateInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUpdateInput = {
@@ -291,6 +296,7 @@ export type MembershipUpdateInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateInput = {
@@ -305,6 +311,7 @@ export type MembershipUncheckedUpdateInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateManyInput = {
@@ -547,6 +554,20 @@ export type MembershipUpdateOneRequiredWithoutExpensesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MembershipUpdateToOneWithWhereWithoutExpensesInput, Prisma.MembershipUpdateWithoutExpensesInput>, Prisma.MembershipUncheckedUpdateWithoutExpensesInput>
 }
 
+export type MembershipCreateNestedOneWithoutHarvestsInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutHarvestsInput, Prisma.MembershipUncheckedCreateWithoutHarvestsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutHarvestsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+}
+
+export type MembershipUpdateOneRequiredWithoutHarvestsNestedInput = {
+  create?: Prisma.XOR<Prisma.MembershipCreateWithoutHarvestsInput, Prisma.MembershipUncheckedCreateWithoutHarvestsInput>
+  connectOrCreate?: Prisma.MembershipCreateOrConnectWithoutHarvestsInput
+  upsert?: Prisma.MembershipUpsertWithoutHarvestsInput
+  connect?: Prisma.MembershipWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MembershipUpdateToOneWithWhereWithoutHarvestsInput, Prisma.MembershipUpdateWithoutHarvestsInput>, Prisma.MembershipUncheckedUpdateWithoutHarvestsInput>
+}
+
 export type MembershipCreateWithoutUserInput = {
   id?: string
   role: string
@@ -558,6 +579,7 @@ export type MembershipCreateWithoutUserInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutUserInput = {
@@ -571,6 +593,7 @@ export type MembershipUncheckedCreateWithoutUserInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutUserInput = {
@@ -621,6 +644,7 @@ export type MembershipCreateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutBusinessInput = {
@@ -634,6 +658,7 @@ export type MembershipUncheckedCreateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutBusinessInput = {
@@ -673,6 +698,7 @@ export type MembershipCreateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutTaskCompletionsInput = {
@@ -686,6 +712,7 @@ export type MembershipUncheckedCreateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutTaskCompletionsInput = {
@@ -715,6 +742,7 @@ export type MembershipUpdateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -728,6 +756,7 @@ export type MembershipUncheckedUpdateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateWithoutTaskSkipsInput = {
@@ -741,6 +770,7 @@ export type MembershipCreateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutTaskSkipsInput = {
@@ -754,6 +784,7 @@ export type MembershipUncheckedCreateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutTaskSkipsInput = {
@@ -783,6 +814,7 @@ export type MembershipUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutTaskSkipsInput = {
@@ -796,6 +828,7 @@ export type MembershipUncheckedUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateWithoutTaskDateAdjustmentsInput = {
@@ -809,6 +842,7 @@ export type MembershipCreateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutTaskDateAdjustmentsInput = {
@@ -822,6 +856,7 @@ export type MembershipUncheckedCreateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutTaskDateAdjustmentsInput = {
@@ -851,6 +886,7 @@ export type MembershipUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
@@ -864,6 +900,7 @@ export type MembershipUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateWithoutObservationsInput = {
@@ -877,6 +914,7 @@ export type MembershipCreateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutObservationsInput = {
@@ -890,6 +928,7 @@ export type MembershipUncheckedCreateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutObservationsInput = {
@@ -919,6 +958,7 @@ export type MembershipUpdateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutObservationsInput = {
@@ -932,6 +972,7 @@ export type MembershipUncheckedUpdateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateWithoutIrrigationRecordsInput = {
@@ -945,6 +986,7 @@ export type MembershipCreateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorMembershipInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutIrrigationRecordsInput = {
@@ -958,6 +1000,7 @@ export type MembershipUncheckedCreateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorMembershipInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutIrrigationRecordsInput = {
@@ -987,6 +1030,7 @@ export type MembershipUpdateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorMembershipNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutIrrigationRecordsInput = {
@@ -1000,6 +1044,7 @@ export type MembershipUncheckedUpdateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorMembershipNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateWithoutExpensesInput = {
@@ -1013,6 +1058,7 @@ export type MembershipCreateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorMembershipInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipUncheckedCreateWithoutExpensesInput = {
@@ -1026,6 +1072,7 @@ export type MembershipUncheckedCreateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorMembershipInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutActorMembershipInput
 }
 
 export type MembershipCreateOrConnectWithoutExpensesInput = {
@@ -1055,6 +1102,7 @@ export type MembershipUpdateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorMembershipNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutExpensesInput = {
@@ -1068,6 +1116,79 @@ export type MembershipUncheckedUpdateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorMembershipNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
+}
+
+export type MembershipCreateWithoutHarvestsInput = {
+  id?: string
+  role: string
+  status: string
+  business: Prisma.BusinessCreateNestedOneWithoutMembershipsInput
+  user: Prisma.ApplicationUserCreateNestedOneWithoutMembershipsInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutActorMembershipInput
+  taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutActorMembershipInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutActorMembershipInput
+  irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutActorMembershipInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutActorMembershipInput
+}
+
+export type MembershipUncheckedCreateWithoutHarvestsInput = {
+  id?: string
+  businessId: string
+  userId: string
+  role: string
+  status: string
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutActorMembershipInput
+  taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutActorMembershipInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutActorMembershipInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutActorMembershipInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutActorMembershipInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutActorMembershipInput
+}
+
+export type MembershipCreateOrConnectWithoutHarvestsInput = {
+  where: Prisma.MembershipWhereUniqueInput
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutHarvestsInput, Prisma.MembershipUncheckedCreateWithoutHarvestsInput>
+}
+
+export type MembershipUpsertWithoutHarvestsInput = {
+  update: Prisma.XOR<Prisma.MembershipUpdateWithoutHarvestsInput, Prisma.MembershipUncheckedUpdateWithoutHarvestsInput>
+  create: Prisma.XOR<Prisma.MembershipCreateWithoutHarvestsInput, Prisma.MembershipUncheckedCreateWithoutHarvestsInput>
+  where?: Prisma.MembershipWhereInput
+}
+
+export type MembershipUpdateToOneWithWhereWithoutHarvestsInput = {
+  where?: Prisma.MembershipWhereInput
+  data: Prisma.XOR<Prisma.MembershipUpdateWithoutHarvestsInput, Prisma.MembershipUncheckedUpdateWithoutHarvestsInput>
+}
+
+export type MembershipUpdateWithoutHarvestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  business?: Prisma.BusinessUpdateOneRequiredWithoutMembershipsNestedInput
+  user?: Prisma.ApplicationUserUpdateOneRequiredWithoutMembershipsNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutActorMembershipNestedInput
+  taskSkips?: Prisma.TaskSkipUpdateManyWithoutActorMembershipNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+}
+
+export type MembershipUncheckedUpdateWithoutHarvestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutActorMembershipNestedInput
+  taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutActorMembershipNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutActorMembershipNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipCreateManyUserInput = {
@@ -1088,6 +1209,7 @@ export type MembershipUpdateWithoutUserInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutUserInput = {
@@ -1101,6 +1223,7 @@ export type MembershipUncheckedUpdateWithoutUserInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutUserInput = {
@@ -1128,6 +1251,7 @@ export type MembershipUpdateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateWithoutBusinessInput = {
@@ -1141,6 +1265,7 @@ export type MembershipUncheckedUpdateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutActorMembershipNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutActorMembershipNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutActorMembershipNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutActorMembershipNestedInput
 }
 
 export type MembershipUncheckedUpdateManyWithoutBusinessInput = {
@@ -1162,6 +1287,7 @@ export type MembershipCountOutputType = {
   observations: number
   irrigationRecords: number
   expenses: number
+  harvests: number
 }
 
 export type MembershipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1171,6 +1297,7 @@ export type MembershipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   observations?: boolean | MembershipCountOutputTypeCountObservationsArgs
   irrigationRecords?: boolean | MembershipCountOutputTypeCountIrrigationRecordsArgs
   expenses?: boolean | MembershipCountOutputTypeCountExpensesArgs
+  harvests?: boolean | MembershipCountOutputTypeCountHarvestsArgs
 }
 
 /**
@@ -1225,6 +1352,13 @@ export type MembershipCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.T
   where?: Prisma.ExpenseWhereInput
 }
 
+/**
+ * MembershipCountOutputType without action
+ */
+export type MembershipCountOutputTypeCountHarvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HarvestWhereInput
+}
+
 
 export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1240,6 +1374,7 @@ export type MembershipSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   observations?: boolean | Prisma.Membership$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Membership$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Membership$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Membership$harvestsArgs<ExtArgs>
   _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["membership"]>
 
@@ -1281,6 +1416,7 @@ export type MembershipInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   observations?: boolean | Prisma.Membership$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Membership$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Membership$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Membership$harvestsArgs<ExtArgs>
   _count?: boolean | Prisma.MembershipCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MembershipIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1303,6 +1439,7 @@ export type $MembershipPayload<ExtArgs extends runtime.Types.Extensions.Internal
     observations: Prisma.$FieldObservationPayload<ExtArgs>[]
     irrigationRecords: Prisma.$IrrigationRecordPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
+    harvests: Prisma.$HarvestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1712,6 +1849,7 @@ export interface Prisma__MembershipClient<T, Null = never, ExtArgs extends runti
   observations<T extends Prisma.Membership$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   irrigationRecords<T extends Prisma.Membership$irrigationRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$irrigationRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IrrigationRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.Membership$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  harvests<T extends Prisma.Membership$harvestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Membership$harvestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HarvestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2288,6 +2426,30 @@ export type Membership$expensesArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
+}
+
+/**
+ * Membership.harvests
+ */
+export type Membership$harvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Harvest
+   */
+  select?: Prisma.HarvestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Harvest
+   */
+  omit?: Prisma.HarvestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HarvestInclude<ExtArgs> | null
+  where?: Prisma.HarvestWhereInput
+  orderBy?: Prisma.HarvestOrderByWithRelationInput | Prisma.HarvestOrderByWithRelationInput[]
+  cursor?: Prisma.HarvestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HarvestScalarFieldEnum | Prisma.HarvestScalarFieldEnum[]
 }
 
 /**

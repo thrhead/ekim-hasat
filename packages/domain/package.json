@@ -71,6 +71,10 @@
     "./finance/expense": {
       "types": "./dist/finance/expense.d.ts",
       "import": "./dist/finance/expense.js"
+    },
+    "./harvest/harvest-record": {
+      "types": "./dist/harvest/harvest-record.d.ts",
+      "import": "./dist/harvest/harvest-record.js"
     }
   },
   "scripts": {

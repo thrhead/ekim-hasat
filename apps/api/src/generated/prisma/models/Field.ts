@@ -247,6 +247,7 @@ export type FieldWhereInput = {
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
   weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
   weatherRefreshState?: Prisma.XOR<Prisma.WeatherRefreshStateNullableScalarRelationFilter, Prisma.WeatherRefreshStateWhereInput> | null
 }
@@ -274,6 +275,7 @@ export type FieldOrderByWithRelationInput = {
   observations?: Prisma.FieldObservationOrderByRelationAggregateInput
   irrigationRecords?: Prisma.IrrigationRecordOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
+  harvests?: Prisma.HarvestOrderByRelationAggregateInput
   weatherSnapshot?: Prisma.WeatherSnapshotOrderByWithRelationInput
   weatherRefreshState?: Prisma.WeatherRefreshStateOrderByWithRelationInput
 }
@@ -307,6 +309,7 @@ export type FieldWhereUniqueInput = Prisma.AtLeast<{
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
   weatherSnapshot?: Prisma.XOR<Prisma.WeatherSnapshotNullableScalarRelationFilter, Prisma.WeatherSnapshotWhereInput> | null
   weatherRefreshState?: Prisma.XOR<Prisma.WeatherRefreshStateNullableScalarRelationFilter, Prisma.WeatherRefreshStateWhereInput> | null
 }, "id" | "id_businessId" | "currentBoundaryVersionId_id" | "currentRegionContextVersionId_id">
@@ -358,6 +361,7 @@ export type FieldUpdateInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -382,6 +386,7 @@ export type FieldUncheckedUpdateInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -656,6 +661,15 @@ export type FieldUpdateOneRequiredWithoutExpensesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutExpensesInput, Prisma.FieldUpdateWithoutExpensesInput>, Prisma.FieldUncheckedUpdateWithoutExpensesInput>
 }
 
+export type FieldCreateNestedOneWithoutHarvestsInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+}
+
+export type FieldUpdateOneRequiredWithoutHarvestsNestedInput = {
+  connect?: Prisma.FieldWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FieldUpdateToOneWithWhereWithoutHarvestsInput, Prisma.FieldUpdateWithoutHarvestsInput>, Prisma.FieldUncheckedUpdateWithoutHarvestsInput>
+}
+
 export type FieldCreateNestedOneWithoutCommandRecordsInput = {
   connect?: Prisma.FieldWhereUniqueInput
 }
@@ -714,6 +728,7 @@ export type FieldUpdateWithoutWeatherSnapshotInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
 
@@ -737,6 +752,7 @@ export type FieldUncheckedUpdateWithoutWeatherSnapshotInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
 
@@ -764,6 +780,7 @@ export type FieldUpdateWithoutWeatherRefreshStateInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
 }
 
@@ -787,6 +804,7 @@ export type FieldUncheckedUpdateWithoutWeatherRefreshStateInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
 }
 
@@ -813,6 +831,7 @@ export type FieldUpdateWithoutBoundaryVersionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -836,6 +855,7 @@ export type FieldUncheckedUpdateWithoutBoundaryVersionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -863,6 +883,7 @@ export type FieldUpdateWithoutCurrentBoundaryVersionInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -885,6 +906,7 @@ export type FieldUncheckedUpdateWithoutCurrentBoundaryVersionInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -912,6 +934,7 @@ export type FieldUpdateWithoutRegionContextVersionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -935,6 +958,7 @@ export type FieldUncheckedUpdateWithoutRegionContextVersionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -962,6 +986,7 @@ export type FieldUpdateWithoutCurrentRegionContextVersionInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -984,6 +1009,7 @@ export type FieldUncheckedUpdateWithoutCurrentRegionContextVersionInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1011,6 +1037,7 @@ export type FieldUpdateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1034,6 +1061,7 @@ export type FieldUncheckedUpdateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1061,6 +1089,7 @@ export type FieldUpdateWithoutIdempotencyRecordsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1084,6 +1113,7 @@ export type FieldUncheckedUpdateWithoutIdempotencyRecordsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1111,6 +1141,7 @@ export type FieldUpdateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1134,6 +1165,7 @@ export type FieldUncheckedUpdateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1161,6 +1193,7 @@ export type FieldUpdateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1184,6 +1217,7 @@ export type FieldUncheckedUpdateWithoutTaskCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1211,6 +1245,7 @@ export type FieldUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1234,6 +1269,7 @@ export type FieldUncheckedUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1261,6 +1297,7 @@ export type FieldUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1284,6 +1321,7 @@ export type FieldUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1311,6 +1349,7 @@ export type FieldUpdateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1334,6 +1373,7 @@ export type FieldUncheckedUpdateWithoutObservationsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1361,6 +1401,7 @@ export type FieldUpdateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutFieldNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1384,6 +1425,7 @@ export type FieldUncheckedUpdateWithoutIrrigationRecordsInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutFieldNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1411,6 +1453,7 @@ export type FieldUpdateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutFieldNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1434,6 +1477,59 @@ export type FieldUncheckedUpdateWithoutExpensesInput = {
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutFieldNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUpdateToOneWithWhereWithoutHarvestsInput = {
+  where?: Prisma.FieldWhereInput
+  data: Prisma.XOR<Prisma.FieldUpdateWithoutHarvestsInput, Prisma.FieldUncheckedUpdateWithoutHarvestsInput>
+}
+
+export type FieldUpdateWithoutHarvestsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  business?: Prisma.BusinessUpdateOneRequiredWithoutFieldsNestedInput
+  boundaryVersions?: Prisma.FieldBoundaryVersionUpdateManyWithoutFieldNestedInput
+  currentBoundaryVersion?: Prisma.FieldBoundaryVersionUpdateOneWithoutCurrentForFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUpdateManyWithoutFieldNestedInput
+  currentRegionContextVersion?: Prisma.FieldRegionContextVersionUpdateOneWithoutCurrentForFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutFieldNestedInput
+  taskSkips?: Prisma.TaskSkipUpdateManyWithoutFieldNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutFieldNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
+  weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
+}
+
+export type FieldUncheckedUpdateWithoutHarvestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  currentBoundaryVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentRegionContextVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  boundaryVersions?: Prisma.FieldBoundaryVersionUncheckedUpdateManyWithoutFieldNestedInput
+  regionContextVersions?: Prisma.FieldRegionContextVersionUncheckedUpdateManyWithoutFieldNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  idempotencyRecords?: Prisma.IdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutFieldNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutFieldNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutFieldNestedInput
+  taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutFieldNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutFieldNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1461,6 +1557,7 @@ export type FieldUpdateWithoutCommandRecordsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1484,6 +1581,7 @@ export type FieldUncheckedUpdateWithoutCommandRecordsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1506,6 +1604,7 @@ export type FieldUpdateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUpdateOneWithoutFieldNestedInput
 }
@@ -1529,6 +1628,7 @@ export type FieldUncheckedUpdateWithoutBusinessInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutFieldNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutFieldNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutFieldNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutFieldNestedInput
   weatherSnapshot?: Prisma.WeatherSnapshotUncheckedUpdateOneWithoutFieldNestedInput
   weatherRefreshState?: Prisma.WeatherRefreshStateUncheckedUpdateOneWithoutFieldNestedInput
 }
@@ -1560,6 +1660,7 @@ export type FieldCountOutputType = {
   observations: number
   irrigationRecords: number
   expenses: number
+  harvests: number
 }
 
 export type FieldCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1575,6 +1676,7 @@ export type FieldCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   observations?: boolean | FieldCountOutputTypeCountObservationsArgs
   irrigationRecords?: boolean | FieldCountOutputTypeCountIrrigationRecordsArgs
   expenses?: boolean | FieldCountOutputTypeCountExpensesArgs
+  harvests?: boolean | FieldCountOutputTypeCountHarvestsArgs
 }
 
 /**
@@ -1671,6 +1773,13 @@ export type FieldCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.ExpenseWhereInput
 }
 
+/**
+ * FieldCountOutputType without action
+ */
+export type FieldCountOutputTypeCountHarvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HarvestWhereInput
+}
+
 
 export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1695,6 +1804,7 @@ export type FieldSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   observations?: boolean | Prisma.Field$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Field$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Field$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Field$harvestsArgs<ExtArgs>
   weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
   weatherRefreshState?: boolean | Prisma.Field$weatherRefreshStateArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
@@ -1741,6 +1851,7 @@ export type FieldInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   observations?: boolean | Prisma.Field$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Field$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Field$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Field$harvestsArgs<ExtArgs>
   weatherSnapshot?: boolean | Prisma.Field$weatherSnapshotArgs<ExtArgs>
   weatherRefreshState?: boolean | Prisma.Field$weatherRefreshStateArgs<ExtArgs>
   _count?: boolean | Prisma.FieldCountOutputTypeDefaultArgs<ExtArgs>
@@ -1769,6 +1880,7 @@ export type $FieldPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     observations: Prisma.$FieldObservationPayload<ExtArgs>[]
     irrigationRecords: Prisma.$IrrigationRecordPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
+    harvests: Prisma.$HarvestPayload<ExtArgs>[]
     weatherSnapshot: Prisma.$WeatherSnapshotPayload<ExtArgs> | null
     weatherRefreshState: Prisma.$WeatherRefreshStatePayload<ExtArgs> | null
   }
@@ -2118,6 +2230,7 @@ export interface Prisma__FieldClient<T, Null = never, ExtArgs extends runtime.Ty
   observations<T extends Prisma.Field$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   irrigationRecords<T extends Prisma.Field$irrigationRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$irrigationRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IrrigationRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.Field$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  harvests<T extends Prisma.Field$harvestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$harvestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HarvestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   weatherSnapshot<T extends Prisma.Field$weatherSnapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$weatherSnapshotArgs<ExtArgs>>): Prisma.Prisma__WeatherSnapshotClient<runtime.Types.Result.GetResult<Prisma.$WeatherSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   weatherRefreshState<T extends Prisma.Field$weatherRefreshStateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Field$weatherRefreshStateArgs<ExtArgs>>): Prisma.Prisma__WeatherRefreshStateClient<runtime.Types.Result.GetResult<Prisma.$WeatherRefreshStatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -2794,6 +2907,30 @@ export type Field$expensesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
+}
+
+/**
+ * Field.harvests
+ */
+export type Field$harvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Harvest
+   */
+  select?: Prisma.HarvestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Harvest
+   */
+  omit?: Prisma.HarvestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HarvestInclude<ExtArgs> | null
+  where?: Prisma.HarvestWhereInput
+  orderBy?: Prisma.HarvestOrderByWithRelationInput | Prisma.HarvestOrderByWithRelationInput[]
+  cursor?: Prisma.HarvestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HarvestScalarFieldEnum | Prisma.HarvestScalarFieldEnum[]
 }
 
 /**

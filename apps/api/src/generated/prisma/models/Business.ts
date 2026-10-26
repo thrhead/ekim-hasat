@@ -176,6 +176,7 @@ export type BusinessWhereInput = {
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
   taskDateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
   taskSkips?: Prisma.TaskSkipListRelationFilter
 }
@@ -194,6 +195,7 @@ export type BusinessOrderByWithRelationInput = {
   observations?: Prisma.FieldObservationOrderByRelationAggregateInput
   irrigationRecords?: Prisma.IrrigationRecordOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
+  harvests?: Prisma.HarvestOrderByRelationAggregateInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentOrderByRelationAggregateInput
   taskSkips?: Prisma.TaskSkipOrderByRelationAggregateInput
 }
@@ -215,6 +217,7 @@ export type BusinessWhereUniqueInput = Prisma.AtLeast<{
   observations?: Prisma.FieldObservationListRelationFilter
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  harvests?: Prisma.HarvestListRelationFilter
   taskDateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
   taskSkips?: Prisma.TaskSkipListRelationFilter
 }, "id">
@@ -251,6 +254,7 @@ export type BusinessCreateInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -269,6 +273,7 @@ export type BusinessUncheckedCreateInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -287,6 +292,7 @@ export type BusinessUpdateInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -305,6 +311,7 @@ export type BusinessUncheckedUpdateInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -513,6 +520,20 @@ export type BusinessUpdateOneRequiredWithoutExpensesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutExpensesInput, Prisma.BusinessUpdateWithoutExpensesInput>, Prisma.BusinessUncheckedUpdateWithoutExpensesInput>
 }
 
+export type BusinessCreateNestedOneWithoutHarvestsInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutHarvestsInput, Prisma.BusinessUncheckedCreateWithoutHarvestsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutHarvestsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+}
+
+export type BusinessUpdateOneRequiredWithoutHarvestsNestedInput = {
+  create?: Prisma.XOR<Prisma.BusinessCreateWithoutHarvestsInput, Prisma.BusinessUncheckedCreateWithoutHarvestsInput>
+  connectOrCreate?: Prisma.BusinessCreateOrConnectWithoutHarvestsInput
+  upsert?: Prisma.BusinessUpsertWithoutHarvestsInput
+  connect?: Prisma.BusinessWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BusinessUpdateToOneWithWhereWithoutHarvestsInput, Prisma.BusinessUpdateWithoutHarvestsInput>, Prisma.BusinessUncheckedUpdateWithoutHarvestsInput>
+}
+
 export type BusinessCreateWithoutDefaultUsersInput = {
   id?: string
   timezone?: string | null
@@ -526,6 +547,7 @@ export type BusinessCreateWithoutDefaultUsersInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -543,6 +565,7 @@ export type BusinessUncheckedCreateWithoutDefaultUsersInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -576,6 +599,7 @@ export type BusinessUpdateWithoutDefaultUsersInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -593,6 +617,7 @@ export type BusinessUncheckedUpdateWithoutDefaultUsersInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -610,6 +635,7 @@ export type BusinessCreateWithoutMembershipsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -627,6 +653,7 @@ export type BusinessUncheckedCreateWithoutMembershipsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -660,6 +687,7 @@ export type BusinessUpdateWithoutMembershipsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -677,6 +705,7 @@ export type BusinessUncheckedUpdateWithoutMembershipsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -694,6 +723,7 @@ export type BusinessCreateWithoutFieldsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -711,6 +741,7 @@ export type BusinessUncheckedCreateWithoutFieldsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -744,6 +775,7 @@ export type BusinessUpdateWithoutFieldsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -761,6 +793,7 @@ export type BusinessUncheckedUpdateWithoutFieldsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -778,6 +811,7 @@ export type BusinessCreateWithoutWeatherSnapshotsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -795,6 +829,7 @@ export type BusinessUncheckedCreateWithoutWeatherSnapshotsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -828,6 +863,7 @@ export type BusinessUpdateWithoutWeatherSnapshotsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -845,6 +881,7 @@ export type BusinessUncheckedUpdateWithoutWeatherSnapshotsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -862,6 +899,7 @@ export type BusinessCreateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -879,6 +917,7 @@ export type BusinessUncheckedCreateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -912,6 +951,7 @@ export type BusinessUpdateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -929,6 +969,7 @@ export type BusinessUncheckedUpdateWithoutCompletionsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -946,6 +987,7 @@ export type BusinessCreateWithoutCustomCropsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -963,6 +1005,7 @@ export type BusinessUncheckedCreateWithoutCustomCropsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -996,6 +1039,7 @@ export type BusinessUpdateWithoutCustomCropsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -1013,6 +1057,7 @@ export type BusinessUncheckedUpdateWithoutCustomCropsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -1030,6 +1075,7 @@ export type BusinessCreateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -1047,6 +1093,7 @@ export type BusinessUncheckedCreateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -1080,6 +1127,7 @@ export type BusinessUpdateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -1097,6 +1145,7 @@ export type BusinessUncheckedUpdateWithoutSeasonsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -1115,6 +1164,7 @@ export type BusinessCreateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
 }
 
@@ -1132,6 +1182,7 @@ export type BusinessUncheckedCreateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
 }
 
@@ -1165,6 +1216,7 @@ export type BusinessUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
 }
 
@@ -1182,6 +1234,7 @@ export type BusinessUncheckedUpdateWithoutTaskSkipsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
@@ -1199,6 +1252,7 @@ export type BusinessCreateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
 
@@ -1216,6 +1270,7 @@ export type BusinessUncheckedCreateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
 
@@ -1249,6 +1304,7 @@ export type BusinessUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
 
@@ -1266,6 +1322,7 @@ export type BusinessUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
 
@@ -1282,6 +1339,7 @@ export type BusinessCreateWithoutObservationsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -1299,6 +1357,7 @@ export type BusinessUncheckedCreateWithoutObservationsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -1332,6 +1391,7 @@ export type BusinessUpdateWithoutObservationsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -1349,6 +1409,7 @@ export type BusinessUncheckedUpdateWithoutObservationsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -1366,6 +1427,7 @@ export type BusinessCreateWithoutIrrigationRecordsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -1383,6 +1445,7 @@ export type BusinessUncheckedCreateWithoutIrrigationRecordsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -1416,6 +1479,7 @@ export type BusinessUpdateWithoutIrrigationRecordsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -1433,6 +1497,7 @@ export type BusinessUncheckedUpdateWithoutIrrigationRecordsInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -1450,6 +1515,7 @@ export type BusinessCreateWithoutExpensesInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
   observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
 }
@@ -1467,6 +1533,7 @@ export type BusinessUncheckedCreateWithoutExpensesInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutBusinessInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
   taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
 }
@@ -1500,6 +1567,7 @@ export type BusinessUpdateWithoutExpensesInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
   observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
 }
@@ -1517,6 +1585,95 @@ export type BusinessUncheckedUpdateWithoutExpensesInput = {
   weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutBusinessNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
+  taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessCreateWithoutHarvestsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotCreateNestedManyWithoutBusinessInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutBusinessInput
+  irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutBusinessInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutBusinessInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutBusinessInput
+  taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessUncheckedCreateWithoutHarvestsInput = {
+  id?: string
+  timezone?: string | null
+  createdAt?: Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutBusinessInput
+  fields?: Prisma.FieldUncheckedCreateNestedManyWithoutBusinessInput
+  completions?: Prisma.OnboardingCompletionUncheckedCreateNestedManyWithoutDefaultBusinessInput
+  customCrops?: Prisma.CustomCropUncheckedCreateNestedManyWithoutBusinessInput
+  seasons?: Prisma.SeasonUncheckedCreateNestedManyWithoutBusinessInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedCreateNestedManyWithoutBusinessInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutBusinessInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutBusinessInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutBusinessInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutBusinessInput
+  taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutBusinessInput
+}
+
+export type BusinessCreateOrConnectWithoutHarvestsInput = {
+  where: Prisma.BusinessWhereUniqueInput
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutHarvestsInput, Prisma.BusinessUncheckedCreateWithoutHarvestsInput>
+}
+
+export type BusinessUpsertWithoutHarvestsInput = {
+  update: Prisma.XOR<Prisma.BusinessUpdateWithoutHarvestsInput, Prisma.BusinessUncheckedUpdateWithoutHarvestsInput>
+  create: Prisma.XOR<Prisma.BusinessCreateWithoutHarvestsInput, Prisma.BusinessUncheckedCreateWithoutHarvestsInput>
+  where?: Prisma.BusinessWhereInput
+}
+
+export type BusinessUpdateToOneWithWhereWithoutHarvestsInput = {
+  where?: Prisma.BusinessWhereInput
+  data: Prisma.XOR<Prisma.BusinessUpdateWithoutHarvestsInput, Prisma.BusinessUncheckedUpdateWithoutHarvestsInput>
+}
+
+export type BusinessUpdateWithoutHarvestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUpdateManyWithoutBusinessNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutBusinessNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutBusinessNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutBusinessNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutBusinessNestedInput
+  taskSkips?: Prisma.TaskSkipUpdateManyWithoutBusinessNestedInput
+}
+
+export type BusinessUncheckedUpdateWithoutHarvestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  defaultUsers?: Prisma.ApplicationUserUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutBusinessNestedInput
+  fields?: Prisma.FieldUncheckedUpdateManyWithoutBusinessNestedInput
+  completions?: Prisma.OnboardingCompletionUncheckedUpdateManyWithoutDefaultBusinessNestedInput
+  customCrops?: Prisma.CustomCropUncheckedUpdateManyWithoutBusinessNestedInput
+  seasons?: Prisma.SeasonUncheckedUpdateManyWithoutBusinessNestedInput
+  weatherSnapshots?: Prisma.WeatherSnapshotUncheckedUpdateManyWithoutBusinessNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutBusinessNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutBusinessNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutBusinessNestedInput
   taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutBusinessNestedInput
   taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutBusinessNestedInput
 }
@@ -1537,6 +1694,7 @@ export type BusinessCountOutputType = {
   observations: number
   irrigationRecords: number
   expenses: number
+  harvests: number
   taskDateAdjustments: number
   taskSkips: number
 }
@@ -1552,6 +1710,7 @@ export type BusinessCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   observations?: boolean | BusinessCountOutputTypeCountObservationsArgs
   irrigationRecords?: boolean | BusinessCountOutputTypeCountIrrigationRecordsArgs
   expenses?: boolean | BusinessCountOutputTypeCountExpensesArgs
+  harvests?: boolean | BusinessCountOutputTypeCountHarvestsArgs
   taskDateAdjustments?: boolean | BusinessCountOutputTypeCountTaskDateAdjustmentsArgs
   taskSkips?: boolean | BusinessCountOutputTypeCountTaskSkipsArgs
 }
@@ -1639,6 +1798,13 @@ export type BusinessCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Typ
 /**
  * BusinessCountOutputType without action
  */
+export type BusinessCountOutputTypeCountHarvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HarvestWhereInput
+}
+
+/**
+ * BusinessCountOutputType without action
+ */
 export type BusinessCountOutputTypeCountTaskDateAdjustmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TaskDateAdjustmentWhereInput
 }
@@ -1665,6 +1831,7 @@ export type BusinessSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   observations?: boolean | Prisma.Business$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Business$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Business$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Business$harvestsArgs<ExtArgs>
   taskDateAdjustments?: boolean | Prisma.Business$taskDateAdjustmentsArgs<ExtArgs>
   taskSkips?: boolean | Prisma.Business$taskSkipsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
@@ -1700,6 +1867,7 @@ export type BusinessInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   observations?: boolean | Prisma.Business$observationsArgs<ExtArgs>
   irrigationRecords?: boolean | Prisma.Business$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Business$expensesArgs<ExtArgs>
+  harvests?: boolean | Prisma.Business$harvestsArgs<ExtArgs>
   taskDateAdjustments?: boolean | Prisma.Business$taskDateAdjustmentsArgs<ExtArgs>
   taskSkips?: boolean | Prisma.Business$taskSkipsArgs<ExtArgs>
   _count?: boolean | Prisma.BusinessCountOutputTypeDefaultArgs<ExtArgs>
@@ -1720,6 +1888,7 @@ export type $BusinessPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     observations: Prisma.$FieldObservationPayload<ExtArgs>[]
     irrigationRecords: Prisma.$IrrigationRecordPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
+    harvests: Prisma.$HarvestPayload<ExtArgs>[]
     taskDateAdjustments: Prisma.$TaskDateAdjustmentPayload<ExtArgs>[]
     taskSkips: Prisma.$TaskSkipPayload<ExtArgs>[]
   }
@@ -2131,6 +2300,7 @@ export interface Prisma__BusinessClient<T, Null = never, ExtArgs extends runtime
   observations<T extends Prisma.Business$observationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$observationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FieldObservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   irrigationRecords<T extends Prisma.Business$irrigationRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$irrigationRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IrrigationRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.Business$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  harvests<T extends Prisma.Business$harvestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$harvestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HarvestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskDateAdjustments<T extends Prisma.Business$taskDateAdjustmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$taskDateAdjustmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskDateAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   taskSkips<T extends Prisma.Business$taskSkipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Business$taskSkipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskSkipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -2795,6 +2965,30 @@ export type Business$expensesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
+}
+
+/**
+ * Business.harvests
+ */
+export type Business$harvestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Harvest
+   */
+  select?: Prisma.HarvestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Harvest
+   */
+  omit?: Prisma.HarvestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HarvestInclude<ExtArgs> | null
+  where?: Prisma.HarvestWhereInput
+  orderBy?: Prisma.HarvestOrderByWithRelationInput | Prisma.HarvestOrderByWithRelationInput[]
+  cursor?: Prisma.HarvestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HarvestScalarFieldEnum | Prisma.HarvestScalarFieldEnum[]
 }
 
 /**

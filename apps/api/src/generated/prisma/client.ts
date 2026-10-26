@@ -162,6 +162,11 @@ export type IrrigationRecord = Prisma.IrrigationRecordModel
  */
 export type Expense = Prisma.ExpenseModel
 /**
+ * Model Harvest
+ *
+ */
+export type Harvest = Prisma.HarvestModel
+/**
  * Model CalendarReadSnapshot
  *
  */
