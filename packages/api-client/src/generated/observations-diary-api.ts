@@ -8,7 +8,7 @@ export type paths = {
         };
         /**
          * Read an authorized Field or Season diary page
-         * @description Returns a unified projection of canonical accepted observations, task completions, task skips, and opt-in record types. Irrigation history is included only when includeIrrigation=true. Expense history is included only when includeExpenses=true and is available to the current Business OWNER. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's records and is validated against the authorized Field and Business. The default projection and version-1 cursor behavior remain unchanged when includeExpenses=false. Expense-enabled requests use a version-2 cursor with a date-only mixed ordering key bound to Field, Season, both include flags, and resolved Business timezone; V2 cursors cannot be reused with the default projection. For V2, Business-local calendar day sorts descending; within each day timed events sort by instant descending, kind ascending, and source UUID descending; date-only Expenses follow timed events and sort by Expense UUID descending. Expense dates are never represented as timestamps. Each continuation queries strictly after its global tuple. Returned records do not repeat; this is keyset pagination, not snapshot isolation.
+         * @description Returns a unified projection of canonical accepted observations, task completions, task skips, and opt-in record types. Irrigation history is included only when includeIrrigation=true. Expense history is included only when includeExpenses=true and is available to the current Business OWNER. Harvest history is included only when includeHarvests=true and is available under ordinary authorized Diary read access for OWNER, WORKER, and ADVISOR. Response-level viewerRole is derived from the current MembershipScopeService result and is not part of DiaryPage.items or authorization for mutations. Field scope includes observations with and without a Season association. A seasonId filter includes only that Season's records and is validated against the authorized Field and Business. The default projection and version-1 cursor behavior remain unchanged when includeExpenses=false and includeHarvests=false. If either date-only source is enabled, requests use the existing version-2 cursor with a date-only mixed ordering key bound to Field, Season, irrigation/expense/harvest inclusion flags, and resolved Business timezone; V2 cursors cannot be reused with different bindings. For V2, Business-local calendar day sorts descending; within each day timed events sort by instant descending, kind ascending, and source UUID descending; date-only entries follow timed events and sort by kind ascending, then source UUID descending. Expense-only ordering is unchanged when Harvest is disabled. Date-only values are never represented as timestamps. Each continuation queries strictly after its global tuple. Returned records do not repeat; this is keyset pagination, not snapshot isolation.
          */
         get: operations["getFieldDiary"];
         put?: never;
@@ -76,8 +76,13 @@ export type components = {
         };
         DiaryPage: {
             businessTimezone: string;
-            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["IrrigationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"] | components["schemas"]["ExpenseDiaryEntry"])[];
+            items: (components["schemas"]["ObservationDiaryEntry"] | components["schemas"]["IrrigationDiaryEntry"] | components["schemas"]["TaskCompletionDiaryEntry"] | components["schemas"]["TaskSkippedDiaryEntry"] | components["schemas"]["ExpenseDiaryEntry"] | components["schemas"]["HarvestDiaryEntry"])[];
             nextCursor: string | null;
+            /**
+             * @description Optional current role from authorized MembershipScopeService resolution. This response-level UI hint is not authorization.
+             * @enum {string}
+             */
+            viewerRole?: "OWNER" | "WORKER" | "ADVISOR";
         };
         /** @description Projection of an accepted immutable Expense. expenseDate is a calendar date only; no time-of-day is known or implied. */
         ExpenseDiaryEntry: {
@@ -103,6 +108,29 @@ export type components = {
             note: string | null;
             /** Format: uuid */
             seasonId: string | null;
+        };
+        /** @description Projection of a canonical accepted Harvest. harvestDate is a calendar date only; no time-of-day is known or implied. */
+        HarvestDiaryEntry: {
+            /** Format: uuid */
+            fieldId: string;
+            /** Format: date */
+            harvestDate: string;
+            /**
+             * Format: uuid
+             * @description Canonical Harvest ID used for ordering and pagination.
+             */
+            id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "HARVEST";
+            /** @description Exact positive decimal string; no binary floating point. */
+            quantity: string;
+            /** Format: uuid */
+            seasonId: string;
+            /** @enum {string} */
+            unit: "KG" | "METRIC_TONNE";
         };
         /** @description Projection of an accepted IrrigationRecord; it retains its own identity and is not an observation. */
         IrrigationDiaryEntry: {
@@ -284,6 +312,8 @@ export interface operations {
                 cursor?: string;
                 /** @description Include date-only EXPENSE entries. Requires current OWNER finance visibility. Uses V2 cursor semantics; omit or set false for the existing V1 projection. */
                 includeExpenses?: boolean;
+                /** @description Include accepted date-only HARVEST entries under ordinary Diary authorization. Uses V2 cursor semantics; omit or set false for the existing V1 projection. */
+                includeHarvests?: boolean;
                 /** @description Include accepted irrigation records as distinct IRRIGATION diary entries. */
                 includeIrrigation?: boolean;
                 limit?: number;
