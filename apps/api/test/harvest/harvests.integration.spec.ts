@@ -152,8 +152,11 @@ test("OWNER and WORKER create within their current Business scope; ADVISOR and n
       [submitted.harvestId, business, field, season, userId, membershipId],
     );
   }
-  await rejectCreate(advisorIdentity, field, request(), 403, "FORBIDDEN");
-  await rejectCreate(noScopeIdentity, field, request(), 403, "FORBIDDEN");
+  for (const identity of [advisorIdentity, noScopeIdentity]) {
+    const submitted = request();
+    await rejectCreate(identity, field, submitted, 403, "FORBIDDEN");
+    assert.equal(await countHarvest(submitted.harvestId), 0);
+  }
 });
 
 test("revoked or demoted membership cannot make a first acceptance", async () => {
@@ -192,13 +195,17 @@ test("uses Business-local today and preserves DATE-only planting equality withou
   assert.equal(onPlanting.harvest.harvestDate, "2026-10-01");
   assert.equal(onLocalToday.harvest.harvestDate, "2026-10-17");
   for (const date of ["2026-09-30", "2026-10-18", "2026-02-30", "2026-10-17T00:00:00Z"]) {
-    await rejectCreate(ownerIdentity, field, request({ harvestDate: date }), 400, "INVALID_REQUEST");
+    const submitted = request({ harvestDate: date });
+    await rejectCreate(ownerIdentity, field, submitted, 400, "INVALID_REQUEST");
+    assert.equal(await countHarvest(submitted.harvestId), 0);
   }
 });
 
 test("rejects nonpositive, oversized, malformed, and over-scale quantity without rounding", async () => {
   for (const quantity of ["0", "0.000", "-1", "100000000000", "123456789012", "1.0001", "1e3", " 1", "+1"]) {
-    await rejectCreate(ownerIdentity, field, request({ quantity }), 400, "INVALID_REQUEST");
+    const submitted = request({ quantity });
+    await rejectCreate(ownerIdentity, field, submitted, 400, "INVALID_REQUEST");
+    assert.equal(await countHarvest(submitted.harvestId), 0);
   }
   await rejectCreate(ownerIdentity, field, request({ unit: "TON" as Request["unit"] }), 400, "INVALID_REQUEST");
   const precise = await (await repository()).create(ownerIdentity, field,
@@ -291,11 +298,22 @@ test("a Season status transition racing first acceptance cannot accept against s
   });
   await locked;
   const submitted = request({ seasonId: racingSeason });
+  let createSettled = false;
   const attempt = store.create(ownerIdentity, field, submitted).then(
     (value) => ({ value }), (error: unknown) => ({ error }),
-  );
+  ).finally(() => { createSettled = true; });
   try {
-    await new Promise((resolve) => setTimeout(resolve, 75));
+    let lockWaitSeen = false;
+    for (let poll = 0; poll < 100 && !lockWaitSeen && !createSettled; poll += 1) {
+      const rows = await prisma.$queryRaw<Array<{ waiting: boolean }>>`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_stat_activity
+          WHERE datname = current_database() AND pid <> pg_backend_pid() AND wait_event_type = 'Lock'
+        ) AS waiting`;
+      lockWaitSeen = rows[0]?.waiting ?? false;
+      if (!lockWaitSeen && !createSettled) await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    assert.ok(lockWaitSeen || createSettled, "create did not reach a database result or lock wait");
     releaseTransition();
     await transition;
     const outcome = await attempt;
