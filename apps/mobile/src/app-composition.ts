@@ -19,7 +19,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | "irrigation-create" | "expense-create" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | "irrigation-create" | "expense-create" | "harvest-create" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -285,6 +285,10 @@ export function createAppComposition(
     showExpenseCreate() {
       if (!state.diaryFieldId) return;
       publish({ ...state, entry: "expense-create", seasonDraft: null });
+    },
+    showHarvestCreate() {
+      if (!state.diaryFieldId || !state.diarySeasonId) return;
+      publish({ ...state, entry: "harvest-create", seasonDraft: null });
     },
     returnToFieldDiary() {
       if (!state.diaryFieldId) return;

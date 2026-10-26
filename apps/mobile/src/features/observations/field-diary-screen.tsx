@@ -19,6 +19,8 @@ export type FieldDiaryScreenProps = {
   onAddIrrigation?: () => void;
   /** Supplied only when Expense Diary V2 access is available in this route. */
   onAddExpense?: () => void;
+  /** Supplied only from an active Season Diary route. */
+  onAddHarvest?: () => void;
 };
 
 export function FieldDiaryScreen(props: FieldDiaryScreenProps) {
@@ -35,7 +37,7 @@ export function reconcileObservationRows(entries: DiaryEntry[], local: Observati
   return [...entries, ...retained].sort((left, right) => compareDiaryEntries(left, right, timezone));
 }
 
-function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation, onAddIrrigation, onAddExpense }: FieldDiaryScreenProps) {
+function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation, onAddIrrigation, onAddExpense, onAddHarvest }: FieldDiaryScreenProps) {
   const [data, setData] = useState<DiaryPage | null>(null);
   const [localCommands, setLocalCommands] = useState<ObservationCommand[]>([]);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -120,6 +122,7 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
   }, [accountId, observationStore, fieldId, seasonId]);
 
   const serverEntries = data?.items ?? [];
+  const viewerRole = (data as (DiaryPage & { viewerRole?: string }) | null)?.viewerRole;
   const displayTimezone = data?.businessTimezone ?? localCommands.find((command) => command.state === "ACCEPTED")?.capturedBusinessTimezone ?? "UTC";
   const visibleRows = accessDenied ? [] : [
     ...reconcileObservationRows(serverEntries.filter((entry) => entry.kind === "OBSERVATION"), localCommands, displayTimezone),
@@ -148,6 +151,7 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
     {onAddObservation && <Pressable accessibilityRole="button" accessibilityLabel="Gözlem ekle" onPress={onAddObservation} style={styles.button}><Text>Gözlem ekle</Text></Pressable>}
     {onAddIrrigation && <Pressable accessibilityRole="button" accessibilityLabel="Sulama kaydı ekle" onPress={onAddIrrigation} style={styles.button}><Text>Sulama kaydı ekle</Text></Pressable>}
     {onAddExpense && expenseActionAvailable && <Pressable accessibilityRole="button" accessibilityLabel="Gider ekle" onPress={onAddExpense} style={styles.button}><Text>Gider ekle</Text></Pressable>}
+    {onAddHarvest && seasonId && (viewerRole === "OWNER" || viewerRole === "WORKER") && <Pressable accessibilityRole="button" accessibilityLabel="Hasat ekle" onPress={onAddHarvest} style={styles.button}><Text>Hasat ekle</Text></Pressable>}
   </ScrollView>;
 }
 
