@@ -1,6 +1,6 @@
 import { ForbiddenException } from "@nestjs/common";
 import type { VerifiedSubject } from "@ekim-hasat/domain/identity/auth-provider";
-import type { PrismaClient } from "../generated/prisma/client.js";
+import { Prisma, type PrismaClient } from "../generated/prisma/client.js";
 import { MembershipScopeService } from "../authorization/membership-scope.service.js";
 import { ApiError } from "../observability/api-error.filter.js";
 import { resolveBusinessTimezone } from "../seasons/business-timezone.js";
@@ -22,7 +22,10 @@ export class ObservationDiaryRepository {
   async read(identity: VerifiedSubject, fieldId: string, filters: ObservationDiaryFilters = {}): Promise<ObservationDiaryPage> {
     const limit = diaryLimit(filters.limit);
     const seasonId = filters.seasonId;
-    let cursor: DiarySortKey | null = filters.includeExpenses
+    const includeExpenses = filters.includeExpenses === true;
+    const includeHarvests = filters.includeHarvests === true;
+    const useV2 = includeExpenses || includeHarvests;
+    let cursor: DiarySortKey | null = useV2
       ? null : decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true);
     let scope;
     try { scope = await this.membershipScope.resolveDefaultBusinessScope(identity); }
@@ -37,15 +40,16 @@ export class ObservationDiaryRepository {
     if (seasonId && !await this.prisma.season.findFirst({ where: { id: seasonId, fieldId, businessId: scope.businessId }, select: { id: true } })) throw notFound();
 
     const businessTimezone = resolveBusinessTimezone(field.business.timezone);
-    if (filters.includeExpenses) {
-      cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true, true, businessTimezone);
+    if (useV2) {
+      cursor = decodeDiaryCursor(filters.cursor, fieldId, seasonId ?? null, filters.includeIrrigation === true,
+        includeExpenses, businessTimezone, includeHarvests);
     }
     const v1Cursor = cursor?.version === 1 ? cursor : null;
     const v2Cursor = cursor?.version === 2 ? cursor : null;
     const timestampAfter = v2Cursor ? v2TimestampAfter(v2Cursor, businessTimezone) : v1Cursor;
 
     const observationAfter = diaryTimestampFilter(timestampAfter, "OBSERVATION");
-    const [observations, completions, skips, irrigationRecords] = await Promise.all([
+    const [observations, completions, skips, irrigationRecords, harvestRows] = await Promise.all([
       this.prisma.fieldObservation.findMany({
         where: {
           businessId: scope.businessId,
@@ -72,8 +76,9 @@ export class ObservationDiaryRepository {
         select: { id: true, fieldId: true, seasonId: true, occurredAt: true, recordedAt: true,
           method: true, durationMinutes: true, waterVolumeCubicMetres: true, note: true },
       }) : Promise.resolve([]),
+      includeHarvests ? this.readHarvestCandidates(scope.businessId, fieldId, seasonId, v2Cursor, limit + 1) : Promise.resolve([]),
     ]);
-    const expenseRows = filters.includeExpenses
+    const expenseRows = includeExpenses
       ? await this.expenses.readDiaryCandidates(identity, fieldId, seasonId, v2Cursor, limit + 1)
       : [];
     const entries: DiaryEntry[] = [
@@ -87,10 +92,36 @@ export class ObservationDiaryRepository {
         waterVolumeCubicMetres: row.waterVolumeCubicMetres?.toFixed(1) ?? null,
         note: row.note, recordedAt: row.recordedAt.toISOString() })),
       ...expenseRows,
+      ...harvestRows,
     ];
     const page = pageDiaryCandidates(entries, limit, fieldId, seasonId ?? null, cursor, filters.includeIrrigation === true,
-      filters.includeExpenses === true, businessTimezone);
-    return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone };
+      includeExpenses, businessTimezone, includeHarvests);
+    const viewerRole = scope.role === "OWNER" || scope.role === "WORKER" || scope.role === "ADVISOR" ? scope.role : undefined;
+    return { items: [...page.items], nextCursor: page.nextCursor, businessTimezone, viewerRole };
+  }
+
+  private async readHarvestCandidates(
+    businessId: string, fieldId: string, seasonId: string | undefined, after: DiaryV2Cursor | null, take: number,
+  ): Promise<Extract<DiaryEntry, { kind: "HARVEST" }>[]> {
+    if (!Number.isSafeInteger(take) || take < 1 || take > 101) throw invalidRequest();
+    const afterFilter = after === null
+      ? Prisma.empty
+      : after.precision === "TIMED" || after.kind.localeCompare("HARVEST") < 0
+        ? Prisma.sql`AND harvest_date <= ${after.localDate}::date`
+        : after.kind === "HARVEST"
+          ? Prisma.sql`AND (harvest_date < ${after.localDate}::date OR (harvest_date = ${after.localDate}::date AND id < ${after.id}::uuid))`
+          : Prisma.sql`AND harvest_date < ${after.localDate}::date`;
+    const rows = await this.prisma.$queryRaw<Array<{ id: string; field_id: string; season_id: string; harvest_date: string; quantity: string; unit: "KG" | "METRIC_TONNE" }>>(Prisma.sql`
+      SELECT id::text, field_id::text, season_id::text, to_char(harvest_date, 'YYYY-MM-DD') AS harvest_date,
+        quantity::text, unit
+      FROM harvests
+      WHERE business_id = ${businessId}::uuid AND field_id = ${fieldId}::uuid
+        AND (${seasonId ?? null}::uuid IS NULL OR season_id = ${seasonId ?? null}::uuid)
+        ${afterFilter}
+      ORDER BY harvest_date DESC, id DESC
+      LIMIT ${take}`);
+    return rows.map((row) => ({ kind: "HARVEST", id: row.id, fieldId: row.field_id, seasonId: row.season_id,
+      harvestDate: row.harvest_date, quantity: row.quantity, unit: row.unit }));
   }
 }
 
@@ -141,3 +172,4 @@ function localDateStart(localDate: string, timezone: string): Date {
 
 function forbidden(): ApiError { return new ApiError(403, "FORBIDDEN", "This request is not available"); }
 function notFound(): ApiError { return new ApiError(404, "NOT_FOUND", "The requested item is not available"); }
+function invalidRequest(): ApiError { return new ApiError(400, "INVALID_REQUEST", "Check the diary request and try again"); }

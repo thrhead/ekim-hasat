@@ -122,7 +122,7 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
   }, [accountId, observationStore, fieldId, seasonId]);
 
   const serverEntries = data?.items ?? [];
-  const viewerRole = (data as (DiaryPage & { viewerRole?: string }) | null)?.viewerRole;
+  const viewerRole = data?.viewerRole;
   const displayTimezone = data?.businessTimezone ?? localCommands.find((command) => command.state === "ACCEPTED")?.capturedBusinessTimezone ?? "UTC";
   const visibleRows = accessDenied ? [] : [
     ...reconcileObservationRows(serverEntries.filter((entry) => entry.kind === "OBSERVATION"), localCommands, displayTimezone),
@@ -156,6 +156,16 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
 }
 
 function DiaryRow({ item, timezone }: { item: DiaryEntry; timezone: string }) {
+  if (item.kind === "HARVEST") {
+    const date = new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+      .format(new Date(`${item.harvestDate}T12:00:00Z`));
+    const unit = item.unit === "KG" ? "kg" : "tonne";
+    return <View accessible accessibilityLabel={`Hasat, ${item.quantity} ${unit}, ${date}`} style={styles.row}>
+      <Text accessibilityRole="header" style={styles.rowTitle}>Hasat</Text>
+      <Text style={styles.body}>{`${item.quantity} ${unit}`}</Text>
+      <Text style={styles.body}>{date}</Text>
+    </View>;
+  }
   if (item.kind === "EXPENSE") {
     const date = new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${item.expenseDate}T12:00:00Z`));
     const category = EXPENSE_CATEGORY_LABELS[item.category] ?? "Gider";
@@ -200,19 +210,29 @@ function compareDiaryEntries(left: DiaryEntry, right: DiaryEntry, timezone: stri
     if (left.kind !== right.kind) return left.kind === "EXPENSE" ? 1 : -1;
     return right.id.localeCompare(left.id);
   }
-  return diaryTimedAt(right).localeCompare(diaryTimedAt(left))
+  return diaryTimedAt(right as TimedDiaryEntry).localeCompare(diaryTimedAt(left as TimedDiaryEntry))
     || left.kind.localeCompare(right.kind)
     || right.id.localeCompare(left.id);
 }
 
 function businessDate(item: DiaryEntry, timezone: string): string {
   if (item.kind === "EXPENSE") return item.expenseDate;
-  const instant = item.kind === "TASK_SKIPPED" ? item.skippedAt : item.occurredAt;
-  return new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(instant));
+  if (item.kind === "HARVEST") return item.harvestDate;
+  const dateOnly = (value: string) => new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+  switch (item.kind) {
+    case "TASK_SKIPPED": return dateOnly(item.skippedAt);
+    case "OBSERVATION": return dateOnly(item.occurredAt);
+    case "IRRIGATION": return dateOnly(item.occurredAt);
+    case "TASK_COMPLETION": return dateOnly(item.occurredAt);
+  }
 }
 
-function diaryTimedAt(item: Exclude<DiaryEntry, { kind: "EXPENSE" }>): string {
-  return item.kind === "TASK_SKIPPED" ? item.skippedAt : item.occurredAt;
+type TimedDiaryEntry = Extract<DiaryEntry, { kind: "OBSERVATION" | "IRRIGATION" | "TASK_COMPLETION" | "TASK_SKIPPED" }>;
+
+function diaryTimedAt(item: TimedDiaryEntry): string {
+  if (item.kind === "TASK_SKIPPED") return item.skippedAt;
+  if (item.kind === "OBSERVATION" || item.kind === "IRRIGATION" || item.kind === "TASK_COMPLETION") return item.occurredAt;
+  return "";
 }
 
 const EXPENSE_CATEGORY_LABELS: Record<string, string> = {

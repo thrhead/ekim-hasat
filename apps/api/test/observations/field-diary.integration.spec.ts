@@ -8,6 +8,7 @@ import { ObservationDiaryRepository } from "../../src/observations/observation-d
 import { createObservationApp } from "../../src/observations/observation.controller.js";
 import { ObservationCreateRepository } from "../../src/observations/observation.repository.js";
 import { decodeDiaryCursor } from "../../src/observations/diary-query.js";
+import { ExpenseDiaryReader } from "../../src/finance/expense-diary-reader.js";
 import { TaskCompletionRepository } from "../../src/tasks/task-completion.repository.js";
 import { TaskSkipRepository } from "../../src/tasks/task-skip.repository.js";
 import { SeasonActivationRepository } from "../../src/seasons/seasons-activation.repository.js";
@@ -22,8 +23,8 @@ const run = randomUUID(), businessId = randomUUID(), foreignBusinessId = randomU
 const otherSeasonId = randomUUID();
 const cropId = randomUUID(), templateId = randomUUID(), taskId = randomUUID(), skipTaskId = randomUUID(), completionId = randomUUID(), skipId = randomUUID();
 const irrigationRecordId = randomUUID(), matchingSeasonIrrigationId = randomUUID(), otherSeasonIrrigationId = randomUUID();
-const fieldExpenseId = "f0000000-0000-4000-8000-000000000001", olderFieldExpenseId = randomUUID(), seasonExpenseId = randomUUID(), otherSeasonExpenseId = randomUUID();
-const harvestId = "00000000-0000-4000-8000-000000000001", secondHarvestId = "00000000-0000-4000-8000-000000000002";
+const fieldExpenseId = "f0000000-0000-4000-8000-000000000001", olderFieldExpenseId = randomUUID(), seasonExpenseId = "00000000-0000-4000-8000-000000000000", otherSeasonExpenseId = "f0000000-0000-4000-8000-000000000002";
+const harvestId = "f1000000-0000-4000-8000-000000000001", secondHarvestId = "f1000000-0000-4000-8000-000000000002";
 const otherSeasonHarvestId = "00000000-0000-4000-8000-000000000003", foreignHarvestId = randomUUID();
 const foreignSeasonId = randomUUID(), workerId = randomUUID(), advisorId = randomUUID();
 const identity = { provider: "spec006-diary", subject: run };
@@ -35,6 +36,7 @@ const observationCreates = new ObservationCreateRepository(prisma, () => new Dat
 const tieAt = "2026-10-04T09:30:00.000Z";
 const taskSkips = new TaskSkipRepository(prisma, () => new Date(tieAt));
 const diary = new ObservationDiaryRepository(prisma, taskCompletions, taskSkips);
+const expenseDiary = new ExpenseDiaryReader(prisma);
 const observationIds: string[] = [];
 
 before(async () => {
@@ -95,7 +97,7 @@ before(async () => {
     { id: secondHarvestId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
       harvestDate: new Date("2026-10-05T00:00:00.000Z"), quantity: "8.250", unit: "KG", recordedAt: new Date("2026-10-05T10:01:00.000Z") },
     { id: otherSeasonHarvestId, businessId, fieldId, seasonId: otherSeasonId, actorUserId: userId, actorMembershipId: membership.id,
-      harvestDate: new Date("2026-10-04T00:00:00.000Z"), quantity: "5", unit: "KG", recordedAt: new Date("2026-10-05T10:02:00.000Z") },
+      harvestDate: new Date("2026-10-05T00:00:00.000Z"), quantity: "5", unit: "KG", recordedAt: new Date("2026-10-05T10:02:00.000Z") },
     { id: foreignHarvestId, businessId: foreignBusinessId, fieldId: foreignFieldId, seasonId: foreignSeasonId,
       actorUserId: foreignUserId, actorMembershipId: (await prisma.membership.findUniqueOrThrow({
         where: { businessId_userId: { businessId: foreignBusinessId, userId: foreignUserId } }, select: { id: true },
@@ -394,6 +396,31 @@ test("Harvest source candidate queries are database-bounded", async () => {
   assert.match(harvestQuery!, /\bLIMIT\b/i, "the Harvest candidate query applies a database-side bound");
 });
 
+test("mixed Expense and Harvest pages continue after the full DATE_ONLY kind and UUID tuple", async () => {
+  const seen: Array<{ id: string; kind: string; date: string }> = [];
+  let page = await diary.read(identity, fieldId, { includeExpenses: true, includeHarvests: true, limit: 1 });
+  while (true) {
+    seen.push(...page.items.flatMap((item) => item.kind === "EXPENSE"
+      ? [{ id: item.id, kind: item.kind, date: item.expenseDate }]
+      : item.kind === "HARVEST" ? [{ id: item.id, kind: item.kind, date: item.harvestDate }] : []));
+    if (!page.nextCursor) break;
+    page = await diary.read(identity, fieldId, { includeExpenses: true, includeHarvests: true, limit: 1, cursor: page.nextCursor });
+  }
+  assert.equal(new Set(seen.map(({ id }) => id)).size, seen.length, "continuation never repeats a date-only identity");
+  const sameDay = seen.filter(({ date }) => date === "2026-10-05");
+  assert.deepEqual(sameDay.map(({ kind }) => kind), ["EXPENSE", "EXPENSE", "EXPENSE", "HARVEST", "HARVEST", "HARVEST"]);
+  assert.equal(seen.filter(({ id }) => id === olderFieldExpenseId).length, 1,
+    "consumed same-day Expenses do not starve older date-only source rows after Harvests");
+  assert.equal(seen.filter(({ id }) => id === seasonExpenseId).length, 1,
+    "an Expense with a UUID below Harvest IDs is not returned again after a Harvest cursor");
+  const afterHarvest = { version: 2, fieldId, seasonId: null, includeIrrigation: false, includeExpenses: true,
+    includeHarvests: true, businessTimezone: "Asia/Tokyo", localDate: "2026-10-05", precision: "DATE_ONLY",
+    kind: "HARVEST", id: secondHarvestId } as const;
+  const expenseCandidates = await expenseDiary.readDiaryCandidates(identity, fieldId, undefined, afterHarvest, 2);
+  assert.deepEqual(expenseCandidates.map(({ id }) => id), [olderFieldExpenseId],
+    "source keyset query removes consumed same-date Expenses before applying its candidate bound");
+});
+
 test("Harvest keyset continuation remains strict when date-only records are inserted during traversal", async () => {
   const first = await diary.read(identity, fieldId, { limit: 1, includeHarvests: true } as never);
   assert.ok(first.nextCursor);
@@ -407,12 +434,20 @@ test("Harvest keyset continuation remains strict when date-only records are inse
     { id: laterId, businessId, fieldId, seasonId, actorUserId: userId, actorMembershipId: membership.id,
       harvestDate: new Date("2026-10-02T00:00:00.000Z"), quantity: "2", unit: "KG", recordedAt: new Date() },
   ] });
-  const continuation = await diary.read(identity, fieldId, { limit: 100, cursor: first.nextCursor!, includeHarvests: true } as never) as unknown as {
+  let continuation = await diary.read(identity, fieldId, { limit: 100, cursor: first.nextCursor!, includeHarvests: true } as never) as unknown as {
     items: Array<{ id: string; kind: string }>; nextCursor: string | null;
   };
-  assert.equal(continuation.items.some(({ id }) => id === earlierId), false, "an insertion before the consumed tuple waits for refresh");
-  assert.equal(continuation.items.some(({ id }) => id === laterId), true, "an insertion after the consumed tuple may appear later");
+  const continuationIds = continuation.items.map(({ id }) => id);
   assert.equal(continuation.items.length <= 100, true, "each returned page stays within its requested bound");
+  while (continuation.nextCursor) {
+    continuation = await diary.read(identity, fieldId, { limit: 100, cursor: continuation.nextCursor, includeHarvests: true } as never) as unknown as {
+      items: Array<{ id: string; kind: string }>; nextCursor: string | null;
+    };
+    assert.equal(continuation.items.length <= 100, true, "each returned page stays within its requested bound");
+    continuationIds.push(...continuation.items.map(({ id }) => id));
+  }
+  assert.equal(continuationIds.includes(earlierId), false, "an insertion before the consumed tuple waits for refresh");
+  assert.equal(continuationIds.includes(laterId), true, "an insertion after the consumed tuple may appear later");
 });
 
 test("Field Diary HTTP response derives viewerRole from current authorized Membership and keeps it outside items", async () => {
@@ -426,13 +461,26 @@ test("Field Diary HTTP response derives viewerRole from current authorized Membe
   await app.getHttpAdapter().getInstance().ready();
   try {
     for (const [token, role] of [["owner-harvest-diary", "OWNER"], ["worker-harvest-diary", "WORKER"], ["advisor-harvest-diary", "ADVISOR"]] as const) {
-      const response = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeHarvests=true&limit=100`,
+      let response = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeHarvests=true&limit=100`,
         headers: { authorization: `Bearer ${token}` } });
       assert.equal(response.statusCode, 200);
-      const body = response.json() as { items: Array<Record<string, unknown>>; viewerRole?: string; nextCursor: string | null };
+      let body = response.json() as { items: Array<Record<string, unknown>>; viewerRole?: string; nextCursor: string | null };
+      const items = [...body.items];
+      while (body.nextCursor) {
+        response = await app.inject({ method: "GET", url: `/v1/fields/${fieldId}/diary?includeHarvests=true&limit=100&cursor=${encodeURIComponent(body.nextCursor)}`,
+          headers: { authorization: `Bearer ${token}` } });
+        assert.equal(response.statusCode, 200);
+        body = response.json() as typeof body;
+        assert.equal(body.viewerRole, role);
+        items.push(...body.items);
+      }
       assert.equal(body.viewerRole, role);
-      assert.equal(body.items.some((item) => "viewerRole" in item), false);
-      assert.equal(body.items.filter(({ kind }) => kind === "HARVEST").length, 3);
+      assert.equal(items.some((item) => "viewerRole" in item), false);
+      const harvestIds = items.filter(({ kind }) => kind === "HARVEST").map(({ id }) => id);
+      for (const expectedId of [harvestId, secondHarvestId, otherSeasonHarvestId]) {
+        assert.equal(harvestIds.filter((id) => id === expectedId).length, 1, `${role} sees canonical Harvest ${expectedId} exactly once`);
+      }
+      assert.equal(harvestIds.includes(foreignHarvestId), false, "the current Business Diary excludes foreign Harvests");
     }
   } finally { await app.close(); }
 });

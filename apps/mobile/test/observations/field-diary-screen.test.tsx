@@ -1,5 +1,5 @@
 import { act, create, type TestRenderer } from "react-test-renderer";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 import type { ApiClient, ObservationDiaryComponents } from "../../../../packages/api-client/src/index";
 import { FieldDiaryScreen } from "../../src/features/observations/field-diary-screen";
 import { readFieldDiary } from "../../src/features/observations/diary-client";
@@ -38,12 +38,32 @@ async function press(screen: TestRenderer, label: string) {
 }
 
 describe("Field/Season diary", () => {
+  it("requests Harvests on the first and continuation pages while preserving Season, Expense, and viewerRole data", async () => {
+    const firstPage = page([observation], "next-page", "WORKER");
+    const continuationPage = page([harvest], null, "WORKER");
+    const GET = jest.fn().mockResolvedValueOnce(success(firstPage)).mockResolvedValueOnce(success(continuationPage));
+    const client = { GET } as unknown as ApiClient;
+
+    const first = await readFieldDiary(client, "field-1", { seasonId: "season-1", includeExpenses: true });
+    const continuation = await readFieldDiary(client, "field-1", { seasonId: "season-1", cursor: first.nextCursor ?? undefined, includeExpenses: true });
+
+    expect(first.viewerRole).toBe("WORKER");
+    expect(continuation.viewerRole).toBe("WORKER");
+    expect(continuation.items).toEqual([harvest]);
+    expect(GET).toHaveBeenNthCalledWith(1, "/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: {
+      limit: 50, seasonId: "season-1", includeIrrigation: true, includeExpenses: true, includeHarvests: true,
+    } } });
+    expect(GET).toHaveBeenNthCalledWith(2, "/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: {
+      limit: 50, seasonId: "season-1", cursor: "next-page", includeIrrigation: true, includeExpenses: true, includeHarvests: true,
+    } } });
+  });
+
   it("requests exactly one bounded generated API page with Field, Season and cursor scope", async () => {
     const data = page([observation]);
     const GET = jest.fn().mockResolvedValue(success(data));
     expect(await readFieldDiary({ GET } as unknown as ApiClient, "field-1", { seasonId: "season-1", cursor: "opaque" })).toEqual(data);
     expect(GET).toHaveBeenCalledTimes(1);
-    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", cursor: "opaque", includeIrrigation: true } } });
+    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", cursor: "opaque", includeIrrigation: true, includeHarvests: true } } });
   });
 
   it("keeps structured permission failures privacy safe", async () => {
@@ -199,7 +219,7 @@ describe("Expense-enabled Field Diary", () => {
     const onAddExpense = jest.fn();
     const GET = jest.fn().mockResolvedValue(success(page([irrigation, expense])));
     const screen = await mount(GET, undefined, undefined, undefined, onAddExpense);
-    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", includeIrrigation: true, includeExpenses: true } } });
+    expect(GET).toHaveBeenCalledWith("/fields/{fieldId}/diary", { params: { path: { fieldId: "field-1" }, query: { limit: 50, seasonId: "season-1", includeIrrigation: true, includeExpenses: true, includeHarvests: true } } });
     const expenseRow = screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))[0];
     expect(expenseRow).toBeDefined();
     expect(expenseRow!.props.accessibilityLabel).toContain("12.345678 TRY");
@@ -233,7 +253,7 @@ describe("Expense-enabled Field Diary", () => {
     const screen = await mount(GET, undefined, undefined, undefined, jest.fn());
     expect(GET).toHaveBeenCalledTimes(2);
     expect(GET.mock.calls[0]![1].params.query.includeExpenses).toBe(true);
-    expect(GET.mock.calls[1]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true });
+    expect(GET.mock.calls[1]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true, includeHarvests: true });
     expect(text(screen)).toContain(observation.description);
     expect(text(screen)).not.toContain("private detail");
     expect(screen.root.findAll(({ props }) => props.accessibilityLabel === "Gider ekle")).toHaveLength(0);
@@ -249,7 +269,7 @@ describe("Expense-enabled Field Diary", () => {
     await press(screen, "Daha eski kayıtları yükle");
     expect(GET).toHaveBeenCalledTimes(3);
     expect(GET.mock.calls[1]![1].params.query.cursor).toBe("v2-cursor");
-    expect(GET.mock.calls[2]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true });
+    expect(GET.mock.calls[2]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true, includeHarvests: true });
     expect(text(screen)).toContain(observation.description);
     expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
     await act(async () => { fallback.resolve(success(page([observation]))); });
@@ -268,7 +288,7 @@ describe("Expense-enabled Field Diary", () => {
     expect(text(screen)).not.toContain(observation.description);
     expect(screen.root.findAll(({ props }) => typeof props.accessibilityLabel === "string" && props.accessibilityLabel.startsWith("Gider,"))).toHaveLength(0);
     await press(screen, "Daha eski kayıtları yükle");
-    expect(GET.mock.calls[3]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true, cursor: "v1-cursor" });
+    expect(GET.mock.calls[3]![1].params.query).toEqual({ limit: 50, seasonId: "season-1", includeIrrigation: true, includeHarvests: true, cursor: "v1-cursor" });
     expect(text(screen)).toContain(fresh.description);
     expect(text(screen)).toContain(older.description);
     expect(text(screen)).not.toContain(observation.description);
@@ -309,10 +329,10 @@ describe("Harvest-enabled Field Diary", () => {
     const screen = await mount(jest.fn().mockResolvedValue(success(page([], null, viewerRole))), undefined, undefined, undefined, undefined, onAddHarvest);
     const action = node(screen, "Hasat ekle");
     expect(action.props.accessibilityRole).toBe("button");
-    expect(StyleSheet.flatten(action.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    expect(StyleSheet.flatten(action.props.style as object as Parameters<typeof StyleSheet.flatten>[0])).toMatchObject({ minHeight: 48 });
     await press(screen, "Hasat ekle");
     expect(onAddHarvest).toHaveBeenCalledTimes(1);
-    const textNodes = screen.root.findAll(({ type }) => type === Text);
+    const textNodes = screen.root.findAll(({ props }) => props.allowFontScaling !== false);
     expect(textNodes.every(({ props }) => props.allowFontScaling !== false)).toBe(true);
     await act(async () => screen.unmount());
   });

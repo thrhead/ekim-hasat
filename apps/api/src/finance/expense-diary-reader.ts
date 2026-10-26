@@ -37,6 +37,13 @@ export class ExpenseDiaryReader {
             AND (${seasonId ?? null}::uuid IS NULL OR season_id=${seasonId ?? null}::uuid)
             AND expense_date <= ${after.localDate}::date
           ORDER BY expense_date DESC, id DESC LIMIT ${take}`
+        : after.kind === "HARVEST"
+          ? await this.prisma.$queryRaw<ExpenseDiaryRow[]>`SELECT id::text, field_id::text, season_id::text,
+              to_char(expense_date, 'YYYY-MM-DD') AS expense_date, amount::text, currency, category, note
+            FROM expenses WHERE business_id=${scope.businessId}::uuid AND field_id=${fieldId}::uuid
+              AND (${seasonId ?? null}::uuid IS NULL OR season_id=${seasonId ?? null}::uuid)
+              AND expense_date < ${after.localDate}::date
+            ORDER BY expense_date DESC, id DESC LIMIT ${take}`
         : await this.prisma.$queryRaw<ExpenseDiaryRow[]>`SELECT id::text, field_id::text, season_id::text,
             to_char(expense_date, 'YYYY-MM-DD') AS expense_date, amount::text, currency, category, note
           FROM expenses WHERE business_id=${scope.businessId}::uuid AND field_id=${fieldId}::uuid
