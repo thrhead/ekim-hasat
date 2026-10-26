@@ -38,6 +38,8 @@ import { createIrrigationRecordsModule } from "./operations/irrigation-records.m
 import { ExpensesRepository } from "./finance/expenses.repository.js";
 import { ExpensesService } from "./finance/expenses.service.js";
 import { createExpensesModule } from "./finance/expenses.module.js";
+import { HarvestsRepository } from "./harvest/harvests.repository.js";
+import { createHarvestsModule } from "./harvest/harvests.module.js";
 import { createTodayModule } from "./seasons/today.controller.js";
 import { createWeatherModule } from "./weather/weather.module.js";
 import { FieldsReadRepository } from "./fields/fields-read.repository.js";
@@ -94,6 +96,7 @@ async function bootstrap(): Promise<void> {
   const taskDateAdjustmentRepository = new TaskDateAdjustmentRepository(prisma);
   const taskDateAdjustmentService = new TaskDateAdjustmentService(taskDateAdjustmentRepository);
   const observationCreateRepository = new ObservationCreateRepository(prisma);
+  const harvestsRepository = new HarvestsRepository(prisma);
   const irrigationRecordsService = new IrrigationRecordsService(new IrrigationRecordsRepository(prisma));
   const expensesService = new ExpensesService(new ExpensesRepository(prisma));
   const observationDiaryRepository = new ObservationDiaryRepository(prisma, taskCompletionRepository, taskSkipRepository);
@@ -150,6 +153,10 @@ async function bootstrap(): Promise<void> {
     create: (identity, fieldId, request) => observationCreateRepository.create(identity, fieldId, request),
     readDiary: (identity, fieldId, filters) => observationDiaryRepository.read(identity, fieldId, filters),
   });
+  const harvestsModule = createHarvestsModule({
+    verify,
+    create: (identity, fieldId, request) => harvestsRepository.create(identity, fieldId, request),
+  });
   const irrigationRecordsModule = createIrrigationRecordsModule({
     verify,
     create: (identity, fieldId, request) => irrigationRecordsService.create(identity, fieldId, request),
@@ -184,7 +191,7 @@ async function bootstrap(): Promise<void> {
     readPage: (identity, request) => calendarPagesService.read(identity, request),
   });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, taskSkipModule, taskDateAdjustmentModule, observationModule, irrigationRecordsModule, expensesModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, taskSkipModule, taskDateAdjustmentModule, observationModule, harvestsModule, irrigationRecordsModule, expensesModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);
