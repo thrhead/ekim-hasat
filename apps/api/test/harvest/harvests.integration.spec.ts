@@ -226,7 +226,7 @@ test("keeps distinct Harvests and each selected unit with actor and server accep
     assert.equal(result.harvest.harvestDate, "2026-10-17");
     assert.equal(result.harvest.actorUserId, owner);
     assert.equal(result.harvest.actorMembershipId, ownerMembership);
-    assert.match(result.harvest.recordedAt, /^\d{4}-\d{2}-\d{2}T/);
+    assert.equal(result.harvest.recordedAt, now().toISOString());
     assert.notEqual(result.harvest.recordedAt.slice(0, 10), result.harvest.harvestDate);
   }
 });
