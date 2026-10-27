@@ -1,5 +1,7 @@
 # SPEC-012 Implementation-Conformance Review
 
+> Historical review: the current post-SPEC-013 continuity snapshot is [SPEC-013's implementation review](../013-harvest-record-capture/implementation-review.md).
+
 **Review date:** 2026-10-16  
 **Scope:** Implementation conformance for T027 against `spec.md`, `plan.md`, `data-model.md`, the canonical Expense contract, and the canonical SPEC-006 Diary contract. This is separate from `checklists/finance.md`, which remains a requirements-quality checklist.
 

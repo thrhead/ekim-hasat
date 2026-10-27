@@ -97,4 +97,4 @@ SPEC-012 Simple Expense Record Capture is complete and merged into local `main`.
 
 Fresh Repo-Backed Next-Spec Discovery → scope freeze → specify → review → clarify → review → plan/research/data-model/contracts → review → checklist generation + closure → tasks → analyze → Graft pre-implementation review → Superpowers + strict TDD implementation → fresh whole-feature review → confirmed finding fixes with genuine RED→GREEN → speckit-converge → final verification → integration choice → cleanup → continuity refresh.
 
-This snapshot records completed work only; SPEC-013 discovery has not started.
+This was the post-SPEC-012 state at the time. SPEC-013 is now complete; the current continuity snapshot is [SPEC-013's implementation log](../013-harvest-record-capture/implementation-log.md).
