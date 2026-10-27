@@ -85,11 +85,11 @@ No standalone foundational tasks are required. Each foundation needed by the fea
 
 ### Tests for User Story 3 — write first
 
-- [ ] T022 [P] [US3] Add failing PostgreSQL integration tests for rejected Harvest update/delete operations and unchanged original Field, Season, date, quantity, unit, actor, and `recordedAt` after permitted current-context changes in `apps/api/test/harvest/harvests-immutability.integration.spec.ts`.
+- [x] T022 [P] [US3] Add failing PostgreSQL integration tests for rejected Harvest update/delete operations and unchanged original Field, Season, date, quantity, unit, actor, and `recordedAt` after permitted current-context changes in `apps/api/test/harvest/harvests-immutability.integration.spec.ts`.
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Add a Prisma-generated `_harvest_record_immutability` migration under `apps/api/prisma/migrations/`; reject UPDATE and DELETE of accepted Harvest rows while leaving the original associations restrictive and stable.
+- [x] T023 [US3] Add a Prisma-generated `_harvest_record_immutability` migration under `apps/api/prisma/migrations/`; reject UPDATE and DELETE of accepted Harvest rows while leaving the original associations restrictive and stable.
 
 **Checkpoint**: Historical Harvest values and identity survive later context changes and cannot be silently edited or removed.
 
@@ -180,3 +180,4 @@ No standalone foundational tasks are required. Each foundation needed by the fea
 - **Batch 3**: T017 cursor/order behavior committed as `0d2b869`; T013 query suite passed 25/25.
 - **Batch 4**: T019 generated Diary client committed as `9fa1d38`; generated client contract verification passed.
 - **Batch 5 (current checkpoint)**: T018, T020, and T021 implemented; API, client, and screen work ran concurrently only across non-overlapping ownership. API integration used the shared PostgreSQL database serially. A focused red/green regression fixed Expense source pagination after a DATE_ONLY HARVEST cursor. Current scoped Diary integration passed 18/18; Diary query unit tests passed 25/25; mobile Diary tests passed 29/29; generated-client contract check, API and mobile typechecks, changed-file lint, and `git diff --check` passed. One consolidated review found no confirmed defects. The checkpoint is committed locally; no push or PR was opened.
+- **Batch 6**: T022/T023 implemented sequentially. Before the guard, the new disposable PostgreSQL integration tests failed as expected because direct UPDATE and DELETE were accepted; a fixture correction matched the existing Season lifecycle invariant. The migration-chain trigger now rejects both with SQLSTATE `23514`. After applying migrations only to verified `ekim_hasat_test`, immutability tests passed 3/3 and Harvest create/replay integration tests passed 11/11, with API typecheck passing. Whole-feature verification T024–T026 is pending.
