@@ -31,6 +31,7 @@ export type ProductionAppState = Readonly<{
   observationSeasonId: string | null;
   diaryFieldId: string | null;
   diarySeasonId: string | null;
+  harvestSaved?: boolean;
   editingField?: FieldDetail | null;
 }>;
 
@@ -276,7 +277,7 @@ export function createAppComposition(
       publish({ ...state, entry: "observation-create", fieldId, observationSeasonId: seasonId ?? null, seasonDraft: null });
     },
     showFieldDiary(fieldId: string, seasonId?: string) {
-      publish({ ...state, entry: "field-diary", diaryFieldId: fieldId, diarySeasonId: seasonId ?? null, seasonDraft: null });
+      publish({ ...state, entry: "field-diary", diaryFieldId: fieldId, diarySeasonId: seasonId ?? null, seasonDraft: null, harvestSaved: false });
     },
     showIrrigationCreate() {
       if (!state.diaryFieldId) return;
@@ -288,11 +289,11 @@ export function createAppComposition(
     },
     showHarvestCreate() {
       if (!state.diaryFieldId || !state.diarySeasonId) return;
-      publish({ ...state, entry: "harvest-create", seasonDraft: null });
+      publish({ ...state, entry: "harvest-create", seasonDraft: null, harvestSaved: false });
     },
-    returnToFieldDiary() {
+    returnToFieldDiary(harvestSaved = false) {
       if (!state.diaryFieldId) return;
-      publish({ ...state, entry: "field-diary", seasonDraft: null });
+      publish({ ...state, entry: "field-diary", seasonDraft: null, harvestSaved });
     },
     startFieldCreate() { publish({ ...state, entry: "field-create", editingField: null, seasonDraft: null }); },
     editField(field: FieldDetail) { publish({ ...state, entry: "field-edit", fieldId: field.id, editingField: field, seasonDraft: null }); },

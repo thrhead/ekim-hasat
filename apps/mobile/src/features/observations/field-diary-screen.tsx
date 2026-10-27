@@ -12,6 +12,7 @@ export type FieldDiaryScreenProps = {
   fieldName?: string;
   seasonId?: string;
   seasonName?: string;
+  harvestSaved?: boolean;
   onBack?: () => void;
   /** Supplied only when creation is permitted in the current navigation context. */
   onAddObservation?: () => void;
@@ -37,7 +38,7 @@ export function reconcileObservationRows(entries: DiaryEntry[], local: Observati
   return [...entries, ...retained].sort((left, right) => compareDiaryEntries(left, right, timezone));
 }
 
-function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, onBack, onAddObservation, onAddIrrigation, onAddExpense, onAddHarvest }: FieldDiaryScreenProps) {
+function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, harvestSaved, onBack, onAddObservation, onAddIrrigation, onAddExpense, onAddHarvest }: FieldDiaryScreenProps) {
   const [data, setData] = useState<DiaryPage | null>(null);
   const [localCommands, setLocalCommands] = useState<ObservationCommand[]>([]);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -132,6 +133,7 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
   return <ScrollView contentContainerStyle={styles.content} accessibilityLabel="Tarla günlüğü">
     {onBack && <Pressable accessibilityRole="button" accessibilityLabel="Tarlaya dön" onPress={onBack} style={styles.button}><Text>Tarlaya dön</Text></Pressable>}
     <Text accessibilityRole="header" style={styles.title}>Tarla günlüğü</Text>
+    {harvestSaved && <Text accessibilityLiveRegion="polite">Hasat kaydedildi.</Text>}
     <Text>Tarla: {fieldName ?? "Seçili tarla"}</Text>
     {seasonId && <Text>Sezon: {seasonName ?? "Seçili sezon"}</Text>}
     {loading && <Text accessibilityRole="progressbar" accessibilityLabel="Günlük yükleniyor" accessibilityLiveRegion="polite">Günlük yükleniyor…</Text>}

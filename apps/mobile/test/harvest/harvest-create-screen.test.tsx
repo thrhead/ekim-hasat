@@ -7,7 +7,7 @@ import { act, create, type TestRenderer } from "react-test-renderer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SQLite from "expo-sqlite";
 import type { ComponentType } from "react";
-import { StyleSheet, type ViewStyle } from "react-native";
+import { BackHandler, StyleSheet, type ViewStyle } from "react-native";
 import type { ApiClient } from "../../../../packages/api-client/src/index";
 import { FieldDiaryScreen } from "../../src/features/observations/field-diary-screen";
 import { renderObservationContextRoute } from "../../App";
@@ -153,11 +153,50 @@ describe("Harvest capture entry from an active Season Diary", () => {
     const createRoute = renderObservationContextRoute({ ...state, entry: "harvest-create" } as never, composition as never);
     expect(createRoute?.props).toMatchObject({ fieldId, seasonId });
     createRoute?.props.onCreated(accepted);
-    expect(returnToFieldDiary).toHaveBeenCalledTimes(1);
+    expect(returnToFieldDiary).toHaveBeenCalledWith(true);
+    const returnedDiary = renderObservationContextRoute({ ...state, harvestSaved: true } as never, composition as never);
+    expect(returnedDiary?.props.harvestSaved).toBe(true);
+  });
+
+  it("announces confirmed Harvest success in the returned Diary", async () => {
+    const GET = jest.fn().mockResolvedValue({ data: { items: [], nextCursor: null, businessTimezone: "Europe/Istanbul", viewerRole: "OWNER" }, response: { ok: true, status: 200 } });
+    let screen!: TestRenderer;
+    await act(async () => { screen = create(<FieldDiaryScreen client={{ GET } as unknown as ApiClient} fieldId={fieldId} seasonId={seasonId} harvestSaved />); });
+    expect(text(screen)).toContain("Hasat kaydedildi");
+    await act(async () => screen.unmount());
   });
 });
 
 describe("online Harvest create form", () => {
+  it("announces the selected unit and whether its options are expanded", async () => {
+    const { screen } = await capture();
+    expect(node(screen, "Birim")?.props.accessibilityValue).toEqual({ text: "Kilogram" });
+    expect(node(screen, "Birim")?.props.accessibilityState).toMatchObject({ expanded: false });
+    await press(screen, "Birim");
+    expect(node(screen, "Birim")?.props.accessibilityState).toMatchObject({ expanded: true });
+    await press(screen, "Ton");
+    expect(node(screen, "Birim")?.props.accessibilityValue).toEqual({ text: "Ton" });
+    await act(async () => screen.unmount());
+  });
+
+  it("explains an invalid date in Turkish", async () => {
+    const { screen } = await capture();
+    await change(screen, "Hasat tarihi", "2026-02-30");
+    await press(screen, "Hasadı kaydet");
+    expect(text(screen)).toContain("Geçerli bir hasat tarihi girin");
+    await act(async () => screen.unmount());
+  });
+
+  it("returns to the diary on Android system Back", async () => {
+    const add = jest.spyOn(BackHandler, "addEventListener");
+    const { screen, onBack } = await capture();
+    const handler = add.mock.calls.find(([event]) => event === "hardwareBackPress")?.[1];
+    expect(handler).toBeDefined();
+    expect(handler?.()).toBe(true);
+    expect(onBack).toHaveBeenCalledTimes(1);
+    await act(async () => screen.unmount());
+    add.mockRestore();
+  });
   it("keeps the Field and Season fixed and submits the exact date, quantity, selected unit and stable identity", async () => {
     const { screen, POST, onCreated, createId } = await capture();
     expect(text(screen)).toContain("Kuzey");

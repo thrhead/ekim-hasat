@@ -10,7 +10,7 @@ export type paths = {
         put?: never;
         /**
          * Record a Harvest for an authorized Field and ACTIVE Season
-         * @description The server resolves current Business, Membership, and role from the authenticated subject. OWNER and WORKER may create; ADVISOR may not. Business identity is never accepted from the request. The required Season must belong to this Field and authorized Business and be ACTIVE for first acceptance. harvestDate is a calendar date: the server rejects dates after the authorized Business-local current date or before the Season actual planting date. quantity is an exact decimal string, positive, with at most 11 integer and 3 fractional digits; unit is retained per record and no rounding or conversion occurs. A stable harvestId is the canonical Harvest identity. An exact retry by the same currently authorized actor with unchanged payload and Field/Season context returns the original record; changed actor, payload, Field, or Season returns 409. Concurrent exact requests converge to one canonical record. This endpoint does not queue offline work.
+         * @description The server resolves current Business, Membership, and role from the authenticated subject. OWNER and WORKER may create; ADVISOR may not. Business identity is never accepted from the request. The required Season must belong to this Field and authorized Business and be ACTIVE for first acceptance. harvestDate is a calendar date: the server rejects dates after the authorized Business-local current date or before the Season actual planting date. quantity is an exact decimal string, positive, with at most 11 integer and 3 fractional digits; unit is retained per record and no rounding or conversion occurs. A stable harvestId is the canonical Harvest identity. An exact retry by the same currently authorized actor with unchanged payload and Field/Season context returns the original record even if the Season later leaves ACTIVE. Current authorization and same-Business/Field Season access are revalidated before disclosure; changed actor, payload, Field, or Season returns 409. Concurrent exact requests converge to one canonical record. This endpoint does not queue offline work.
          */
         post: operations["createFieldHarvest"];
         delete?: never;
@@ -46,7 +46,7 @@ export type components = {
             quantity: string;
             /**
              * Format: uuid
-             * @description Required ACTIVE Season belonging to the path Field and authorized Business.
+             * @description Required Season belonging to the path Field and authorized Business; ACTIVE is required for first acceptance.
              */
             seasonId: string;
             /**

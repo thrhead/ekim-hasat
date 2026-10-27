@@ -1,0 +1,177 @@
+openapi: 3.1.0
+info:
+  title: Ekim Hasat Harvest Records API
+  version: 1.0.0
+  description: >-
+    Online, server-authoritative creation of immutable Harvest records for an authorized
+    Field and its ACTIVE Season. Historical viewing is through the existing Field Diary;
+    this contract does not define a competing history endpoint.
+servers:
+  - url: /v1
+security:
+  - BearerAuth: []
+tags:
+  - name: harvest
+paths:
+  /fields/{fieldId}/harvests:
+    post:
+      tags: [harvest]
+      operationId: createFieldHarvest
+      summary: Record a Harvest for an authorized Field and ACTIVE Season
+      description: >-
+        The server resolves current Business, Membership, and role from the authenticated
+        subject. OWNER and WORKER may create; ADVISOR may not. Business identity is never
+        accepted from the request. The required Season must belong to this Field and
+        authorized Business and be ACTIVE for first acceptance. harvestDate is a
+        calendar date: the server rejects dates after the authorized Business-local
+        current date or before the Season actual planting date. quantity is an exact
+        decimal string, positive, with at most 11 integer and 3 fractional digits; unit
+        is retained per record and no rounding or conversion occurs. A stable harvestId
+        is the canonical Harvest identity. An exact retry by the same currently
+        authorized actor with unchanged payload and Field/Season context returns the
+        original record even if the Season later leaves ACTIVE. Current authorization
+        and same-Business/Field Season access are revalidated before disclosure;
+        changed actor, payload, Field, or Season returns 409. Concurrent
+        exact requests converge to one canonical record. This endpoint does not queue
+        offline work.
+      parameters:
+        - $ref: '#/components/parameters/FieldId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHarvestRequest'
+      responses:
+        '201':
+          description: Harvest accepted and committed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Harvest'
+        '200':
+          description: Exact retry replayed the previously accepted Harvest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Harvest'
+        '400':
+          description: Invalid Harvest date, quantity, unit, or request identity
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '401':
+          description: Authentication is missing or invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Current Membership or role does not authorize Harvest creation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Field or Season is unavailable in this authorized context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '409':
+          description: Harvest identity was reused with a changed actor, payload, or context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '500':
+          description: Unexpected server failure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    FieldId:
+      name: fieldId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    CreateHarvestRequest:
+      type: object
+      additionalProperties: false
+      required: [harvestId, seasonId, harvestDate, quantity, unit]
+      properties:
+        harvestId:
+          type: string
+          format: uuid
+          description: Stable client-generated identity for this logical create and exact retry.
+        seasonId:
+          type: string
+          format: uuid
+          description: Required Season belonging to the path Field and authorized Business; ACTIVE is required for first acceptance.
+        harvestDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: Farmer-entered calendar date. It is not a timestamp; Business-local future and Season planting-date checks are authoritative on the server.
+        quantity:
+          type: string
+          minLength: 1
+          maxLength: 15
+          pattern: '^(?=.*[1-9])(?:0|[1-9][0-9]{0,10})(?:\.[0-9]{1,3})?$'
+          description: >-
+            Exact positive decimal string with at most 11 integer digits and 3 fractional
+            digits, less than 100000000000. No binary floating-point transport, rounding,
+            or unit conversion. The server is authoritative.
+        unit:
+          type: string
+          enum: [KG, METRIC_TONNE]
+          description: Selected unit retained on this Harvest; records are never converted.
+    Harvest:
+      type: object
+      required: [id, fieldId, seasonId, harvestDate, quantity, unit, recordedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fieldId:
+          type: string
+          format: uuid
+        seasonId:
+          type: string
+          format: uuid
+        harvestDate:
+          type: string
+          format: date
+          description: Original calendar date of harvest; no time-of-day is known or implied.
+        quantity:
+          type: string
+          minLength: 1
+          maxLength: 15
+          pattern: '^(?=.*[1-9])(?:0|[1-9][0-9]{0,10})(?:\.[0-9]{1,3})?$'
+          description: Exact accepted positive decimal quantity, returned without binary floating-point conversion.
+        unit:
+          type: string
+          enum: [KG, METRIC_TONNE]
+        recordedAt:
+          type: string
+          format: date-time
+          description: Server UTC acceptance time, separate from harvestDate.
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_REQUEST, IDEMPOTENCY_KEY_REUSED, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, UNEXPECTED]
+            message:
+              type: string
+            requestId:
+              type: string

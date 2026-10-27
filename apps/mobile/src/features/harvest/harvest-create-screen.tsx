@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, BackHandler, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ApiClient, HarvestComponents } from "../../../../../packages/api-client/src/index";
 import { validateLocalDate } from "../../../../../packages/domain/src/seasons/local-date";
 import { readFieldDiary } from "../observations/diary-client";
@@ -53,6 +53,12 @@ export function HarvestCreateScreen(props: HarvestCreateScreenProps) {
   const inFlight = useRef(false);
 
   useEffect(() => {
+    if (!onBack) return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => { onBack(); return true; });
+    return () => subscription.remove();
+  }, [onBack]);
+
+  useEffect(() => {
     let active = true;
     setLoading(true);
     setContextError(null);
@@ -97,9 +103,12 @@ export function HarvestCreateScreen(props: HarvestCreateScreenProps) {
     let exactDate: string;
     try {
       exactDate = validateLocalDate(harvestDate);
-      if (exactDate > businessToday(now(), timezone)) throw new Error("Hasat tarihi bugünden ileri olamaz.");
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Geçerli bir hasat tarihi girin (YYYY-MM-DD).");
+    } catch {
+      setError("Geçerli bir hasat tarihi girin (YYYY-AA-GG).");
+      return;
+    }
+    if (exactDate > businessToday(now(), timezone)) {
+      setError("Hasat tarihi bugünden ileri olamaz.");
       return;
     }
     if (!/^(?=.*[1-9])(?:0|[1-9][0-9]{0,10})(?:\.[0-9]{1,3})?$/.test(quantity)) {
@@ -133,7 +142,7 @@ export function HarvestCreateScreen(props: HarvestCreateScreenProps) {
     <TextInput accessibilityLabel="Miktar" value={quantity} onChangeText={(value) => { setQuantity(value); setError(null); }} editable={!disabled} keyboardType="decimal-pad" placeholder="0" style={styles.input} />
     <Text style={styles.hint}>Ondalık miktarı aynen kaydederiz; en fazla 3 ondalık basamak girin.</Text>
     <Text style={styles.label}>Birim · Gerekli</Text>
-    <Pressable accessibilityRole="button" accessibilityLabel="Birim" accessibilityState={{ disabled }} disabled={disabled} onPress={() => setShowUnits((value) => !value)} style={styles.button}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Birim" accessibilityValue={{ text: unit === "KG" ? "Kilogram" : "Ton" }} accessibilityState={{ disabled, expanded: showUnits }} disabled={disabled} onPress={() => setShowUnits((value) => !value)} style={styles.button}>
       <Text>{unit === "KG" ? "Kilogram (kg)" : "Ton (t)"}</Text>
     </Pressable>
     {showUnits && <View style={styles.unitOptions}>

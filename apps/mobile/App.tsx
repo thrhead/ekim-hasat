@@ -184,7 +184,7 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
   if (state.entry === "field-diary" && state.client && state.diaryFieldId) return <FieldDiaryScreen
     key={`${state.accountId ?? ""}:${state.diaryFieldId}:${state.diarySeasonId ?? "field"}`}
     client={state.client} accountId={state.accountId ?? undefined} observationStore={composition?.observationStore}
-    fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}
+    fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined} harvestSaved={state.harvestSaved}
     onBack={() => composition?.openField(state.diaryFieldId!)}
     onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)}
     onAddIrrigation={() => composition?.showIrrigationCreate()}
@@ -204,7 +204,7 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
     key={`${state.accountId ?? ""}:${state.diaryFieldId}:${state.diarySeasonId}:harvest`}
     client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId}
     onBack={() => composition?.returnToFieldDiary()}
-    onCreated={() => composition?.returnToFieldDiary()} />;
+    onCreated={() => composition?.returnToFieldDiary(true)} />;
   return null;
 }
 
