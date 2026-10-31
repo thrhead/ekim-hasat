@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: Active-season manual task creation (planned)
+  version: 1.0.0
+  description: >-
+    Feature-specific planning contract. Server derives Business from authentication;
+    no client Business identity authorizes a request. Local pending and rejected records
+    are device states, not server-created tasks.
+paths:
+  /seasons/{seasonId}/manual-tasks:
+    post:
+      operationId: createActiveSeasonManualTask
+      summary: Create one manual task in an approved active season
+      description: >-
+        Authenticated current OWNER only. First acceptance validates same-Business field,
+        season, APPROVED plan and ACTIVE status, plus existing task and local-date rules.
+        Task and durable receipt commit atomically. Exact same actor, IDs, context and
+        canonical input replay the original accepted result after current authorization,
+        even if task date or season status subsequently changes. Any reused identity with
+        different input, actor or context conflicts. A denial or conflict cannot resolve an earlier
+        possibly committed request; clients retain an unconfirmed outcome until authoritative
+        evidence resolves it. No offline status is server acceptance.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: seasonId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateManualTask'
+      responses:
+        '201':
+          description: First authoritative acceptance committed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AcceptedManualTask' }
+        '200':
+          description: Exact authorized replay of original acceptance
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AcceptedManualTask' }
+        '400':
+          description: Malformed command or date syntax (INVALID_COMMAND)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Authentication required (AUTHENTICATION_REQUIRED)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: Current membership or role not authorized (ACCESS_DENIED)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Resource unavailable within authorized Business (RESOURCE_UNAVAILABLE); foreign existence is not disclosed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Season or plan ineligible (SEASON_INELIGIBLE), or identity bound to different input, actor or context (IDENTITY_CONFLICT)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Task validation failed (INVALID_TASK), including date before actual planting
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '5XX': { description: Transient failure; a client cannot assume whether a prior request committed }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [INVALID_COMMAND, AUTHENTICATION_REQUIRED, ACCESS_DENIED, RESOURCE_UNAVAILABLE, SEASON_INELIGIBLE, IDENTITY_CONFLICT, INVALID_TASK]
+            message: { type: string, description: Privacy-safe explanation suitable for mapping to farmer-facing feedback }
+    CreateManualTask:
+      type: object
+      additionalProperties: false
+      required: [taskId, mutationId, title, plannedLocalDate]
+      properties:
+        taskId: { type: string, format: uuid, description: Stable client-generated task identity }
+        mutationId: { type: string, format: uuid, description: Stable client-generated logical mutation identity }
+        title: { type: string, description: Existing task title validation and normalization apply }
+        description: { type: [string, 'null'], description: Existing optional task description validation applies }
+        plannedLocalDate: { type: string, format: date, description: Business-local calendar date on or after actual planting; past dates otherwise allowed }
+    AcceptedManualTask:
+      type: object
+      additionalProperties: false
+      required: [taskId, mutationId, seasonId, fieldId, title, plannedLocalDate, sourceKind, templateVersionId, acceptedAt]
+      properties:
+        taskId: { type: string, format: uuid }
+        mutationId: { type: string, format: uuid }
+        seasonId: { type: string, format: uuid }
+        fieldId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        plannedLocalDate: { type: string, format: date, description: Original accepted planned date; later current date is read through task views }
+        sourceKind: { type: string, const: MANUAL }
+        templateVersionId: { type: 'null' }
+        acceptedAt: { type: string, format: date-time }
