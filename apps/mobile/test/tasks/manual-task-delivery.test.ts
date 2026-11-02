@@ -1,6 +1,6 @@
 import { createManualTaskStore, type ManualTaskState, type ManualTaskStorage } from "../../src/features/tasks/manual-task-store";
 import { createManualTaskDelivery } from "../../src/features/tasks/manual-task-delivery";
-import type { ApiClient } from "../../../../../packages/api-client/src/index";
+import type { ApiClient } from "../../../../packages/api-client/src/index";
 
 function memory(): ManualTaskStorage {
   let state: ManualTaskState = { activeAccount: null, contexts: [], commands: [] };

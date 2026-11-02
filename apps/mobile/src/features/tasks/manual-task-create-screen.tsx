@@ -17,7 +17,7 @@ export function ManualTaskCreateScreen({ accountId, fieldId, seasonId, store, on
   accountId: string; fieldId: string; seasonId: string; store: ManualTaskStore; onBack?: () => void; onPending?: () => void; onSignIn?: () => void; createId?: () => string;
 }) {
   const [context, setContext] = useState<ManualTaskContext | null>(null), [commands, setCommands] = useState<ManualTaskCommand[]>([]);
-  const [contextLoading, setContextLoading] = useState(true);
+  const [contextLoading, setContextLoading] = useState(true), [contextError, setContextError] = useState(false), [contextRetry, setContextRetry] = useState(0);
   const [title, setTitle] = useState(""), [date, setDate] = useState(""), [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null), [saving, setSaving] = useState(false);
   const [fieldError, setFieldError] = useState<{ field: "title" | "date" | "description"; message: string } | null>(null);
@@ -26,10 +26,10 @@ export function ManualTaskCreateScreen({ accountId, fieldId, seasonId, store, on
     let mounted = true;
     setContextLoading(true);
     const refresh = () => { void Promise.all([store.getContext(accountId, fieldId, seasonId), store.list(accountId)]).then(([saved, list]) => {
-      if (mounted) { setContext(saved); setCommands(list.filter(c => c.fieldId === fieldId && c.seasonId === seasonId)); setContextLoading(false); }
-    }).catch(() => { if (mounted) { setContextLoading(false); setError("Görev bilgileri yüklenemedi. Yeniden deneyin."); } }); };
+      if (mounted) { setContext(saved); setCommands(list.filter(c => c.fieldId === fieldId && c.seasonId === seasonId)); setContextLoading(false); setContextError(false); }
+    }).catch(() => { if (mounted) { setContextLoading(false); setContextError(true); } }); };
     refresh(); const unsubscribe = store.subscribe(refresh); return () => { mounted = false; unsubscribe(); };
-  }, [accountId, fieldId, seasonId, store]);
+  }, [accountId, fieldId, seasonId, store, contextRetry]);
   async function save() {
     if (!context || busy.current) return;
     setError(null); setFieldError(null);
@@ -52,7 +52,8 @@ export function ManualTaskCreateScreen({ accountId, fieldId, seasonId, store, on
     {onSignIn && <Pressable accessibilityRole="button" accessibilityLabel="Oturum aç" onPress={onSignIn} style={styles.button}><Text>Oturum aç</Text></Pressable>}
     <Text accessibilityRole="header" style={styles.heading}>Görev ekle</Text><Text>Tarla: {context?.fieldName ?? commands.find(command => command.fieldName)?.fieldName ?? "Seçili tarla"}</Text><Text>Sezon: {context?.seasonName ?? commands.find(command => command.seasonName)?.seasonName ?? "Seçili sezon"}</Text>
     {contextLoading && <Text accessibilityRole="progressbar" accessibilityLiveRegion="polite">Görev bilgileri yükleniyor…</Text>}
-    {!contextLoading && !context && !error && <Text accessibilityRole="alert">Bu sezonun görev bilgileri kullanılamıyor.</Text>}
+    {!contextLoading && contextError && <><Text accessibilityRole="alert" accessibilityLiveRegion="assertive">Görev bilgileri yüklenemedi. Yeniden deneyin.</Text><Pressable accessibilityRole="button" accessibilityLabel="Görev bilgilerini yeniden yükle" onPress={() => { setContextError(false); setContextRetry(value => value + 1); }} style={styles.button}><Text>Yeniden dene</Text></Pressable></>}
+    {!contextLoading && !context && !contextError && <Text accessibilityRole="alert">Bu sezonun görev bilgileri kullanılamıyor.</Text>}
     <Text>Görev adı</Text><TextInput accessibilityLabel="Görev adı" value={title} onChangeText={value => { setTitle(value); if (fieldError?.field === "title") setFieldError(null); }} maxLength={200} style={styles.input} />
     {fieldError?.field === "title" && <Text accessibilityRole="alert" accessibilityLabel={`Görev adı hatası: ${fieldError.message}`} accessibilityLiveRegion="assertive">{fieldError.message}</Text>}
     <Text>Görev tarihi (YYYY-AA-GG)</Text><TextInput accessibilityLabel="Görev tarihi" value={date} onChangeText={value => { setDate(value); if (fieldError?.field === "date") setFieldError(null); }} style={styles.input} />

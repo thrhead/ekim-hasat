@@ -92,3 +92,16 @@ test("loading context does not announce an access error before lookup finishes",
   tree = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
   expect(tree).toContain("Bu sezonun görev bilgileri kullanılamıyor");
 });
+
+test("a failed context lookup offers a retry that restores the form", async () => {
+  const store = createManualTaskStore({ storage: memory() });
+  await store.setAuthenticatedAccount("a"); await store.saveContext("a", context);
+  const getContext = jest.spyOn(store, "getContext").mockRejectedValueOnce(new Error("storage unavailable"));
+  let screen!: TestRenderer;
+  await act(async () => { screen = create(createElement(Screen, { accountId: "a", fieldId: "field", seasonId: "season", store })); });
+  expect(JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON())).toContain("Görev bilgileri yüklenemedi");
+  await act(async () => { button(screen, "Görev bilgilerini yeniden yükle").props.onPress(); });
+  expect(getContext).toHaveBeenCalledTimes(2);
+  expect(screen.root.findAll(node => node.props.accessibilityLabel === "Görevi kaydet")[0]?.props.disabled).toBe(false);
+  expect(JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON())).not.toContain("Görev bilgileri yüklenemedi");
+});
