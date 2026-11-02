@@ -195,5 +195,7 @@ components:
         seasonId: { type: string, format: uuid }
         seasonContext: { type: string }
         planContext: { type: string }
+        sourceKind: { type: string, enum: [MANUAL, VALIDATED_TEMPLATE], description: Task origin; distinct from the plan source. }
+        templateVersionId: { type: [string, 'null'], format: uuid, description: Task-level template provenance; null for manual tasks. }
         taskVersion: { type: integer, minimum: 0 }
         overdue: { type: boolean, description: Derived as of this read's Business-local today; never changes plannedLocalDate. }

@@ -21,7 +21,7 @@ export function seasonRecordToResponse(row: SeasonSetupRow): SeasonSetupResponse
       source: row.plan.source === "MANUAL"
         ? { kind: "MANUAL" as const, validationLabel: "NOT_CENTRALLY_VALIDATED" as const, templateVersionId: null }
         : { kind: "VALIDATED_TEMPLATE" as const, validationLabel: "CENTRALLY_VALIDATED" as const, templateVersionId: row.plan.templateVersionId },
-      tasks: row.plan.tasks.map((task) => ({ id: task.id, title: task.title,
+      tasks: row.plan.tasks.filter((task) => row.status === "DRAFT" || task.origin !== "POST_ACTIVATION_MANUAL").map((task) => ({ id: task.id, title: task.title,
         ...(task.description === null ? {} : { description: task.description }),
         plannedLocalDate: task.plannedLocalDate.toISOString().slice(0, 10), version: task.version })),
     },
@@ -85,6 +85,10 @@ export class SeasonReadRepository {
     const season = await this.prisma.season.findFirst({ where: { id: seasonId, businessId: scope.businessId,
       field: { businessId: scope.businessId }, business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, include: seasonSetupInclude });
     if (!season) throw new NotFoundException();
-    return seasonRecordToResponse(season);
+    const record = seasonRecordToResponse(season);
+    const role = scope.role;
+    const status = season.plan?.status;
+    if ((role !== "OWNER" && role !== "WORKER" && role !== "ADVISOR") || (status !== "DRAFT" && status !== "APPROVED")) throw new Error("Season access context integrity failure");
+    return { ...record, viewerRole: role, plan: { ...record.plan, status } };
   }
 }

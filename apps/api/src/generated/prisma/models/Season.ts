@@ -278,6 +278,7 @@ export type SeasonWhereInput = {
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
   harvests?: Prisma.HarvestListRelationFilter
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptListRelationFilter
 }
 
 export type SeasonOrderByWithRelationInput = {
@@ -306,6 +307,7 @@ export type SeasonOrderByWithRelationInput = {
   irrigationRecords?: Prisma.IrrigationRecordOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
   harvests?: Prisma.HarvestOrderByRelationAggregateInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptOrderByRelationAggregateInput
 }
 
 export type SeasonWhereUniqueInput = Prisma.AtLeast<{
@@ -339,6 +341,7 @@ export type SeasonWhereUniqueInput = Prisma.AtLeast<{
   irrigationRecords?: Prisma.IrrigationRecordListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
   harvests?: Prisma.HarvestListRelationFilter
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptListRelationFilter
 }, "id" | "id_businessId" | "id_businessId_fieldId">
 
 export type SeasonOrderByWithAggregationInput = {
@@ -398,6 +401,7 @@ export type SeasonCreateInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateInput = {
@@ -422,6 +426,7 @@ export type SeasonUncheckedCreateInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUpdateInput = {
@@ -445,6 +450,7 @@ export type SeasonUpdateInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateInput = {
@@ -469,6 +475,7 @@ export type SeasonUncheckedUpdateInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateManyInput = {
@@ -757,6 +764,20 @@ export type SeasonUpdateOneRequiredWithoutPlanNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutPlanInput, Prisma.SeasonUpdateWithoutPlanInput>, Prisma.SeasonUncheckedUpdateWithoutPlanInput>
 }
 
+export type SeasonCreateNestedOneWithoutManualTaskReceiptsInput = {
+  create?: Prisma.XOR<Prisma.SeasonCreateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedCreateWithoutManualTaskReceiptsInput>
+  connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutManualTaskReceiptsInput
+  connect?: Prisma.SeasonWhereUniqueInput
+}
+
+export type SeasonUpdateOneRequiredWithoutManualTaskReceiptsNestedInput = {
+  create?: Prisma.XOR<Prisma.SeasonCreateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedCreateWithoutManualTaskReceiptsInput>
+  connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutManualTaskReceiptsInput
+  upsert?: Prisma.SeasonUpsertWithoutManualTaskReceiptsInput
+  connect?: Prisma.SeasonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutManualTaskReceiptsInput, Prisma.SeasonUpdateWithoutManualTaskReceiptsInput>, Prisma.SeasonUncheckedUpdateWithoutManualTaskReceiptsInput>
+}
+
 export type SeasonCreateNestedOneWithoutSnapshotInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutSnapshotInput, Prisma.SeasonUncheckedCreateWithoutSnapshotInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutSnapshotInput
@@ -911,6 +932,7 @@ export type SeasonCreateWithoutBusinessInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutBusinessInput = {
@@ -934,6 +956,7 @@ export type SeasonUncheckedCreateWithoutBusinessInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutBusinessInput = {
@@ -999,6 +1022,7 @@ export type SeasonCreateWithoutFieldInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutFieldInput = {
@@ -1021,6 +1045,7 @@ export type SeasonUncheckedCreateWithoutFieldInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutFieldInput = {
@@ -1069,6 +1094,7 @@ export type SeasonCreateWithoutCropDefinitionVersionInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutCropDefinitionVersionInput = {
@@ -1091,6 +1117,7 @@ export type SeasonUncheckedCreateWithoutCropDefinitionVersionInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutCropDefinitionVersionInput = {
@@ -1139,6 +1166,7 @@ export type SeasonCreateWithoutCustomCropInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutCustomCropInput = {
@@ -1161,6 +1189,7 @@ export type SeasonUncheckedCreateWithoutCustomCropInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutCustomCropInput = {
@@ -1209,6 +1238,7 @@ export type SeasonCreateWithoutPlanInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutPlanInput = {
@@ -1232,6 +1262,7 @@ export type SeasonUncheckedCreateWithoutPlanInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutPlanInput = {
@@ -1270,6 +1301,7 @@ export type SeasonUpdateWithoutPlanInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutPlanInput = {
@@ -1284,6 +1316,117 @@ export type SeasonUncheckedUpdateWithoutPlanInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
+  taskSkips?: Prisma.TaskSkipUncheckedUpdateManyWithoutSeasonNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutSeasonNestedInput
+  observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutSeasonNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
+  harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
+}
+
+export type SeasonCreateWithoutManualTaskReceiptsInput = {
+  id?: string
+  actualPlantingDate: Date | string
+  status?: string
+  version?: number
+  createdAt?: Date | string
+  activatedAt?: Date | string | null
+  business: Prisma.BusinessCreateNestedOneWithoutSeasonsInput
+  field: Prisma.FieldCreateNestedOneWithoutSeasonsInput
+  cropDefinitionVersion?: Prisma.CropDefinitionVersionCreateNestedOneWithoutSeasonsInput
+  customCrop?: Prisma.CustomCropCreateNestedOneWithoutSeasonsInput
+  plan?: Prisma.SeasonPlanCreateNestedOneWithoutSeasonInput
+  snapshot?: Prisma.SeasonContextSnapshotCreateNestedOneWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordCreateNestedManyWithoutSeasonInput
+  taskCompletions?: Prisma.TaskCompletionCreateNestedManyWithoutSeasonInput
+  taskSkips?: Prisma.TaskSkipCreateNestedManyWithoutSeasonInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutSeasonInput
+  observations?: Prisma.FieldObservationCreateNestedManyWithoutSeasonInput
+  irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
+  harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+}
+
+export type SeasonUncheckedCreateWithoutManualTaskReceiptsInput = {
+  id?: string
+  businessId: string
+  fieldId: string
+  cropKey?: string | null
+  cropDefinitionVersionId?: string | null
+  customCropId?: string | null
+  actualPlantingDate: Date | string
+  status?: string
+  version?: number
+  createdAt?: Date | string
+  activatedAt?: Date | string | null
+  plan?: Prisma.SeasonPlanUncheckedCreateNestedOneWithoutSeasonInput
+  snapshot?: Prisma.SeasonContextSnapshotUncheckedCreateNestedOneWithoutSeasonInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedCreateNestedManyWithoutSeasonInput
+  taskCompletions?: Prisma.TaskCompletionUncheckedCreateNestedManyWithoutSeasonInput
+  taskSkips?: Prisma.TaskSkipUncheckedCreateNestedManyWithoutSeasonInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutSeasonInput
+  observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutSeasonInput
+  irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
+  harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+}
+
+export type SeasonCreateOrConnectWithoutManualTaskReceiptsInput = {
+  where: Prisma.SeasonWhereUniqueInput
+  create: Prisma.XOR<Prisma.SeasonCreateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedCreateWithoutManualTaskReceiptsInput>
+}
+
+export type SeasonUpsertWithoutManualTaskReceiptsInput = {
+  update: Prisma.XOR<Prisma.SeasonUpdateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedUpdateWithoutManualTaskReceiptsInput>
+  create: Prisma.XOR<Prisma.SeasonCreateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedCreateWithoutManualTaskReceiptsInput>
+  where?: Prisma.SeasonWhereInput
+}
+
+export type SeasonUpdateToOneWithWhereWithoutManualTaskReceiptsInput = {
+  where?: Prisma.SeasonWhereInput
+  data: Prisma.XOR<Prisma.SeasonUpdateWithoutManualTaskReceiptsInput, Prisma.SeasonUncheckedUpdateWithoutManualTaskReceiptsInput>
+}
+
+export type SeasonUpdateWithoutManualTaskReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  actualPlantingDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  business?: Prisma.BusinessUpdateOneRequiredWithoutSeasonsNestedInput
+  field?: Prisma.FieldUpdateOneRequiredWithoutSeasonsNestedInput
+  cropDefinitionVersion?: Prisma.CropDefinitionVersionUpdateOneWithoutSeasonsNestedInput
+  customCrop?: Prisma.CustomCropUpdateOneWithoutSeasonsNestedInput
+  plan?: Prisma.SeasonPlanUpdateOneWithoutSeasonNestedInput
+  snapshot?: Prisma.SeasonContextSnapshotUpdateOneWithoutSeasonNestedInput
+  commandRecords?: Prisma.BusinessCommandIdempotencyRecordUpdateManyWithoutSeasonNestedInput
+  taskCompletions?: Prisma.TaskCompletionUpdateManyWithoutSeasonNestedInput
+  taskSkips?: Prisma.TaskSkipUpdateManyWithoutSeasonNestedInput
+  taskDateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutSeasonNestedInput
+  observations?: Prisma.FieldObservationUpdateManyWithoutSeasonNestedInput
+  irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
+  harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+}
+
+export type SeasonUncheckedUpdateWithoutManualTaskReceiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessId?: Prisma.StringFieldUpdateOperationsInput | string
+  fieldId?: Prisma.StringFieldUpdateOperationsInput | string
+  cropKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cropDefinitionVersionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customCropId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actualPlantingDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  plan?: Prisma.SeasonPlanUncheckedUpdateOneWithoutSeasonNestedInput
   snapshot?: Prisma.SeasonContextSnapshotUncheckedUpdateOneWithoutSeasonNestedInput
   commandRecords?: Prisma.BusinessCommandIdempotencyRecordUncheckedUpdateManyWithoutSeasonNestedInput
   taskCompletions?: Prisma.TaskCompletionUncheckedUpdateManyWithoutSeasonNestedInput
@@ -1315,6 +1458,7 @@ export type SeasonCreateWithoutSnapshotInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutSnapshotInput = {
@@ -1338,6 +1482,7 @@ export type SeasonUncheckedCreateWithoutSnapshotInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutSnapshotInput = {
@@ -1376,6 +1521,7 @@ export type SeasonUpdateWithoutSnapshotInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutSnapshotInput = {
@@ -1399,6 +1545,7 @@ export type SeasonUncheckedUpdateWithoutSnapshotInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutTaskCompletionsInput = {
@@ -1421,6 +1568,7 @@ export type SeasonCreateWithoutTaskCompletionsInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTaskCompletionsInput = {
@@ -1444,6 +1592,7 @@ export type SeasonUncheckedCreateWithoutTaskCompletionsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTaskCompletionsInput = {
@@ -1482,6 +1631,7 @@ export type SeasonUpdateWithoutTaskCompletionsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTaskCompletionsInput = {
@@ -1505,6 +1655,7 @@ export type SeasonUncheckedUpdateWithoutTaskCompletionsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutTaskSkipsInput = {
@@ -1527,6 +1678,7 @@ export type SeasonCreateWithoutTaskSkipsInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTaskSkipsInput = {
@@ -1550,6 +1702,7 @@ export type SeasonUncheckedCreateWithoutTaskSkipsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTaskSkipsInput = {
@@ -1588,6 +1741,7 @@ export type SeasonUpdateWithoutTaskSkipsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTaskSkipsInput = {
@@ -1611,6 +1765,7 @@ export type SeasonUncheckedUpdateWithoutTaskSkipsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutTaskDateAdjustmentsInput = {
@@ -1633,6 +1788,7 @@ export type SeasonCreateWithoutTaskDateAdjustmentsInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTaskDateAdjustmentsInput = {
@@ -1656,6 +1812,7 @@ export type SeasonUncheckedCreateWithoutTaskDateAdjustmentsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTaskDateAdjustmentsInput = {
@@ -1694,6 +1851,7 @@ export type SeasonUpdateWithoutTaskDateAdjustmentsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
@@ -1717,6 +1875,7 @@ export type SeasonUncheckedUpdateWithoutTaskDateAdjustmentsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutObservationsInput = {
@@ -1739,6 +1898,7 @@ export type SeasonCreateWithoutObservationsInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutObservationsInput = {
@@ -1762,6 +1922,7 @@ export type SeasonUncheckedCreateWithoutObservationsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutObservationsInput = {
@@ -1800,6 +1961,7 @@ export type SeasonUpdateWithoutObservationsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutObservationsInput = {
@@ -1823,6 +1985,7 @@ export type SeasonUncheckedUpdateWithoutObservationsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutIrrigationRecordsInput = {
@@ -1845,6 +2008,7 @@ export type SeasonCreateWithoutIrrigationRecordsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutIrrigationRecordsInput = {
@@ -1868,6 +2032,7 @@ export type SeasonUncheckedCreateWithoutIrrigationRecordsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutIrrigationRecordsInput = {
@@ -1906,6 +2071,7 @@ export type SeasonUpdateWithoutIrrigationRecordsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutIrrigationRecordsInput = {
@@ -1929,6 +2095,7 @@ export type SeasonUncheckedUpdateWithoutIrrigationRecordsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutExpensesInput = {
@@ -1951,6 +2118,7 @@ export type SeasonCreateWithoutExpensesInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutSeasonInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutExpensesInput = {
@@ -1974,6 +2142,7 @@ export type SeasonUncheckedCreateWithoutExpensesInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutSeasonInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutExpensesInput = {
@@ -2012,6 +2181,7 @@ export type SeasonUpdateWithoutExpensesInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutSeasonNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutExpensesInput = {
@@ -2035,6 +2205,7 @@ export type SeasonUncheckedUpdateWithoutExpensesInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutSeasonNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutHarvestsInput = {
@@ -2057,6 +2228,7 @@ export type SeasonCreateWithoutHarvestsInput = {
   observations?: Prisma.FieldObservationCreateNestedManyWithoutSeasonInput
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutHarvestsInput = {
@@ -2080,6 +2252,7 @@ export type SeasonUncheckedCreateWithoutHarvestsInput = {
   observations?: Prisma.FieldObservationUncheckedCreateNestedManyWithoutSeasonInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutHarvestsInput = {
@@ -2118,6 +2291,7 @@ export type SeasonUpdateWithoutHarvestsInput = {
   observations?: Prisma.FieldObservationUpdateManyWithoutSeasonNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutHarvestsInput = {
@@ -2141,6 +2315,7 @@ export type SeasonUncheckedUpdateWithoutHarvestsInput = {
   observations?: Prisma.FieldObservationUncheckedUpdateManyWithoutSeasonNestedInput
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutCommandRecordsInput = {
@@ -2163,6 +2338,7 @@ export type SeasonCreateWithoutCommandRecordsInput = {
   irrigationRecords?: Prisma.IrrigationRecordCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutCommandRecordsInput = {
@@ -2186,6 +2362,7 @@ export type SeasonUncheckedCreateWithoutCommandRecordsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedCreateNestedManyWithoutSeasonInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutSeasonInput
   harvests?: Prisma.HarvestUncheckedCreateNestedManyWithoutSeasonInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedManyWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutCommandRecordsInput = {
@@ -2224,6 +2401,7 @@ export type SeasonUpdateWithoutCommandRecordsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutCommandRecordsInput = {
@@ -2247,6 +2425,7 @@ export type SeasonUncheckedUpdateWithoutCommandRecordsInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateManyBusinessInput = {
@@ -2282,6 +2461,7 @@ export type SeasonUpdateWithoutBusinessInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutBusinessInput = {
@@ -2305,6 +2485,7 @@ export type SeasonUncheckedUpdateWithoutBusinessInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateManyWithoutBusinessInput = {
@@ -2340,6 +2521,7 @@ export type SeasonUpdateWithoutFieldInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutFieldInput = {
@@ -2362,6 +2544,7 @@ export type SeasonUncheckedUpdateWithoutFieldInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonCreateManyFieldInput = {
@@ -2420,6 +2603,7 @@ export type SeasonUpdateWithoutCropDefinitionVersionInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutCropDefinitionVersionInput = {
@@ -2442,6 +2626,7 @@ export type SeasonUncheckedUpdateWithoutCropDefinitionVersionInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateManyWithoutCropDefinitionVersionInput = {
@@ -2488,6 +2673,7 @@ export type SeasonUpdateWithoutCustomCropInput = {
   irrigationRecords?: Prisma.IrrigationRecordUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutCustomCropInput = {
@@ -2510,6 +2696,7 @@ export type SeasonUncheckedUpdateWithoutCustomCropInput = {
   irrigationRecords?: Prisma.IrrigationRecordUncheckedUpdateManyWithoutSeasonNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutSeasonNestedInput
   harvests?: Prisma.HarvestUncheckedUpdateManyWithoutSeasonNestedInput
+  manualTaskReceipts?: Prisma.ManualTaskCreationReceiptUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateManyWithoutCustomCropInput = {
@@ -2538,6 +2725,7 @@ export type SeasonCountOutputType = {
   irrigationRecords: number
   expenses: number
   harvests: number
+  manualTaskReceipts: number
 }
 
 export type SeasonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2549,6 +2737,7 @@ export type SeasonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   irrigationRecords?: boolean | SeasonCountOutputTypeCountIrrigationRecordsArgs
   expenses?: boolean | SeasonCountOutputTypeCountExpensesArgs
   harvests?: boolean | SeasonCountOutputTypeCountHarvestsArgs
+  manualTaskReceipts?: boolean | SeasonCountOutputTypeCountManualTaskReceiptsArgs
 }
 
 /**
@@ -2617,6 +2806,13 @@ export type SeasonCountOutputTypeCountHarvestsArgs<ExtArgs extends runtime.Types
   where?: Prisma.HarvestWhereInput
 }
 
+/**
+ * SeasonCountOutputType without action
+ */
+export type SeasonCountOutputTypeCountManualTaskReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ManualTaskCreationReceiptWhereInput
+}
+
 
 export type SeasonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2644,6 +2840,7 @@ export type SeasonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   irrigationRecords?: boolean | Prisma.Season$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Season$expensesArgs<ExtArgs>
   harvests?: boolean | Prisma.Season$harvestsArgs<ExtArgs>
+  manualTaskReceipts?: boolean | Prisma.Season$manualTaskReceiptsArgs<ExtArgs>
   _count?: boolean | Prisma.SeasonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["season"]>
 
@@ -2713,6 +2910,7 @@ export type SeasonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   irrigationRecords?: boolean | Prisma.Season$irrigationRecordsArgs<ExtArgs>
   expenses?: boolean | Prisma.Season$expensesArgs<ExtArgs>
   harvests?: boolean | Prisma.Season$harvestsArgs<ExtArgs>
+  manualTaskReceipts?: boolean | Prisma.Season$manualTaskReceiptsArgs<ExtArgs>
   _count?: boolean | Prisma.SeasonCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SeasonIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2745,6 +2943,7 @@ export type $SeasonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     irrigationRecords: Prisma.$IrrigationRecordPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
     harvests: Prisma.$HarvestPayload<ExtArgs>[]
+    manualTaskReceipts: Prisma.$ManualTaskCreationReceiptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3166,6 +3365,7 @@ export interface Prisma__SeasonClient<T, Null = never, ExtArgs extends runtime.T
   irrigationRecords<T extends Prisma.Season$irrigationRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$irrigationRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IrrigationRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.Season$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   harvests<T extends Prisma.Season$harvestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$harvestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HarvestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  manualTaskReceipts<T extends Prisma.Season$manualTaskReceiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$manualTaskReceiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ManualTaskCreationReceiptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3872,6 +4072,30 @@ export type Season$harvestsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.HarvestScalarFieldEnum | Prisma.HarvestScalarFieldEnum[]
+}
+
+/**
+ * Season.manualTaskReceipts
+ */
+export type Season$manualTaskReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManualTaskCreationReceipt
+   */
+  select?: Prisma.ManualTaskCreationReceiptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManualTaskCreationReceipt
+   */
+  omit?: Prisma.ManualTaskCreationReceiptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManualTaskCreationReceiptInclude<ExtArgs> | null
+  where?: Prisma.ManualTaskCreationReceiptWhereInput
+  orderBy?: Prisma.ManualTaskCreationReceiptOrderByWithRelationInput | Prisma.ManualTaskCreationReceiptOrderByWithRelationInput[]
+  cursor?: Prisma.ManualTaskCreationReceiptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ManualTaskCreationReceiptScalarFieldEnum | Prisma.ManualTaskCreationReceiptScalarFieldEnum[]
 }
 
 /**

@@ -11,6 +11,7 @@ import { APP_PRIMARY_NAVIGATION } from "./src/app-composition";
 import { FieldsScreen, FieldDetailScreen } from "./src/features/fields/fields-screen";
 import { FieldCreateScreen } from "./src/features/fields/field-create-screen";
 import { FieldEditScreen } from "./src/features/fields/field-edit-screen";
+import { ManualTaskCreateScreen } from "./src/features/tasks/manual-task-create-screen";
 import { ObservationCreateScreen } from "./src/features/observations/observation-create-screen";
 import { FieldDiaryScreen } from "./src/features/observations/field-diary-screen";
 import { IrrigationRecordCreateScreen } from "./src/features/operations/irrigation-record-create-screen";
@@ -54,14 +55,14 @@ export default function App() {
 
   useEffect(() => {
     if (state.auth.status !== "authenticated" || !state.accountId) return;
-    return scheduleObservationRetry(() => compositionRef.current?.deliverObservations() ?? Promise.resolve());
+    return scheduleObservationRetry(async () => { await Promise.all([compositionRef.current?.deliverObservations(), compositionRef.current?.deliverManualTasks()]); });
   }, [state.auth.status, state.accountId]);
 
   if (state.auth.status === "loading") {
     return <OnboardingEntryView state="loading" />;
   }
 
-  if (state.auth.status === "signed-out" && state.entry === "observation-create" && state.accountId && state.fieldId) {
+  if (state.auth.status === "signed-out" && (state.entry === "observation-create" || state.entry === "manual-task-create") && state.accountId && state.fieldId) {
     return <View style={styles.appScreen}>{renderObservationContextRoute(state, compositionRef.current)}</View>;
   }
 
@@ -120,12 +121,13 @@ export default function App() {
   if (state.entry === "today" && state.client && state.accountId) return <View style={styles.appScreen}>
     <TodayScreen key={state.accountId} client={state.client} accountId={state.accountId}
       store={compositionRef.current?.taskCompletionStore}
+      manualTaskStore={compositionRef.current?.manualTaskStore}
       coordinator={compositionRef.current?.getTaskCompletionCoordinator()}
       onOpenHistory={(fieldId, seasonId) => compositionRef.current?.showHistory(fieldId, seasonId)} />
     <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
   </View>;
   if (state.entry === "calendar" && state.client && state.accountId) return <View style={styles.appScreen}>
-    <CalendarScreen key={state.accountId} client={state.client} accountId={state.accountId} />
+    <CalendarScreen key={state.accountId} client={state.client} accountId={state.accountId} manualTaskStore={compositionRef.current?.manualTaskStore} />
     <PrimaryNavigation entry={state.entry} onNavigate={navigate} />
   </View>;
   if (state.entry === "history" && state.client && state.accountId && state.historyFieldId) return <View style={styles.appScreen}>
@@ -173,6 +175,10 @@ export function navigatePrimaryDestination(
 
 /** The production App renders the contextual observation and diary screens through this route seam. */
 export function renderObservationContextRoute(state: ProductionAppState, composition: ReturnType<typeof createAppComposition> | null) {
+  if (state.entry === "manual-task-create" && state.accountId && state.fieldId && state.diarySeasonId && composition) return <ManualTaskCreateScreen
+    accountId={state.accountId} fieldId={state.fieldId} seasonId={state.diarySeasonId} store={composition.manualTaskStore}
+    onBack={state.client ? () => composition.returnToFieldDiary() : undefined} onSignIn={!state.client ? () => composition.showSignIn() : undefined}
+    onPending={() => { void composition.deliverManualTasks(); }} />;
   if (state.entry === "observation-create" && state.accountId && state.fieldId) return <ObservationCreateScreen
     key={`${state.accountId ?? ""}:${state.fieldId}:${state.observationSeasonId ?? "field"}`}
     client={state.client ?? undefined} accountId={state.accountId} offlineStore={composition?.observationStore}
@@ -189,7 +195,8 @@ export function renderObservationContextRoute(state: ProductionAppState, composi
     onAddObservation={() => composition?.showObservationCreate(state.diaryFieldId!, state.diarySeasonId ?? undefined)}
     onAddIrrigation={() => composition?.showIrrigationCreate()}
     onAddExpense={() => composition?.showExpenseCreate()}
-    onAddHarvest={() => composition?.showHarvestCreate()} />;
+    onAddHarvest={() => composition?.showHarvestCreate()} manualTaskStore={composition?.manualTaskStore}
+    onAddManualTask={() => { void composition?.showManualTaskCreate(); }} />;
   if (state.entry === "irrigation-create" && state.client && state.diaryFieldId) return <IrrigationRecordCreateScreen
     key={`${state.accountId ?? ""}:${state.diaryFieldId}:irrigation`}
     client={state.client} fieldId={state.diaryFieldId} seasonId={state.diarySeasonId ?? undefined}

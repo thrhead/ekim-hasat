@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient } from "../../../../../packages/api-client/src/index";
 import { readFieldDiary, type DiaryPage, type DiaryEntry, type DiaryReadError } from "./diary-client";
 import type { ObservationCommand, ObservationCommandStore } from "./observation-command-store";
+import type { ManualTaskStore } from "../tasks/manual-task-store";
 
 export type FieldDiaryScreenProps = {
   client: ApiClient;
@@ -22,6 +23,8 @@ export type FieldDiaryScreenProps = {
   onAddExpense?: () => void;
   /** Supplied only from an active Season Diary route. */
   onAddHarvest?: () => void;
+  manualTaskStore?: Pick<ManualTaskStore, "saveContext"> & Partial<Pick<ManualTaskStore, "clearContext" | "list" | "subscribe">>;
+  onAddManualTask?: () => void;
 };
 
 export function FieldDiaryScreen(props: FieldDiaryScreenProps) {
@@ -38,7 +41,7 @@ export function reconcileObservationRows(entries: DiaryEntry[], local: Observati
   return [...entries, ...retained].sort((left, right) => compareDiaryEntries(left, right, timezone));
 }
 
-function FieldDiaryContent({ client, accountId, observationStore, fieldId, fieldName, seasonId, seasonName, harvestSaved, onBack, onAddObservation, onAddIrrigation, onAddExpense, onAddHarvest }: FieldDiaryScreenProps) {
+function FieldDiaryContent({ client, accountId, observationStore, manualTaskStore, fieldId, fieldName, seasonId, seasonName, harvestSaved, onBack, onAddObservation, onAddIrrigation, onAddExpense, onAddHarvest, onAddManualTask }: FieldDiaryScreenProps) {
   const [data, setData] = useState<DiaryPage | null>(null);
   const [localCommands, setLocalCommands] = useState<ObservationCommand[]>([]);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -46,6 +49,8 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expenseActionAvailable, setExpenseActionAvailable] = useState(false);
+  const [manualTaskAvailable, setManualTaskAvailable] = useState(false);
+  const [hasLocalTasks, setHasLocalTasks] = useState(false);
   const [retryCursor, setRetryCursor] = useState<string | undefined>();
   const generation = useRef(0);
   const inFlight = useRef(false);
@@ -124,6 +129,30 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
 
   const serverEntries = data?.items ?? [];
   const viewerRole = data?.viewerRole;
+  useEffect(() => {
+    let active = true;
+    const refresh = () => { if (accountId && seasonId && manualTaskStore?.list) void manualTaskStore.list(accountId).then(commands => {
+      if (active) setHasLocalTasks(commands.some(command => command.fieldId === fieldId && command.seasonId === seasonId));
+    }).catch(() => {}); };
+    refresh(); const unsubscribe = manualTaskStore?.subscribe?.(refresh);
+    return () => { active = false; unsubscribe?.(); };
+  }, [accountId, fieldId, seasonId, manualTaskStore]);
+  useEffect(() => {
+    let active = true;
+    setManualTaskAvailable(false);
+    if (!data || !accountId || !seasonId || !manualTaskStore || !onAddManualTask || accessDenied) return () => { active = false; };
+    void Promise.all([client.GET("/seasons/{seasonId}", { params: { path: { seasonId } } }), client.GET("/fields/{fieldId}", { params: { path: { fieldId } } })]).then(async ([result, fieldResult]) => {
+      const season = result.data;
+      if (!fieldResult.response.ok || !fieldResult.data || fieldResult.data.id !== fieldId || !fieldResult.data.name || !result.response.ok || !season || season.id !== seasonId || season.fieldId !== fieldId || season.viewerRole !== "OWNER" ||
+          (data.viewerRole !== undefined && data.viewerRole !== "OWNER") || season.status !== "ACTIVE" || season.plan.status !== "APPROVED") {
+        if ((result.response.ok && fieldResult.response.ok) || [401, 403, 404].includes(result.response.status) || [401, 403, 404].includes(fieldResult.response.status)) await manualTaskStore.clearContext?.(accountId, fieldId, seasonId);
+        return;
+      }
+      await manualTaskStore.saveContext(accountId, { fieldId, seasonId, role: "OWNER", seasonStatus: "ACTIVE", planStatus: "APPROVED", actualPlantingDate: season.sowingPlantingDate, businessTimezone: data.businessTimezone, ...(fieldResult.response.ok && fieldResult.data?.name ? { fieldName: fieldResult.data.name } : fieldName ? { fieldName } : {}), ...(season.cropDisplayName ? { seasonName: season.cropDisplayName } : {}) });
+      if (active) setManualTaskAvailable(true);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [client, data, accountId, fieldId, fieldName, seasonId, manualTaskStore, onAddManualTask, accessDenied]);
   const displayTimezone = data?.businessTimezone ?? localCommands.find((command) => command.state === "ACCEPTED")?.capturedBusinessTimezone ?? "UTC";
   const visibleRows = accessDenied ? [] : [
     ...reconcileObservationRows(serverEntries.filter((entry) => entry.kind === "OBSERVATION"), localCommands, displayTimezone),
@@ -154,6 +183,8 @@ function FieldDiaryContent({ client, accountId, observationStore, fieldId, field
     {onAddIrrigation && <Pressable accessibilityRole="button" accessibilityLabel="Sulama kaydı ekle" onPress={onAddIrrigation} style={styles.button}><Text>Sulama kaydı ekle</Text></Pressable>}
     {onAddExpense && expenseActionAvailable && <Pressable accessibilityRole="button" accessibilityLabel="Gider ekle" onPress={onAddExpense} style={styles.button}><Text>Gider ekle</Text></Pressable>}
     {onAddHarvest && seasonId && (viewerRole === "OWNER" || viewerRole === "WORKER") && <Pressable accessibilityRole="button" accessibilityLabel="Hasat ekle" onPress={onAddHarvest} style={styles.button}><Text>Hasat ekle</Text></Pressable>}
+    {onAddManualTask && manualTaskAvailable && <Pressable accessibilityRole="button" accessibilityLabel="Görev ekle" onPress={onAddManualTask} style={styles.button}><Text>Görev ekle</Text></Pressable>}
+    {onAddManualTask && !manualTaskAvailable && hasLocalTasks && <Pressable accessibilityRole="button" accessibilityLabel="Görev kayıtlarını görüntüle" onPress={onAddManualTask} style={styles.button}><Text>Görev kayıtlarını görüntüle</Text></Pressable>}
   </ScrollView>;
 }
 

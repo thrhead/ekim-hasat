@@ -33,6 +33,7 @@ export function CalendarTaskDetail({ task, onClose, saved = false, client, onAcc
         <DetailLine label="Tarla" value={task.fieldName} />
         <DetailLine label="Ürün" value={crop ?? "Ürün bilgisi mevcut değil"} />
         <DetailLine label="Bölge" value={region ?? "Bölge bilgisi mevcut değil"} />
+        {task.sourceKind && <DetailLine label="Görev kaynağı" value={task.sourceKind === "MANUAL" ? "Manuel görev" : "Onaylı şablon görevi"} />}
         <DetailLine label="Plan" value={planSource === "MANUAL" ? "Manuel plan" : planSource === "VALIDATED_TEMPLATE" ? "Onaylı şablon planı" : "Plan bilgisi mevcut değil"} />
         <Text style={styles.context}>Bu görev takvimdeki planlanan tarihine göre gösterilir.</Text>
         <TaskDateAdjustmentView taskId={task.taskId} taskTitle={task.title} flow={adjustmentFlow} disabled={saved}

@@ -17,6 +17,7 @@ const contracts = [
   { schema: "../../specs/011-irrigation-record-capture/contracts/irrigation-records.openapi.yaml", output: "./src/generated/irrigation-records-api.ts" },
   { schema: "../../specs/012-simple-expense-record-capture/contracts/expenses.openapi.yaml", output: "./src/generated/expenses-api.ts" },
   { schema: "../../specs/013-harvest-record-capture/contracts/harvests.openapi.yaml", output: "./src/generated/harvests-api.ts" },
+  { schema: "../../specs/014-active-season-manual-task-creation/contracts/manual-tasks.openapi.yaml", output: "./src/generated/manual-tasks-api.ts" },
 ];
 const normalizeLineEndings = (text: string) => text.replace(/\r\n/g, "\n");
 

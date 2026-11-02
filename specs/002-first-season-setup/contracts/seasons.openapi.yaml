@@ -381,12 +381,14 @@ components:
         cropDisplayName: { type: string }
         sowingPlantingDate: { type: string, format: date }
         status: { type: string, enum: [DRAFT, ACTIVE] }
+        viewerRole: { type: string, enum: [OWNER, WORKER, ADVISOR], description: Current server-resolved membership role; presentation context only. }
         version: { type: integer, minimum: 1 }
         plan:
           type: object
           required: [source, tasks]
           properties:
             source: { $ref: '#/components/schemas/PlanSource' }
+            status: { type: string, enum: [DRAFT, APPROVED], description: Server-resolved plan state; optional for older responses. }
             tasks:
               type: array
               items: { $ref: '#/components/schemas/PlanTask' }
@@ -417,6 +419,7 @@ components:
         plannedLocalDate: { type: string, format: date }
         taskVersion: { type: integer, minimum: 1, description: Base version for a completion command; additive for older clients. }
         sourceKind: { type: string, enum: [VALIDATED_TEMPLATE, MANUAL] }
+        templateVersionId: { type: [string, 'null'], format: uuid, description: Task-level provenance; null for post-activation manual tasks. }
     ApiError:
       type: object
       required: [error]

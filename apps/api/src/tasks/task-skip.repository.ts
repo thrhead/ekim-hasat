@@ -1,3 +1,4 @@
+import { resolveTaskOrigin } from "@ekim-hasat/domain/seasons/plan-task-mutations";
 import { createHash } from "node:crypto";
 import { NotFoundException } from "@nestjs/common";
 import type { VerifiedSubject } from "@ekim-hasat/domain/identity/auth-provider";
@@ -88,12 +89,12 @@ export class TaskSkipRepository {
         field: { business: { memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } } } }, ...afterFilter },
       orderBy: [{ skippedAt: "desc" }, { id: "desc" }], take,
       select: { id: true, skipId: true, plannedTaskId: true, seasonId: true, fieldId: true, skippedAt: true,
-        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } },
+        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, plannedTask: { select: { origin: true } }, seasonPlan: { select: { source: true, templateVersionId: true } } },
     });
     return rows.map((row) => ({ kind: "TASK_SKIPPED", id: row.id, skipId: row.skipId, taskId: row.plannedTaskId,
       seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
       plannedLocalDate: dateString(row.plannedLocalDateSnapshot), skippedAt: row.skippedAt.toISOString(),
-      sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId }));
+      ...provenance(row.plannedTask.origin, row.seasonPlan.source, row.seasonPlan.templateVersionId) }));
   }
 
   private async skipAttempt(identity: VerifiedSubject, taskId: string, baseTaskVersion: number, input: SkipTaskInput, recoverRace: boolean): Promise<TaskSkipOutcome> {
@@ -190,4 +191,9 @@ export class TaskSkipRepository {
         AND business_id = ${scope.businessId}::uuid AND status = 'ACTIVE' FOR UPDATE`;
     if (memberships.length !== 1) throw new BusinessScopeForbiddenError();
   }
+}
+
+function provenance(origin: string, source: string, template: string | null) {
+  const resolved = resolveTaskOrigin(origin as "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL", source as "MANUAL" | "VALIDATED_TEMPLATE", template);
+  return { sourceKind: resolved.source, templateVersionId: resolved.templateVersionId };
 }

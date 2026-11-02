@@ -41,6 +41,7 @@ export type PlannedTaskMinAggregateOutputType = {
   description: string | null
   plannedLocalDate: Date | null
   sourceTemplateTaskKey: string | null
+  origin: string | null
   version: number | null
 }
 
@@ -51,6 +52,7 @@ export type PlannedTaskMaxAggregateOutputType = {
   description: string | null
   plannedLocalDate: Date | null
   sourceTemplateTaskKey: string | null
+  origin: string | null
   version: number | null
 }
 
@@ -61,6 +63,7 @@ export type PlannedTaskCountAggregateOutputType = {
   description: number
   plannedLocalDate: number
   sourceTemplateTaskKey: number
+  origin: number
   version: number
   _all: number
 }
@@ -81,6 +84,7 @@ export type PlannedTaskMinAggregateInputType = {
   description?: true
   plannedLocalDate?: true
   sourceTemplateTaskKey?: true
+  origin?: true
   version?: true
 }
 
@@ -91,6 +95,7 @@ export type PlannedTaskMaxAggregateInputType = {
   description?: true
   plannedLocalDate?: true
   sourceTemplateTaskKey?: true
+  origin?: true
   version?: true
 }
 
@@ -101,6 +106,7 @@ export type PlannedTaskCountAggregateInputType = {
   description?: true
   plannedLocalDate?: true
   sourceTemplateTaskKey?: true
+  origin?: true
   version?: true
   _all?: true
 }
@@ -198,6 +204,7 @@ export type PlannedTaskGroupByOutputType = {
   description: string | null
   plannedLocalDate: Date
   sourceTemplateTaskKey: string | null
+  origin: string
   version: number
   _count: PlannedTaskCountAggregateOutputType | null
   _avg: PlannedTaskAvgAggregateOutputType | null
@@ -231,11 +238,13 @@ export type PlannedTaskWhereInput = {
   description?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
   plannedLocalDate?: Prisma.DateTimeFilter<"PlannedTask"> | Date | string
   sourceTemplateTaskKey?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
+  origin?: Prisma.StringFilter<"PlannedTask"> | string
   version?: Prisma.IntFilter<"PlannedTask"> | number
   seasonPlan?: Prisma.XOR<Prisma.SeasonPlanScalarRelationFilter, Prisma.SeasonPlanWhereInput>
   completion?: Prisma.XOR<Prisma.TaskCompletionNullableScalarRelationFilter, Prisma.TaskCompletionWhereInput> | null
   skip?: Prisma.XOR<Prisma.TaskSkipNullableScalarRelationFilter, Prisma.TaskSkipWhereInput> | null
   dateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
+  creationReceipt?: Prisma.XOR<Prisma.ManualTaskCreationReceiptNullableScalarRelationFilter, Prisma.ManualTaskCreationReceiptWhereInput> | null
 }
 
 export type PlannedTaskOrderByWithRelationInput = {
@@ -245,11 +254,13 @@ export type PlannedTaskOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   plannedLocalDate?: Prisma.SortOrder
   sourceTemplateTaskKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  origin?: Prisma.SortOrder
   version?: Prisma.SortOrder
   seasonPlan?: Prisma.SeasonPlanOrderByWithRelationInput
   completion?: Prisma.TaskCompletionOrderByWithRelationInput
   skip?: Prisma.TaskSkipOrderByWithRelationInput
   dateAdjustments?: Prisma.TaskDateAdjustmentOrderByRelationAggregateInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptOrderByWithRelationInput
 }
 
 export type PlannedTaskWhereUniqueInput = Prisma.AtLeast<{
@@ -263,11 +274,13 @@ export type PlannedTaskWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
   plannedLocalDate?: Prisma.DateTimeFilter<"PlannedTask"> | Date | string
   sourceTemplateTaskKey?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
+  origin?: Prisma.StringFilter<"PlannedTask"> | string
   version?: Prisma.IntFilter<"PlannedTask"> | number
   seasonPlan?: Prisma.XOR<Prisma.SeasonPlanScalarRelationFilter, Prisma.SeasonPlanWhereInput>
   completion?: Prisma.XOR<Prisma.TaskCompletionNullableScalarRelationFilter, Prisma.TaskCompletionWhereInput> | null
   skip?: Prisma.XOR<Prisma.TaskSkipNullableScalarRelationFilter, Prisma.TaskSkipWhereInput> | null
   dateAdjustments?: Prisma.TaskDateAdjustmentListRelationFilter
+  creationReceipt?: Prisma.XOR<Prisma.ManualTaskCreationReceiptNullableScalarRelationFilter, Prisma.ManualTaskCreationReceiptWhereInput> | null
 }, "id" | "id_seasonPlanId">
 
 export type PlannedTaskOrderByWithAggregationInput = {
@@ -277,6 +290,7 @@ export type PlannedTaskOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   plannedLocalDate?: Prisma.SortOrder
   sourceTemplateTaskKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  origin?: Prisma.SortOrder
   version?: Prisma.SortOrder
   _count?: Prisma.PlannedTaskCountOrderByAggregateInput
   _avg?: Prisma.PlannedTaskAvgOrderByAggregateInput
@@ -295,6 +309,7 @@ export type PlannedTaskScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"PlannedTask"> | string | null
   plannedLocalDate?: Prisma.DateTimeWithAggregatesFilter<"PlannedTask"> | Date | string
   sourceTemplateTaskKey?: Prisma.StringNullableWithAggregatesFilter<"PlannedTask"> | string | null
+  origin?: Prisma.StringWithAggregatesFilter<"PlannedTask"> | string
   version?: Prisma.IntWithAggregatesFilter<"PlannedTask"> | number
 }
 
@@ -304,11 +319,13 @@ export type PlannedTaskCreateInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   seasonPlan: Prisma.SeasonPlanCreateNestedOneWithoutTasksInput
   completion?: Prisma.TaskCompletionCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUncheckedCreateInput = {
@@ -318,10 +335,12 @@ export type PlannedTaskUncheckedCreateInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   completion?: Prisma.TaskCompletionUncheckedCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipUncheckedCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUpdateInput = {
@@ -330,11 +349,13 @@ export type PlannedTaskUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   seasonPlan?: Prisma.SeasonPlanUpdateOneRequiredWithoutTasksNestedInput
   completion?: Prisma.TaskCompletionUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateInput = {
@@ -344,10 +365,12 @@ export type PlannedTaskUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completion?: Prisma.TaskCompletionUncheckedUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUncheckedUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskCreateManyInput = {
@@ -357,6 +380,7 @@ export type PlannedTaskCreateManyInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
 }
 
@@ -366,6 +390,7 @@ export type PlannedTaskUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -376,6 +401,7 @@ export type PlannedTaskUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -401,6 +427,7 @@ export type PlannedTaskCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   plannedLocalDate?: Prisma.SortOrder
   sourceTemplateTaskKey?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   version?: Prisma.SortOrder
 }
 
@@ -415,6 +442,7 @@ export type PlannedTaskMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   plannedLocalDate?: Prisma.SortOrder
   sourceTemplateTaskKey?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   version?: Prisma.SortOrder
 }
 
@@ -425,6 +453,7 @@ export type PlannedTaskMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   plannedLocalDate?: Prisma.SortOrder
   sourceTemplateTaskKey?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   version?: Prisma.SortOrder
 }
 
@@ -479,6 +508,20 @@ export type PlannedTaskUncheckedUpdateManyWithoutSeasonPlanNestedInput = {
   deleteMany?: Prisma.PlannedTaskScalarWhereInput | Prisma.PlannedTaskScalarWhereInput[]
 }
 
+export type PlannedTaskCreateNestedOneWithoutCreationReceiptInput = {
+  create?: Prisma.XOR<Prisma.PlannedTaskCreateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedCreateWithoutCreationReceiptInput>
+  connectOrCreate?: Prisma.PlannedTaskCreateOrConnectWithoutCreationReceiptInput
+  connect?: Prisma.PlannedTaskWhereUniqueInput
+}
+
+export type PlannedTaskUpdateOneRequiredWithoutCreationReceiptNestedInput = {
+  create?: Prisma.XOR<Prisma.PlannedTaskCreateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedCreateWithoutCreationReceiptInput>
+  connectOrCreate?: Prisma.PlannedTaskCreateOrConnectWithoutCreationReceiptInput
+  upsert?: Prisma.PlannedTaskUpsertWithoutCreationReceiptInput
+  connect?: Prisma.PlannedTaskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PlannedTaskUpdateToOneWithWhereWithoutCreationReceiptInput, Prisma.PlannedTaskUpdateWithoutCreationReceiptInput>, Prisma.PlannedTaskUncheckedUpdateWithoutCreationReceiptInput>
+}
+
 export type PlannedTaskCreateNestedOneWithoutCompletionInput = {
   create?: Prisma.XOR<Prisma.PlannedTaskCreateWithoutCompletionInput, Prisma.PlannedTaskUncheckedCreateWithoutCompletionInput>
   connectOrCreate?: Prisma.PlannedTaskCreateOrConnectWithoutCompletionInput
@@ -527,10 +570,12 @@ export type PlannedTaskCreateWithoutSeasonPlanInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   completion?: Prisma.TaskCompletionCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUncheckedCreateWithoutSeasonPlanInput = {
@@ -539,10 +584,12 @@ export type PlannedTaskUncheckedCreateWithoutSeasonPlanInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   completion?: Prisma.TaskCompletionUncheckedCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipUncheckedCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskCreateOrConnectWithoutSeasonPlanInput = {
@@ -581,7 +628,80 @@ export type PlannedTaskScalarWhereInput = {
   description?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
   plannedLocalDate?: Prisma.DateTimeFilter<"PlannedTask"> | Date | string
   sourceTemplateTaskKey?: Prisma.StringNullableFilter<"PlannedTask"> | string | null
+  origin?: Prisma.StringFilter<"PlannedTask"> | string
   version?: Prisma.IntFilter<"PlannedTask"> | number
+}
+
+export type PlannedTaskCreateWithoutCreationReceiptInput = {
+  id?: string
+  title: string
+  description?: string | null
+  plannedLocalDate: Date | string
+  sourceTemplateTaskKey?: string | null
+  origin?: string
+  version?: number
+  seasonPlan: Prisma.SeasonPlanCreateNestedOneWithoutTasksInput
+  completion?: Prisma.TaskCompletionCreateNestedOneWithoutPlannedTaskInput
+  skip?: Prisma.TaskSkipCreateNestedOneWithoutPlannedTaskInput
+  dateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutPlannedTaskInput
+}
+
+export type PlannedTaskUncheckedCreateWithoutCreationReceiptInput = {
+  id?: string
+  seasonPlanId: string
+  title: string
+  description?: string | null
+  plannedLocalDate: Date | string
+  sourceTemplateTaskKey?: string | null
+  origin?: string
+  version?: number
+  completion?: Prisma.TaskCompletionUncheckedCreateNestedOneWithoutPlannedTaskInput
+  skip?: Prisma.TaskSkipUncheckedCreateNestedOneWithoutPlannedTaskInput
+  dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutPlannedTaskInput
+}
+
+export type PlannedTaskCreateOrConnectWithoutCreationReceiptInput = {
+  where: Prisma.PlannedTaskWhereUniqueInput
+  create: Prisma.XOR<Prisma.PlannedTaskCreateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedCreateWithoutCreationReceiptInput>
+}
+
+export type PlannedTaskUpsertWithoutCreationReceiptInput = {
+  update: Prisma.XOR<Prisma.PlannedTaskUpdateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedUpdateWithoutCreationReceiptInput>
+  create: Prisma.XOR<Prisma.PlannedTaskCreateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedCreateWithoutCreationReceiptInput>
+  where?: Prisma.PlannedTaskWhereInput
+}
+
+export type PlannedTaskUpdateToOneWithWhereWithoutCreationReceiptInput = {
+  where?: Prisma.PlannedTaskWhereInput
+  data: Prisma.XOR<Prisma.PlannedTaskUpdateWithoutCreationReceiptInput, Prisma.PlannedTaskUncheckedUpdateWithoutCreationReceiptInput>
+}
+
+export type PlannedTaskUpdateWithoutCreationReceiptInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  seasonPlan?: Prisma.SeasonPlanUpdateOneRequiredWithoutTasksNestedInput
+  completion?: Prisma.TaskCompletionUpdateOneWithoutPlannedTaskNestedInput
+  skip?: Prisma.TaskSkipUpdateOneWithoutPlannedTaskNestedInput
+  dateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutPlannedTaskNestedInput
+}
+
+export type PlannedTaskUncheckedUpdateWithoutCreationReceiptInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  seasonPlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  completion?: Prisma.TaskCompletionUncheckedUpdateOneWithoutPlannedTaskNestedInput
+  skip?: Prisma.TaskSkipUncheckedUpdateOneWithoutPlannedTaskNestedInput
+  dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutPlannedTaskNestedInput
 }
 
 export type PlannedTaskCreateWithoutCompletionInput = {
@@ -590,10 +710,12 @@ export type PlannedTaskCreateWithoutCompletionInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   seasonPlan: Prisma.SeasonPlanCreateNestedOneWithoutTasksInput
   skip?: Prisma.TaskSkipCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUncheckedCreateWithoutCompletionInput = {
@@ -603,9 +725,11 @@ export type PlannedTaskUncheckedCreateWithoutCompletionInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   skip?: Prisma.TaskSkipUncheckedCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskCreateOrConnectWithoutCompletionInput = {
@@ -630,10 +754,12 @@ export type PlannedTaskUpdateWithoutCompletionInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   seasonPlan?: Prisma.SeasonPlanUpdateOneRequiredWithoutTasksNestedInput
   skip?: Prisma.TaskSkipUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateWithoutCompletionInput = {
@@ -643,9 +769,11 @@ export type PlannedTaskUncheckedUpdateWithoutCompletionInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   skip?: Prisma.TaskSkipUncheckedUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskCreateWithoutSkipInput = {
@@ -654,10 +782,12 @@ export type PlannedTaskCreateWithoutSkipInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   seasonPlan: Prisma.SeasonPlanCreateNestedOneWithoutTasksInput
   completion?: Prisma.TaskCompletionCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUncheckedCreateWithoutSkipInput = {
@@ -667,9 +797,11 @@ export type PlannedTaskUncheckedCreateWithoutSkipInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   completion?: Prisma.TaskCompletionUncheckedCreateNestedOneWithoutPlannedTaskInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedCreateNestedManyWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskCreateOrConnectWithoutSkipInput = {
@@ -694,10 +826,12 @@ export type PlannedTaskUpdateWithoutSkipInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   seasonPlan?: Prisma.SeasonPlanUpdateOneRequiredWithoutTasksNestedInput
   completion?: Prisma.TaskCompletionUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateWithoutSkipInput = {
@@ -707,9 +841,11 @@ export type PlannedTaskUncheckedUpdateWithoutSkipInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completion?: Prisma.TaskCompletionUncheckedUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskCreateWithoutDateAdjustmentsInput = {
@@ -718,10 +854,12 @@ export type PlannedTaskCreateWithoutDateAdjustmentsInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   seasonPlan: Prisma.SeasonPlanCreateNestedOneWithoutTasksInput
   completion?: Prisma.TaskCompletionCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipCreateNestedOneWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskUncheckedCreateWithoutDateAdjustmentsInput = {
@@ -731,9 +869,11 @@ export type PlannedTaskUncheckedCreateWithoutDateAdjustmentsInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
   completion?: Prisma.TaskCompletionUncheckedCreateNestedOneWithoutPlannedTaskInput
   skip?: Prisma.TaskSkipUncheckedCreateNestedOneWithoutPlannedTaskInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedCreateNestedOneWithoutTaskInput
 }
 
 export type PlannedTaskCreateOrConnectWithoutDateAdjustmentsInput = {
@@ -758,10 +898,12 @@ export type PlannedTaskUpdateWithoutDateAdjustmentsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   seasonPlan?: Prisma.SeasonPlanUpdateOneRequiredWithoutTasksNestedInput
   completion?: Prisma.TaskCompletionUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUpdateOneWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateWithoutDateAdjustmentsInput = {
@@ -771,9 +913,11 @@ export type PlannedTaskUncheckedUpdateWithoutDateAdjustmentsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completion?: Prisma.TaskCompletionUncheckedUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUncheckedUpdateOneWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskCreateManySeasonPlanInput = {
@@ -782,6 +926,7 @@ export type PlannedTaskCreateManySeasonPlanInput = {
   description?: string | null
   plannedLocalDate: Date | string
   sourceTemplateTaskKey?: string | null
+  origin?: string
   version?: number
 }
 
@@ -791,10 +936,12 @@ export type PlannedTaskUpdateWithoutSeasonPlanInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completion?: Prisma.TaskCompletionUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateWithoutSeasonPlanInput = {
@@ -803,10 +950,12 @@ export type PlannedTaskUncheckedUpdateWithoutSeasonPlanInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   completion?: Prisma.TaskCompletionUncheckedUpdateOneWithoutPlannedTaskNestedInput
   skip?: Prisma.TaskSkipUncheckedUpdateOneWithoutPlannedTaskNestedInput
   dateAdjustments?: Prisma.TaskDateAdjustmentUncheckedUpdateManyWithoutPlannedTaskNestedInput
+  creationReceipt?: Prisma.ManualTaskCreationReceiptUncheckedUpdateOneWithoutTaskNestedInput
 }
 
 export type PlannedTaskUncheckedUpdateManyWithoutSeasonPlanInput = {
@@ -815,6 +964,7 @@ export type PlannedTaskUncheckedUpdateManyWithoutSeasonPlanInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   plannedLocalDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sourceTemplateTaskKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  origin?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -856,11 +1006,13 @@ export type PlannedTaskSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   description?: boolean
   plannedLocalDate?: boolean
   sourceTemplateTaskKey?: boolean
+  origin?: boolean
   version?: boolean
   seasonPlan?: boolean | Prisma.SeasonPlanDefaultArgs<ExtArgs>
   completion?: boolean | Prisma.PlannedTask$completionArgs<ExtArgs>
   skip?: boolean | Prisma.PlannedTask$skipArgs<ExtArgs>
   dateAdjustments?: boolean | Prisma.PlannedTask$dateAdjustmentsArgs<ExtArgs>
+  creationReceipt?: boolean | Prisma.PlannedTask$creationReceiptArgs<ExtArgs>
   _count?: boolean | Prisma.PlannedTaskCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plannedTask"]>
 
@@ -871,6 +1023,7 @@ export type PlannedTaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   description?: boolean
   plannedLocalDate?: boolean
   sourceTemplateTaskKey?: boolean
+  origin?: boolean
   version?: boolean
   seasonPlan?: boolean | Prisma.SeasonPlanDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plannedTask"]>
@@ -882,6 +1035,7 @@ export type PlannedTaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   description?: boolean
   plannedLocalDate?: boolean
   sourceTemplateTaskKey?: boolean
+  origin?: boolean
   version?: boolean
   seasonPlan?: boolean | Prisma.SeasonPlanDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plannedTask"]>
@@ -893,15 +1047,17 @@ export type PlannedTaskSelectScalar = {
   description?: boolean
   plannedLocalDate?: boolean
   sourceTemplateTaskKey?: boolean
+  origin?: boolean
   version?: boolean
 }
 
-export type PlannedTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "seasonPlanId" | "title" | "description" | "plannedLocalDate" | "sourceTemplateTaskKey" | "version", ExtArgs["result"]["plannedTask"]>
+export type PlannedTaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "seasonPlanId" | "title" | "description" | "plannedLocalDate" | "sourceTemplateTaskKey" | "origin" | "version", ExtArgs["result"]["plannedTask"]>
 export type PlannedTaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   seasonPlan?: boolean | Prisma.SeasonPlanDefaultArgs<ExtArgs>
   completion?: boolean | Prisma.PlannedTask$completionArgs<ExtArgs>
   skip?: boolean | Prisma.PlannedTask$skipArgs<ExtArgs>
   dateAdjustments?: boolean | Prisma.PlannedTask$dateAdjustmentsArgs<ExtArgs>
+  creationReceipt?: boolean | Prisma.PlannedTask$creationReceiptArgs<ExtArgs>
   _count?: boolean | Prisma.PlannedTaskCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PlannedTaskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -918,6 +1074,7 @@ export type $PlannedTaskPayload<ExtArgs extends runtime.Types.Extensions.Interna
     completion: Prisma.$TaskCompletionPayload<ExtArgs> | null
     skip: Prisma.$TaskSkipPayload<ExtArgs> | null
     dateAdjustments: Prisma.$TaskDateAdjustmentPayload<ExtArgs>[]
+    creationReceipt: Prisma.$ManualTaskCreationReceiptPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -926,6 +1083,7 @@ export type $PlannedTaskPayload<ExtArgs extends runtime.Types.Extensions.Interna
     description: string | null
     plannedLocalDate: Date
     sourceTemplateTaskKey: string | null
+    origin: string
     version: number
   }, ExtArgs["result"]["plannedTask"]>
   composites: {}
@@ -1325,6 +1483,7 @@ export interface Prisma__PlannedTaskClient<T, Null = never, ExtArgs extends runt
   completion<T extends Prisma.PlannedTask$completionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlannedTask$completionArgs<ExtArgs>>): Prisma.Prisma__TaskCompletionClient<runtime.Types.Result.GetResult<Prisma.$TaskCompletionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   skip<T extends Prisma.PlannedTask$skipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlannedTask$skipArgs<ExtArgs>>): Prisma.Prisma__TaskSkipClient<runtime.Types.Result.GetResult<Prisma.$TaskSkipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   dateAdjustments<T extends Prisma.PlannedTask$dateAdjustmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlannedTask$dateAdjustmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskDateAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  creationReceipt<T extends Prisma.PlannedTask$creationReceiptArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlannedTask$creationReceiptArgs<ExtArgs>>): Prisma.Prisma__ManualTaskCreationReceiptClient<runtime.Types.Result.GetResult<Prisma.$ManualTaskCreationReceiptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1360,6 +1519,7 @@ export interface PlannedTaskFieldRefs {
   readonly description: Prisma.FieldRef<"PlannedTask", 'String'>
   readonly plannedLocalDate: Prisma.FieldRef<"PlannedTask", 'DateTime'>
   readonly sourceTemplateTaskKey: Prisma.FieldRef<"PlannedTask", 'String'>
+  readonly origin: Prisma.FieldRef<"PlannedTask", 'String'>
   readonly version: Prisma.FieldRef<"PlannedTask", 'Int'>
 }
 
@@ -1821,6 +1981,25 @@ export type PlannedTask$dateAdjustmentsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.TaskDateAdjustmentScalarFieldEnum | Prisma.TaskDateAdjustmentScalarFieldEnum[]
+}
+
+/**
+ * PlannedTask.creationReceipt
+ */
+export type PlannedTask$creationReceiptArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManualTaskCreationReceipt
+   */
+  select?: Prisma.ManualTaskCreationReceiptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManualTaskCreationReceipt
+   */
+  omit?: Prisma.ManualTaskCreationReceiptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManualTaskCreationReceiptInclude<ExtArgs> | null
+  where?: Prisma.ManualTaskCreationReceiptWhereInput
 }
 
 /**

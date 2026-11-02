@@ -127,6 +127,11 @@ export type SeasonPlan = Prisma.SeasonPlanModel
  */
 export type PlannedTask = Prisma.PlannedTaskModel
 /**
+ * Model ManualTaskCreationReceipt
+ *
+ */
+export type ManualTaskCreationReceipt = Prisma.ManualTaskCreationReceiptModel
+/**
  * Model SeasonContextSnapshot
  *
  */

@@ -68,6 +68,7 @@ export const ModelName = {
   Season: 'Season',
   SeasonPlan: 'SeasonPlan',
   PlannedTask: 'PlannedTask',
+  ManualTaskCreationReceipt: 'ManualTaskCreationReceipt',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
   TaskSkip: 'TaskSkip',
@@ -325,10 +326,28 @@ export const PlannedTaskScalarFieldEnum = {
   description: 'description',
   plannedLocalDate: 'plannedLocalDate',
   sourceTemplateTaskKey: 'sourceTemplateTaskKey',
+  origin: 'origin',
   version: 'version'
 } as const
 
 export type PlannedTaskScalarFieldEnum = (typeof PlannedTaskScalarFieldEnum)[keyof typeof PlannedTaskScalarFieldEnum]
+
+
+export const ManualTaskCreationReceiptScalarFieldEnum = {
+  taskId: 'taskId',
+  mutationId: 'mutationId',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  seasonPlanId: 'seasonPlanId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  payloadFingerprint: 'payloadFingerprint',
+  acceptedResult: 'acceptedResult',
+  acceptedAt: 'acceptedAt'
+} as const
+
+export type ManualTaskCreationReceiptScalarFieldEnum = (typeof ManualTaskCreationReceiptScalarFieldEnum)[keyof typeof ManualTaskCreationReceiptScalarFieldEnum]
 
 
 export const SeasonContextSnapshotScalarFieldEnum = {

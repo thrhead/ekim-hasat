@@ -6,6 +6,8 @@ These are future implementation checks, not results of this planning gate.
 
 Use repo-pinned pnpm 10.17.1 and frozen dependencies; bootstrap a fresh Codex Cloud workspace with `scripts/bootstrap-codex-cloud.sh`. For any later writable database operation, first positively verify the effective database name is exactly `ekim_hasat_test` and the connection is the intended test instance. If either cannot be established, stop: do not migrate, seed, reset or run write-capable integration tests. Follow the repository integration-test setup only after this verification. Never target production. No migration or writable DB operation is authorized during planning.
 
+For implementation, each connection that can write must execute `SELECT current_database()` on that same connection before any write and abort unless the result is exactly `ekim_hasat_test`. Guard every newly acquired or reconnected pool connection as well as separate fixture, migration and SQL-runner connections; checking a URL or a different `psql` connection is insufficient. A migration tool or test runner that cannot enforce this on every writing connection must not be run until a connection-level guard is in place. In particular, do not run `apps/api/scripts/run-integration.mjs` without guarding all of its separate write paths. Read-only introspection may be used to investigate setup without performing writes.
+
 ## Automated checks after implementation
 
 ```sh

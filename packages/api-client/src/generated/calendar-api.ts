@@ -123,9 +123,19 @@ export type components = {
             seasonContext?: string;
             /** Format: uuid */
             seasonId: string;
+            /**
+             * @description Task origin; distinct from the plan source.
+             * @enum {string}
+             */
+            sourceKind?: "MANUAL" | "VALIDATED_TEMPLATE";
             /** Format: uuid */
             taskId: string;
             taskVersion?: number;
+            /**
+             * Format: uuid
+             * @description Task-level template provenance; null for manual tasks.
+             */
+            templateVersionId?: string | null;
             title: string;
         };
         CalendarTaskPage: components["schemas"]["CalendarTaskPageFirst"] & {

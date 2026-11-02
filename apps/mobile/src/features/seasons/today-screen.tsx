@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AppState, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ApiClient, SeasonOperations } from "../../api/onboarding-client";
 import { readTodayPlannedWork } from "./season-activation";
+import type { ManualTaskStore } from "../tasks/manual-task-store";
 import { belongsToBusinessToday, createTaskCompletionCommandStore, type TaskCompletionCommand, type TaskCompletionCommandStore, type TodaySnapshot } from "../tasks/task-completion-command-store";
 import { createTaskCompletionCoordinator } from "../tasks/task-completion";
 import { createTaskDateAdjustmentFlow } from "../tasks/task-date-adjustment";
@@ -16,13 +17,14 @@ type Today = SeasonOperations["getTodayPlannedTasks"]["responses"][200]["content
 type Task = Today["tasks"][number];
 export type TodayTaskState = "SAVING" | "PENDING" | "ACCEPTED" | "CONFLICTED" | "ACCESS_UNAVAILABLE";
 
-export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: suppliedStore, coordinator: suppliedCoordinator, getAuthorizationSession, now = () => new Date() }: {
+export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: suppliedStore, manualTaskStore, coordinator: suppliedCoordinator, getAuthorizationSession, now = () => new Date() }: {
   client: ApiClient;
   /** Authenticated account identity used only to partition local data. */
   accountId: string;
   onBack?: () => void;
   onOpenHistory?: (fieldId: string, seasonId?: string) => void;
   store?: TaskCompletionCommandStore;
+  manualTaskStore?: Pick<ManualTaskStore, "reconcileAccepted">;
   coordinator?: ReturnType<typeof createTaskCompletionCoordinator>;
   getAuthorizationSession?: () => Readonly<{ accountId: string; client: Pick<ApiClient, "POST"> }> | null;
   now?: () => Date;
@@ -64,6 +66,7 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
     setLoading(true); setError(null); setCached(false);
     try {
       const latest = await readTodayPlannedWork(client);
+      await manualTaskStore?.reconcileAccepted(accountId, latest.tasks.map(task => task.id)).catch(() => undefined);
       const snapshot: TodaySnapshot = { ...latest, fetchedAt: now().toISOString() };
       const visible = { ...latest, tasks: latest.tasks.filter((task) => !skippedTaskIds.current.has(task.id)) };
       for (const task of latest.tasks) skippedTaskIds.current.delete(task.id);
@@ -89,7 +92,7 @@ export function TodayScreen({ client, accountId, onBack, onOpenHistory, store: s
       }
     }
     finally { setLoading(false); }
-  }, [accountId, client, coordinator, now, refreshCommands, store]);
+  }, [accountId, client, coordinator, manualTaskStore, now, refreshCommands, store]);
 
   async function skipAccepted(result: TaskSkipResult) {
     setSkipNotice(null);

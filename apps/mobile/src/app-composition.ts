@@ -12,6 +12,8 @@ import { createTaskCompletionCommandStore, type TaskCompletionCommandStore } fro
 import { createTaskCompletionCoordinator } from "./features/tasks/task-completion";
 import type { FieldDetail } from "./features/fields/fields-client";
 import { createObservationCommandStore, type ObservationCommandStore } from "./features/observations/observation-command-store";
+import { createManualTaskStore, type ManualTaskStore } from "./features/tasks/manual-task-store";
+import { createManualTaskDelivery } from "./features/tasks/manual-task-delivery";
 import { createObservationDelivery } from "./features/observations/observation-delivery";
 
 type FirstFieldSummary = components["schemas"]["FirstFieldSummary"];
@@ -19,7 +21,7 @@ type CreateRequest = SeasonComponents["schemas"]["CreateSeasonDraftRequest"];
 
 export type ProductionAppState = Readonly<{
   auth: MobileAuthState;
-  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | "irrigation-create" | "expense-create" | "harvest-create" | OnboardingEntryRoute;
+  entry: "loading" | "status-error" | "season-setup" | "season-created" | "season-review" | "today" | "calendar" | "history" | "fields-list" | "field-detail" | "field-create" | "field-edit" | "observation-create" | "field-diary" | "irrigation-create" | "expense-create" | "harvest-create" | "manual-task-create" | OnboardingEntryRoute;
   client: ApiClient | null;
   accountId: string | null;
   fieldId: string | null;
@@ -51,6 +53,7 @@ export function createAppComposition(
     seasonCreateStore?: ReturnType<typeof createSeasonCreateCommandStore>;
     taskCompletionStore?: TaskCompletionCommandStore;
     observationStore?: ObservationCommandStore;
+    manualTaskStore?: ManualTaskStore;
   }> = {},
 ) {
   const draftLifecycle = options.draftLifecycle ?? createOnboardingDraftLifecycle({
@@ -59,6 +62,16 @@ export function createAppComposition(
   const seasonCreateStore = options.seasonCreateStore ?? createSeasonCreateCommandStore();
   const taskCompletionStore = options.taskCompletionStore ?? createTaskCompletionCommandStore();
   const observationStore = options.observationStore ?? createObservationCommandStore();
+  const manualTaskStore = options.manualTaskStore ?? createManualTaskStore();
+  const manualTaskDelivery = createManualTaskDelivery({ store: manualTaskStore, getAuthorizationSession: () => controller.getAuthenticatedApiSession() });
+  let manualAccountTransition: Promise<void> = Promise.resolve();
+  function setManualAccount(account: string | null) {
+    manualAccountTransition = manualAccountTransition.catch(() => {}).then(async () => {
+      if (account) await manualTaskStore.setAuthenticatedAccount(account);
+      else await manualTaskStore.clearActiveAccount();
+    });
+    return manualAccountTransition;
+  }
   const observationDelivery = createObservationDelivery({ store: observationStore,
     getAuthorizationSession: () => controller.getAuthenticatedApiSession() });
   let taskCompletionCoordinator: ReturnType<typeof createTaskCompletionCoordinator> | null = null;
@@ -189,9 +202,11 @@ export function createAppComposition(
         : draftLifecycle.signOut(previousAccountId);
       void cleanup.catch(() => {});
     }
-    if (!nextAccountId && controller.getRestorationOutcome() === "definitive-no-session") {
+    if (!nextAccountId && (previousAccountId || controller.getRestorationOutcome() === "definitive-no-session")) {
+      void setManualAccount(null).catch(() => {});
       void observationStore.clearActiveAccount().catch(() => {});
     }
+    if (nextAccountId) void setManualAccount(nextAccountId).then(() => manualTaskDelivery.deliver(nextAccountId)).catch(() => {});
     if (nextAccountId) void observationStore.setAuthenticatedAccount(nextAccountId)
       .then(() => observationDelivery.deliver(nextAccountId)).catch(() => {});
     statusRevision += 1;
@@ -208,10 +223,18 @@ export function createAppComposition(
     if (disposed || controller.getState().status !== "signed-out") return;
     const outcome = controller.getRestorationOutcome();
     if (outcome === "definitive-no-session") {
-      await observationStore.clearActiveAccount();
+      await Promise.all([observationStore.clearActiveAccount(), setManualAccount(null)]);
       return;
     }
     if (outcome !== "retryable-unavailable") return;
+    try {
+      const manualAccount = await manualTaskStore.getLocalCaptureAccount(outcome);
+      const manualContext = manualAccount ? (await manualTaskStore.getLastContext(manualAccount) ?? await manualTaskStore.getLastRetainedContext(manualAccount)) : null;
+      if (manualAccount && manualContext && !disposed && controller.getState().status === "signed-out") {
+        publish({ ...state, entry: "manual-task-create", accountId: manualAccount, fieldId: manualContext.fieldId, diaryFieldId: manualContext.fieldId, diarySeasonId: manualContext.seasonId, client: null });
+        return;
+      }
+    } catch { /* Existing offline observation recovery remains available. */ }
     const accountId = await observationStore.getLocalCaptureAccount(outcome);
     if (!accountId || disposed || controller.getState().status !== "signed-out") return;
     const context = await observationStore.getLastContext(accountId);
@@ -223,6 +246,16 @@ export function createAppComposition(
   return {
     taskCompletionStore,
     observationStore,
+    manualTaskStore,
+    deliverManualTasks() { const session = controller.getAuthenticatedApiSession(); return session ? manualTaskDelivery.deliver(session.accountId) : Promise.resolve(); },
+    async showManualTaskCreate() {
+      const { accountId, diaryFieldId, diarySeasonId } = state;
+      if (!accountId || !diaryFieldId || !diarySeasonId) return;
+      const context = await manualTaskStore.getContext(accountId, diaryFieldId, diarySeasonId);
+      const retained = context ? [] : await manualTaskStore.list(accountId);
+      if (!context && !retained.some(command => command.fieldId === diaryFieldId && command.seasonId === diarySeasonId)) return;
+      if (state.accountId === accountId && state.diaryFieldId === diaryFieldId && state.diarySeasonId === diarySeasonId) publish({ ...state, entry: "manual-task-create", fieldId: diaryFieldId });
+    },
     showSignIn() {
       statusRevision += 1;
       publish({ ...state, entry: "loading", client: null, accountId: null, fieldId: null,

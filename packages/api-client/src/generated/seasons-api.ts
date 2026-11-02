@@ -213,6 +213,11 @@ export type components = {
             id: string;
             plan: {
                 source: components["schemas"]["PlanSource"];
+                /**
+                 * @description Server-resolved plan state; optional for older responses.
+                 * @enum {string}
+                 */
+                status?: "DRAFT" | "APPROVED";
                 tasks: components["schemas"]["PlanTask"][];
             };
             /** Format: date */
@@ -220,6 +225,11 @@ export type components = {
             /** @enum {string} */
             status: "DRAFT" | "ACTIVE";
             version: number;
+            /**
+             * @description Current server-resolved membership role; presentation context only.
+             * @enum {string}
+             */
+            viewerRole?: "OWNER" | "WORKER" | "ADVISOR";
         };
         TodayPlannedTask: {
             cropDisplayName: string;
@@ -235,6 +245,11 @@ export type components = {
             sourceKind?: "VALIDATED_TEMPLATE" | "MANUAL";
             /** @description Base version for a completion command; additive for older clients. */
             taskVersion: number;
+            /**
+             * Format: uuid
+             * @description Task-level provenance; null for post-activation manual tasks.
+             */
+            templateVersionId?: string | null;
             title: string;
         };
     };

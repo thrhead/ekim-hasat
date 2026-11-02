@@ -52,6 +52,22 @@ function assertTaskDescription(value: unknown): string | null {
   return value;
 }
 
+/** Validate an operational task with the same rules used by draft plan tasks. */
+export function validateManualActiveTask(input: Readonly<{ title: unknown; description?: unknown; plannedLocalDate: unknown }>, actualPlantingDate: unknown) {
+  return {
+    title: assertTaskTitle(input.title),
+    description: assertTaskDescription(input.description),
+    plannedLocalDate: validatePlannedTaskDate(input.plannedLocalDate, actualPlantingDate),
+  };
+}
+
+/** Legacy tasks derive provenance from the plan, regardless of template task key. */
+export function resolveTaskOrigin(origin: "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL" | null | undefined, planSource: "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: string | null) {
+  return origin === "POST_ACTIVATION_MANUAL"
+    ? { source: "MANUAL" as const, templateVersionId: null }
+    : { source: planSource, templateVersionId };
+}
+
 function assertPlanOwnership(context: MutationContext): void {
   if (context.tasks.some((task) => task.seasonPlanId !== context.seasonPlanId)) {
     throw new PlanTaskMutationError("TASK_PLAN_MISMATCH", "A plan task belongs to a different plan.");

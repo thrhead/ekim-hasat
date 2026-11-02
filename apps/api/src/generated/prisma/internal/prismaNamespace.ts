@@ -414,6 +414,7 @@ export const ModelName = {
   Season: 'Season',
   SeasonPlan: 'SeasonPlan',
   PlannedTask: 'PlannedTask',
+  ManualTaskCreationReceipt: 'ManualTaskCreationReceipt',
   SeasonContextSnapshot: 'SeasonContextSnapshot',
   TaskCompletion: 'TaskCompletion',
   TaskSkip: 'TaskSkip',
@@ -441,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "irrigationRecord" | "expense" | "harvest" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
+    modelProps: "applicationUser" | "business" | "membership" | "field" | "weatherSnapshot" | "weatherRefreshState" | "weatherDailyForecast" | "fieldBoundaryVersion" | "fieldRegionContextVersion" | "onboardingCompletion" | "idempotencyRecord" | "cropDefinitionVersion" | "customCrop" | "validatedTemplateVersion" | "season" | "seasonPlan" | "plannedTask" | "manualTaskCreationReceipt" | "seasonContextSnapshot" | "taskCompletion" | "taskSkip" | "taskDateAdjustment" | "fieldObservation" | "irrigationRecord" | "expense" | "harvest" | "calendarReadSnapshot" | "calendarReadSnapshotTask" | "calendarReadCursor" | "businessCommandIdempotencyRecord"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1655,6 +1656,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ManualTaskCreationReceipt: {
+      payload: Prisma.$ManualTaskCreationReceiptPayload<ExtArgs>
+      fields: Prisma.ManualTaskCreationReceiptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ManualTaskCreationReceiptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ManualTaskCreationReceiptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        findFirst: {
+          args: Prisma.ManualTaskCreationReceiptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ManualTaskCreationReceiptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        findMany: {
+          args: Prisma.ManualTaskCreationReceiptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>[]
+        }
+        create: {
+          args: Prisma.ManualTaskCreationReceiptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        createMany: {
+          args: Prisma.ManualTaskCreationReceiptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ManualTaskCreationReceiptCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>[]
+        }
+        delete: {
+          args: Prisma.ManualTaskCreationReceiptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        update: {
+          args: Prisma.ManualTaskCreationReceiptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        deleteMany: {
+          args: Prisma.ManualTaskCreationReceiptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ManualTaskCreationReceiptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ManualTaskCreationReceiptUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>[]
+        }
+        upsert: {
+          args: Prisma.ManualTaskCreationReceiptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManualTaskCreationReceiptPayload>
+        }
+        aggregate: {
+          args: Prisma.ManualTaskCreationReceiptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateManualTaskCreationReceipt>
+        }
+        groupBy: {
+          args: Prisma.ManualTaskCreationReceiptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManualTaskCreationReceiptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ManualTaskCreationReceiptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManualTaskCreationReceiptCountAggregateOutputType> | number
+        }
+      }
+    }
     SeasonContextSnapshot: {
       payload: Prisma.$SeasonContextSnapshotPayload<ExtArgs>
       fields: Prisma.SeasonContextSnapshotFieldRefs
@@ -2809,10 +2884,28 @@ export const PlannedTaskScalarFieldEnum = {
   description: 'description',
   plannedLocalDate: 'plannedLocalDate',
   sourceTemplateTaskKey: 'sourceTemplateTaskKey',
+  origin: 'origin',
   version: 'version'
 } as const
 
 export type PlannedTaskScalarFieldEnum = (typeof PlannedTaskScalarFieldEnum)[keyof typeof PlannedTaskScalarFieldEnum]
+
+
+export const ManualTaskCreationReceiptScalarFieldEnum = {
+  taskId: 'taskId',
+  mutationId: 'mutationId',
+  businessId: 'businessId',
+  fieldId: 'fieldId',
+  seasonId: 'seasonId',
+  seasonPlanId: 'seasonPlanId',
+  actorUserId: 'actorUserId',
+  actorMembershipId: 'actorMembershipId',
+  payloadFingerprint: 'payloadFingerprint',
+  acceptedResult: 'acceptedResult',
+  acceptedAt: 'acceptedAt'
+} as const
+
+export type ManualTaskCreationReceiptScalarFieldEnum = (typeof ManualTaskCreationReceiptScalarFieldEnum)[keyof typeof ManualTaskCreationReceiptScalarFieldEnum]
 
 
 export const SeasonContextSnapshotScalarFieldEnum = {
@@ -3359,6 +3452,7 @@ export type GlobalOmitConfig = {
   season?: Prisma.SeasonOmit
   seasonPlan?: Prisma.SeasonPlanOmit
   plannedTask?: Prisma.PlannedTaskOmit
+  manualTaskCreationReceipt?: Prisma.ManualTaskCreationReceiptOmit
   seasonContextSnapshot?: Prisma.SeasonContextSnapshotOmit
   taskCompletion?: Prisma.TaskCompletionOmit
   taskSkip?: Prisma.TaskSkipOmit

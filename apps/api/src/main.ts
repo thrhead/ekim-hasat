@@ -20,6 +20,9 @@ import { SeasonPlanTaskRepository } from "./seasons/seasons-plan-task.repository
 import { createSeasonPlanTaskModule } from "./seasons/seasons-plan-task.controller.js";
 import { SeasonActivationRepository } from "./seasons/seasons-activation.repository.js";
 import { createSeasonActivationModule } from "./seasons/seasons-activation.controller.js";
+import { ManualActiveTaskRepository } from "./seasons/manual-active-task.repository.js";
+import { ManualActiveTaskService } from "./seasons/manual-active-task.service.js";
+import { createManualActiveTaskModule } from "./seasons/manual-active-task.controller.js";
 import { TodayRepository } from "./seasons/today.repository.js";
 import { TaskCompletionRepository } from "./tasks/task-completion.repository.js";
 import { TaskCompletionService } from "./tasks/task-completion.service.js";
@@ -89,6 +92,7 @@ async function bootstrap(): Promise<void> {
   const seasonCreateRepository = new SeasonCreateRepository(prisma);
   const seasonPlanTaskRepository = new SeasonPlanTaskRepository(prisma);
   const seasonActivationRepository = new SeasonActivationRepository(prisma);
+  const manualTaskService = new ManualActiveTaskService(new ManualActiveTaskRepository(prisma));
   const todayRepository = new TodayRepository(prisma);
   const taskCompletionRepository = new TaskCompletionRepository(prisma);
   const taskSkipRepository = new TaskSkipRepository(prisma);
@@ -128,6 +132,7 @@ async function bootstrap(): Promise<void> {
     editTask: (identity, seasonId, taskId, expectedVersion, body) => seasonPlanTaskRepository.editTask(identity, seasonId, taskId, expectedVersion, body),
     removeTask: (identity, seasonId, taskId, expectedVersion) => seasonPlanTaskRepository.removeTask(identity, seasonId, taskId, expectedVersion),
   });
+  const manualTaskModule = createManualActiveTaskModule({ verify, create: (identity, seasonId, input) => manualTaskService.create(identity, seasonId, input) });
   const seasonActivationModule = createSeasonActivationModule({
     verify,
     activate: (identity, seasonId, expectedVersion, key) => seasonActivationRepository.activate(identity, seasonId, expectedVersion, key),
@@ -191,7 +196,7 @@ async function bootstrap(): Promise<void> {
     readPage: (identity, request) => calendarPagesService.read(identity, request),
   });
   const app = await NestFactory.create<NestFastifyApplication>(
-    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, todayModule, taskCompletionModule, taskSkipModule, taskDateAdjustmentModule, observationModule, harvestsModule, irrigationRecordsModule, expensesModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
+    { module: ApiModule, imports: [onboardingStatusModule, onboardingCompletionModule, seasonReadModule, seasonCreateModule, seasonPlanTaskModule, seasonActivationModule, manualTaskModule, todayModule, taskCompletionModule, taskSkipModule, taskDateAdjustmentModule, observationModule, harvestsModule, irrigationRecordsModule, expensesModule, weatherModule, fieldsModule, regionsModule, calendarModule] },
     new FastifyAdapter(),
   );
   configureApiObservability(app);

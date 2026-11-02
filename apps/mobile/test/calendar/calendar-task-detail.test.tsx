@@ -82,3 +82,16 @@ describe("Calendar read-only task detail", () => {
     for (const forbidden of ["Tamamla", "Düzenle", "Atla", "Tarihi değiştir"]) expect(tree).not.toContain(forbidden);
   });
 });
+
+it("identifies a manual task separately from its validated plan in live and saved detail", async () => {
+  for (const saved of [false, true]) {
+    let screen!: ReturnType<typeof create>;
+    const manual = { ...task, sourceKind: "MANUAL" as const, templateVersionId: null, taskVersion: 1,
+      planContext: JSON.stringify({ source: "VALIDATED_TEMPLATE", approvedPlan: {} }) };
+    await act(async () => { screen = create(createElement(CalendarTaskDetail, { task: manual, onClose: jest.fn(), saved, client: {} as ApiClient, onAccepted: jest.fn() })); });
+    const tree = JSON.stringify((screen as unknown as { toJSON(): unknown }).toJSON());
+    expect(tree).toContain("Manuel görev");
+    expect(tree).toContain("Onaylı şablon planı");
+    if (!saved) expect(tree).toContain("Ertele veya yeniden planla");
+  }
+});

@@ -104,6 +104,9 @@ export class CalendarPagesService {
           seasonId: row.seasonId,
           seasonContext: JSON.stringify(row.seasonContext),
           planContext: JSON.stringify(row.planContext),
+          ...(row.planContext && typeof row.planContext === "object" && !Array.isArray(row.planContext)
+            && (row.planContext.taskSourceKind === "MANUAL" || row.planContext.taskSourceKind === "VALIDATED_TEMPLATE")
+            ? { sourceKind: row.planContext.taskSourceKind, templateVersionId: typeof row.planContext.taskTemplateVersionId === "string" ? row.planContext.taskTemplateVersionId : null } : {}),
           ...(row.taskVersion === null ? {} : { taskVersion: row.taskVersion }),
           overdue: row.overdue,
         })),

@@ -1,3 +1,4 @@
+import { resolveTaskOrigin } from "@ekim-hasat/domain/seasons/plan-task-mutations";
 import { createHash } from "node:crypto";
 import { NotFoundException } from "@nestjs/common";
 import type { VerifiedSubject } from "@ekim-hasat/domain/identity/auth-provider";
@@ -73,6 +74,7 @@ function fingerprint(taskId: string, occurredAt: string, version: number): strin
 }
 
 type CompletionRow = Prisma.TaskCompletionGetPayload<{ include: {
+  plannedTask: { select: { origin: true } };
   season: { include: { snapshot: true; plan: true; business: { select: { timezone: true } } } };
 } }>;
 
@@ -101,7 +103,7 @@ export class TaskCompletionRepository {
         } } }, include: { skip: { select: { id: true } }, seasonPlan: { include: { season: { include: { snapshot: true, business: { select: { timezone: true } } } } } } } });
         if (!task) throw new NotFoundException();
 
-        const existingById = await tx.taskCompletion.findUnique({ where: { id: input.completionId }, include: { season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
+        const existingById = await tx.taskCompletion.findUnique({ where: { id: input.completionId }, include: { plannedTask: { select: { origin: true } }, season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
         if (existingById) {
           if (existingById.plannedTaskId !== taskId || existingById.payloadFingerprint !== payloadFingerprint ||
               existingById.actorUserId !== scope.userId || existingById.businessId !== scope.businessId || existingById.seasonId !== task.seasonPlan.seasonId) {
@@ -123,7 +125,7 @@ export class TaskCompletionRepository {
           fieldId: season.fieldId, businessId: scope.businessId, actorUserId: scope.userId, actorMembershipId: scope.membershipId,
           occurredAt: new Date(input.occurredAt), recordedAt: this.now(), baseTaskVersion, payloadFingerprint,
           taskTitleSnapshot: task.title, plannedLocalDateSnapshot: task.plannedLocalDate,
-        }, include: { season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
+        }, include: { plannedTask: { select: { origin: true } }, season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
         return { kind: "accepted", completion: this.toPublic(row) };
       }, { isolationLevel: "ReadCommitted" });
     } catch (error) {
@@ -162,7 +164,7 @@ export class TaskCompletionRepository {
       },
       orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
       select: { id: true, plannedTaskId: true, seasonId: true, fieldId: true, occurredAt: true, plannedLocalDateSnapshot: true,
-        taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } },
+        taskTitleSnapshot: true, plannedTask: { select: { origin: true } }, seasonPlan: { select: { source: true, templateVersionId: true } } },
     });
     const hasNext = rows.length > limit;
     const pageRows = rows.slice(0, limit);
@@ -170,8 +172,7 @@ export class TaskCompletionRepository {
     const items = pageRows.map((row) => ({
       id: row.id, taskId: row.plannedTaskId, seasonId: row.seasonId, fieldId: row.fieldId,
       title: row.taskTitleSnapshot, plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10),
-      occurredAt: row.occurredAt.toISOString(), sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE",
-      templateVersionId: row.seasonPlan.templateVersionId, businessTimezone: timezone,
+      occurredAt: row.occurredAt.toISOString(), ...provenance(row.plannedTask.origin, row.seasonPlan.source, row.seasonPlan.templateVersionId), businessTimezone: timezone,
     }));
     const last = pageRows.at(-1);
     return {
@@ -210,22 +211,22 @@ export class TaskCompletionRepository {
       this.prisma.taskCompletion.findMany({ where: { ...common, ...afterFilter("TASK_COMPLETION", "occurredAt") },
         orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take: limit + 1,
         select: { id: true, plannedTaskId: true, seasonId: true, fieldId: true, occurredAt: true, plannedLocalDateSnapshot: true,
-          taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
+          taskTitleSnapshot: true, plannedTask: { select: { origin: true } }, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
       this.prisma.taskSkip.findMany({ where: { ...common, ...afterFilter("TASK_SKIPPED", "skippedAt") },
         orderBy: [{ skippedAt: "desc" }, { id: "desc" }], take: limit + 1,
         select: { id: true, skipId: true, plannedTaskId: true, seasonId: true, fieldId: true, skippedAt: true,
-          plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
+          plannedLocalDateSnapshot: true, taskTitleSnapshot: true, plannedTask: { select: { origin: true } }, seasonPlan: { select: { source: true, templateVersionId: true } } } }),
     ]);
     const timezone = resolveBusinessTimezone(business.timezone);
     const merged: TaskOutcomeHistoryEntry[] = [
       ...completions.map((row) => ({ kind: "TASK_COMPLETION" as const, id: row.id, taskId: row.plannedTaskId,
         seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
         plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10), occurredAt: row.occurredAt.toISOString(),
-        sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId })),
+        ...provenance(row.plannedTask.origin, row.seasonPlan.source, row.seasonPlan.templateVersionId) })),
       ...skips.map((row) => ({ kind: "TASK_SKIPPED" as const, id: row.id, skipId: row.skipId, taskId: row.plannedTaskId,
         seasonId: row.seasonId, fieldId: row.fieldId, title: row.taskTitleSnapshot,
         plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10), skippedAt: row.skippedAt.toISOString(),
-        sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", templateVersionId: row.seasonPlan.templateVersionId })),
+        ...provenance(row.plannedTask.origin, row.seasonPlan.source, row.seasonPlan.templateVersionId) })),
     ];
     const eventAt = (entry: TaskOutcomeHistoryEntry) => entry.kind === "TASK_SKIPPED" ? entry.skippedAt : entry.occurredAt;
     merged.sort((left, right) => Date.parse(eventAt(right)) - Date.parse(eventAt(left))
@@ -261,12 +262,11 @@ export class TaskCompletionRepository {
         ...afterFilter },
       orderBy: [{ occurredAt: "desc" }, { id: "desc" }], take,
       select: { id: true, plannedTaskId: true, seasonId: true, fieldId: true, occurredAt: true,
-        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, seasonPlan: { select: { source: true, templateVersionId: true } } },
+        plannedLocalDateSnapshot: true, taskTitleSnapshot: true, plannedTask: { select: { origin: true } }, seasonPlan: { select: { source: true, templateVersionId: true } } },
     });
     return rows.map((row) => ({ id: row.id, taskId: row.plannedTaskId, seasonId: row.seasonId, fieldId: row.fieldId,
       title: row.taskTitleSnapshot, plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10),
-      occurredAt: row.occurredAt.toISOString(), sourceKind: row.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE",
-      templateVersionId: row.seasonPlan.templateVersionId }));
+      occurredAt: row.occurredAt.toISOString(), ...provenance(row.plannedTask.origin, row.seasonPlan.source, row.seasonPlan.templateVersionId) }));
   }
 
   private async recoverUniqueConflict(identity: VerifiedSubject, scope: { userId: string; businessId: string; membershipId: string }, taskId: string,
@@ -286,7 +286,7 @@ export class TaskCompletionRepository {
       const byId = await tx.taskCompletion.findUnique({ where: { id: input.completionId } });
       if (byId) {
         if (byId.plannedTaskId === taskId && byId.payloadFingerprint === payloadFingerprint && byId.actorUserId === scope.userId && byId.businessId === scope.businessId && byId.seasonId === task.seasonPlan.seasonId && task.seasonPlan.season.status === "ACTIVE" && task.seasonPlan.status === "APPROVED" && !!task.seasonPlan.season.snapshot) {
-          const row = await tx.taskCompletion.findUniqueOrThrow({ where: { id: input.completionId }, include: { season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
+          const row = await tx.taskCompletion.findUniqueOrThrow({ where: { id: input.completionId }, include: { plannedTask: { select: { origin: true } }, season: { include: { snapshot: true, plan: true, business: { select: { timezone: true } } } } } });
           return { kind: "replayed", completion: this.toPublic(row) };
         }
         throw new TaskCompletionError("IDEMPOTENCY_KEY_REUSED");
@@ -318,7 +318,12 @@ export class TaskCompletionRepository {
     if (source !== "MANUAL" && source !== "VALIDATED_TEMPLATE") throw new Error("Accepted completion has invalid plan source");
     return { id: row.id, taskId: row.plannedTaskId, seasonId: row.seasonId, fieldId: row.fieldId,
       title: row.taskTitleSnapshot, plannedLocalDate: row.plannedLocalDateSnapshot.toISOString().slice(0, 10),
-      occurredAt: row.occurredAt.toISOString(), sourceKind: source, templateVersionId: row.season.snapshot?.templateVersionId ?? null,
+      occurredAt: row.occurredAt.toISOString(), ...provenance(row.plannedTask.origin, source, row.season.snapshot?.templateVersionId ?? null),
       businessTimezone: row.season.snapshot?.businessTimezone ?? row.season.business.timezone ?? "Europe/Istanbul" };
   }
+}
+
+function provenance(origin: string, source: string, template: string | null) {
+  const resolved = resolveTaskOrigin(origin as "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL", source as "MANUAL" | "VALIDATED_TEMPLATE", template);
+  return { sourceKind: resolved.source, templateVersionId: resolved.templateVersionId };
 }

@@ -6,6 +6,7 @@ import type { AuthorizedBusinessScope } from "../authorization/membership-scope.
 import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
 import { CalendarCursorRepository } from "./calendar-cursor.repository.js";
 import { resolveCalendarDates } from "./calendar-date.js";
+import { resolveTaskOrigin } from "@ekim-hasat/domain/seasons/plan-task-mutations";
 
 export type CalendarTaskGroup = "selectedDateTasks" | "overdueTasks";
 
@@ -23,8 +24,10 @@ type CalendarTaskReadRow = {
   description: string | null;
   plannedLocalDate: Date;
   version: number;
+  origin: string;
   seasonPlan: {
     source: string;
+    templateVersionId: string | null;
     sourceSnapshot: Prisma.JsonValue;
     season: {
       id: string;
@@ -117,9 +120,11 @@ export class CalendarReadRepository {
         description: true,
         plannedLocalDate: true,
         version: true,
+        origin: true,
         seasonPlan: {
           select: {
             source: true,
+            templateVersionId: true,
             sourceSnapshot: true,
             season: {
               select: {
@@ -189,7 +194,9 @@ export class CalendarReadRepository {
           crop: task.seasonPlan.season.snapshot?.cropSnapshot ?? {},
           region: task.seasonPlan.season.snapshot?.regionContext ?? null,
         },
-        planContext: { source: task.seasonPlan.source, approvedPlan: task.seasonPlan.sourceSnapshot },
+        planContext: { source: task.seasonPlan.source, approvedPlan: task.seasonPlan.sourceSnapshot,
+          taskSourceKind: resolveTaskOrigin(task.origin as "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL", task.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", task.seasonPlan.templateVersionId).source,
+          taskTemplateVersionId: resolveTaskOrigin(task.origin as "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL", task.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", task.seasonPlan.templateVersionId).templateVersionId },
         overdue: dateContext.isOverdue(task.plannedLocalDate.toISOString().slice(0, 10)),
       }));
       const groups = partitionCalendarProjectionRows(projected, dateContext);
@@ -286,6 +293,8 @@ export class CalendarReadRepository {
             seasonId: task.seasonId,
             seasonContext: JSON.stringify(task.seasonContext),
             planContext: JSON.stringify(task.planContext),
+            sourceKind: task.planContext.taskSourceKind,
+            templateVersionId: task.planContext.taskTemplateVersionId,
             taskVersion: task.taskVersion,
             overdue: task.overdue,
           })),

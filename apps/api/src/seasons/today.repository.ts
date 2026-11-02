@@ -4,6 +4,7 @@ import type { PrismaClient } from "../generated/prisma/client.js";
 import { BusinessScopeForbiddenError, MembershipScopeService } from "../authorization/membership-scope.service.js";
 import { businessLocalDate, resolveBusinessTimezone } from "./business-timezone.js";
 import type { TodayPlannedTasksResponse } from "./today.controller.js";
+import { resolveTaskOrigin } from "@ekim-hasat/domain/seasons/plan-task-mutations";
 
 export { businessLocalDate, FALLBACK_BUSINESS_TIMEZONE } from "./business-timezone.js";
 
@@ -28,7 +29,7 @@ export class TodayRepository {
         memberships: { some: { id: scope.membershipId, userId: scope.userId, status: "ACTIVE" } },
       } },
     } }, orderBy: [{ plannedLocalDate: "asc" }, { id: "asc" }], select: {
-      id: true, title: true, plannedLocalDate: true, version: true, seasonPlan: { select: { source: true, season: { select: {
+      id: true, title: true, plannedLocalDate: true, version: true, origin: true, seasonPlan: { select: { source: true, templateVersionId: true, season: { select: {
         id: true, fieldId: true, cropDefinitionVersion: { select: { displayName: true } }, customCrop: { select: { displayName: true } },
       } } } },
     } });
@@ -36,8 +37,9 @@ export class TodayRepository {
       const season = task.seasonPlan.season;
       const cropDisplayName = season.cropDefinitionVersion?.displayName ?? season.customCrop?.displayName;
       if (!cropDisplayName || !["MANUAL", "VALIDATED_TEMPLATE"].includes(task.seasonPlan.source)) throw new Error("Today task integrity failure");
+      const origin = resolveTaskOrigin(task.origin as "PLAN_DERIVED" | "POST_ACTIVATION_MANUAL", task.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE", task.seasonPlan.templateVersionId);
       return { id: task.id, seasonId: season.id, fieldId: season.fieldId, cropDisplayName, title: task.title, taskVersion: task.version,
-        plannedLocalDate: task.plannedLocalDate.toISOString().slice(0, 10), sourceKind: task.seasonPlan.source as "MANUAL" | "VALIDATED_TEMPLATE" };
+        plannedLocalDate: task.plannedLocalDate.toISOString().slice(0, 10), sourceKind: origin.source, templateVersionId: origin.templateVersionId };
     }) };
   }
 }

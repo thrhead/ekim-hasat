@@ -13,12 +13,13 @@ import { canUseCalendarSavedView } from "./calendar-offline-policy";
 import { createTaskCompletionCommandStore } from "../tasks/task-completion-command-store";
 import type { TaskCompletionCommandStore } from "../tasks/task-completion-command-store";
 import type { TaskSkipResult } from "../tasks/task-skip";
+import type { ManualTaskStore } from "../tasks/manual-task-store";
 
 type CalendarTask = CalendarComponents["schemas"]["CalendarTask"];
 type SavedViewStore = ReturnType<typeof createCalendarSavedViewStore>;
 const defaultSavedViewStore = createCalendarSavedViewStore();
 
-export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore, todayStore: suppliedTodayStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore; todayStore?: TaskCompletionCommandStore }) {
+export function CalendarScreen({ client, accountId, savedViewStore = defaultSavedViewStore, todayStore: suppliedTodayStore, manualTaskStore }: { client: ApiClient; accountId: string; savedViewStore?: SavedViewStore; todayStore?: TaskCompletionCommandStore; manualTaskStore?: Pick<ManualTaskStore, "reconcileAccepted"> }) {
   const [data, setData] = useState<CalendarRead | null>(null);
   const todayStore = useMemo(() => suppliedTodayStore ?? createTaskCompletionCommandStore(), [suppliedTodayStore]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
       // The initial view deliberately omits selectedDate; the server owns Business-local today.
       const read = await readCalendar(client, requestBody);
       if (!requestState.current.acceptRead(request, read)) return;
+      void manualTaskStore?.reconcileAccepted(accountId, [...read.selectedDateTasksPage.items, ...read.overdueTasksPage.items].map(task => task.taskId)).catch(() => undefined);
       void savedViewStore.stageInitialRead(accountId, read).catch(() => undefined);
       setData(read);
       setSelectedFieldId(requestBody.fieldId);
@@ -81,7 +83,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
     } finally {
       if (requestState.current.isCurrent(request)) setLoading(false);
     }
-  }, [client, accountId, savedViewStore]);
+  }, [client, accountId, manualTaskStore, savedViewStore]);
 
   const loadMore = useCallback(async (group: CalendarTaskGroup) => {
     if (!data || loadingGroups.has(group)) return;
@@ -101,6 +103,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
         || page.requestedCursor !== cursor) return;
       const existingIds = new Set(firstPage.items.map(({ taskId }) => taskId));
       if (page.items.some(({ taskId }) => existingIds.has(taskId))) throw new Error("Calendar page repeated a task");
+      void manualTaskStore?.reconcileAccepted(accountId, page.items.map(task => task.taskId)).catch(() => undefined);
       void savedViewStore.appendPage(accountId, page).catch(() => undefined);
       setData((current) => {
         if (!current || current.readId !== data.readId) return current;
@@ -130,7 +133,7 @@ export function CalendarScreen({ client, accountId, savedViewStore = defaultSave
         setLoadingGroups((current) => { const next = new Set(current); next.delete(group); return next; });
       }
     }
-  }, [accountId, client, data, load, loadingGroups, savedViewStore]);
+  }, [accountId, client, data, load, loadingGroups, manualTaskStore, savedViewStore]);
 
   useEffect(() => {
     void load();
